@@ -1,4 +1,4 @@
--- DFX Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v41.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v42.0.0)
 -- Developer: Tahbah (Dms921)
 
 local CoreGui = game:GetService("CoreGui")
@@ -12,16 +12,16 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local LocalPlayer = Players.LocalPlayer
 local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if parent:FindFirstChild("DFXProV41UI") then parent.DFXProV41UI:Destroy() end
-if parent:FindFirstChild("DFXAdminBroadcastGui") then parent.DFXAdminBroadcastGui:Destroy() end
-if parent:FindFirstChild("DFXTopChatGui") then parent.DFXTopChatGui:Destroy() end
-if parent:FindFirstChild("DFXLoadingGui") then parent.DFXLoadingGui:Destroy() end
-if parent:FindFirstChild("DFXBanScreenGui") then parent.DFXBanScreenGui:Destroy() end
-if parent:FindFirstChild("DFXVoteBannerGui") then parent.DFXVoteBannerGui:Destroy() end
-if parent:FindFirstChild("DFXEventWidgetGui") then parent.DFXEventWidgetGui:Destroy() end
-if parent:FindFirstChild("DFXReloadWidgetGui") then parent.DFXReloadWidgetGui:Destroy() end
+if parent:FindFirstChild("KEONProV42UI") then parent.KEONProV42UI:Destroy() end
+if parent:FindFirstChild("KEONAdminBroadcastGui") then parent.KEONAdminBroadcastGui:Destroy() end
+if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
+if parent:FindFirstChild("KEONLoadingGui") then parent.KEONLoadingGui:Destroy() end
+if parent:FindFirstChild("KEONBanScreenGui") then parent.KEONBanScreenGui:Destroy() end
+if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
+if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
+if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "DFX_Config_v41.json"
+local CONFIG_FILE = "KEON_Config_v42.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -57,7 +57,7 @@ end
 
 local function fetchAsset(url, fileName)
     if writefile and getcustomasset and readfile then
-        local file = "DFXHub_" .. fileName .. ".jpg"
+        local file = "KEONHub_" .. fileName .. ".jpg"
         if not isfile(file) then
             pcall(function() writefile(file, game:HttpGet(url)) end)
         end
@@ -68,7 +68,7 @@ end
 
 local function fetchAudioFile(url, fileName)
     if writefile and getcustomasset and readfile then
-        local file = "DFXMusic_" .. fileName .. ".mp3"
+        local file = "KEONMusic_" .. fileName .. ".mp3"
         local success = pcall(function()
             if not isfile(file) then
                 local data = game:HttpGet(url)
@@ -84,6 +84,7 @@ local function fetchAudioFile(url, fileName)
 end
 
 local wallUrls = {
+    fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
     fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
     fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2"),
     fetchAsset("https://l.top4top.io/p_3947ds5ic0.jpg", "bg_3"),
@@ -185,7 +186,7 @@ end
 -- شاشة إعادة تشغيل السكربت نفسه لجميع المستخدمين
 ---------------------------------------------------------
 local ReloadGui = Instance.new("ScreenGui")
-ReloadGui.Name = "DFXReloadWidgetGui"
+ReloadGui.Name = "KEONReloadWidgetGui"
 ReloadGui.ResetOnSpawn = false
 ReloadGui.Parent = parent
 
@@ -221,7 +222,7 @@ local ReloadDevNameLbl = Instance.new("TextLabel")
 ReloadDevNameLbl.Size = UDim2.new(0, 180, 0, 20)
 ReloadDevNameLbl.Position = UDim2.new(0, 66, 0, 10)
 ReloadDevNameLbl.BackgroundTransparency = 1
-ReloadDevNameLbl.Text = "👑 طحبح (إعادة تشغيل السكربت)"
+ReloadDevNameLbl.Text = "👑 طحبح (إعادة تشغيل KEON)"
 ReloadDevNameLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
 ReloadDevNameLbl.Font = Enum.Font.FredokaOne
 ReloadDevNameLbl.TextSize = 12
@@ -293,14 +294,12 @@ task.spawn(function()
                         ReloadTimerLbl.Text = "⚡ جاري إعادة تشغيل السكربت..."
                         task.wait(0.5)
                         
-                        -- مسح الواجهات الحالية وإعادة تشغيل هذا السكربت نفسه
-                        if parent:FindFirstChild("DFXProV41UI") then parent.DFXProV41UI:Destroy() end
-                        if parent:FindFirstChild("DFXTopChatGui") then parent.DFXTopChatGui:Destroy() end
-                        if parent:FindFirstChild("DFXVoteBannerGui") then parent.DFXVoteBannerGui:Destroy() end
-                        if parent:FindFirstChild("DFXEventWidgetGui") then parent.DFXEventWidgetGui:Destroy() end
-                        if parent:FindFirstChild("DFXReloadWidgetGui") then parent.DFXReloadWidgetGui:Destroy() end
+                        if parent:FindFirstChild("KEONProV42UI") then parent.KEONProV42UI:Destroy() end
+                        if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
+                        if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
+                        if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
+                        if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
                         
-                        -- إعادة تنفيذ نفس السكربت
                         task.spawn(function()
                             loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()
                         end)
@@ -316,7 +315,7 @@ end)
 -- شاشة واجهة التصويت المباشر التفاعلية
 ---------------------------------------------------------
 local VoteGui = Instance.new("ScreenGui")
-VoteGui.Name = "DFXVoteBannerGui"
+VoteGui.Name = "KEONVoteBannerGui"
 VoteGui.ResetOnSpawn = false
 VoteGui.Parent = parent
 
@@ -355,7 +354,7 @@ local DevNameLbl = Instance.new("TextLabel")
 DevNameLbl.Size = UDim2.new(0, 140, 0, 20)
 DevNameLbl.Position = UDim2.new(0, 68, 0, 10)
 DevNameLbl.BackgroundTransparency = 1
-DevNameLbl.Text = "👑 طحبح (تصويت مباشر)"
+DevNameLbl.Text = "👑 طحبح (تصويت KEON)"
 DevNameLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
 DevNameLbl.Font = Enum.Font.FredokaOne
 DevNameLbl.TextSize = 12
@@ -533,7 +532,7 @@ local function checkAdminActions()
                 if data.bans and data.bans[uidStr] then
                     local banInfo = data.bans[uidStr]
                     local BanGui = Instance.new("ScreenGui")
-                    BanGui.Name = "DFXBanScreenGui"
+                    BanGui.Name = "KEONBanScreenGui"
                     BanGui.ResetOnSpawn = false
                     BanGui.Parent = parent
                     
@@ -552,7 +551,7 @@ local function checkAdminActions()
                     local bTitle = Instance.new("TextLabel")
                     bTitle.Size = UDim2.new(1, 0, 0, 50)
                     bTitle.BackgroundTransparency = 1
-                    bTitle.Text = "🚫 عذراً، تم حظرك من سكربت DFX"
+                    bTitle.Text = "🚫 عذراً، تم حظرك من سكربت KEON"
                     bTitle.TextColor3 = Color3.fromRGB(255, 50, 50)
                     bTitle.Font = Enum.Font.FredokaOne
                     bTitle.TextSize = 16
@@ -602,7 +601,7 @@ end)
 -- نظام البرودكاست المباشر
 ---------------------------------------------------------
 local BroadcastGui = Instance.new("ScreenGui")
-BroadcastGui.Name = "DFXAdminBroadcastGui"
+BroadcastGui.Name = "KEONAdminBroadcastGui"
 BroadcastGui.ResetOnSpawn = false
 BroadcastGui.Parent = parent
 
@@ -698,7 +697,7 @@ end
 -- شاشة التحميل الفخمة
 ---------------------------------------------------------
 local LoadingGui = Instance.new("ScreenGui")
-LoadingGui.Name = "DFXLoadingGui"
+LoadingGui.Name = "KEONLoadingGui"
 LoadingGui.ResetOnSpawn = false
 LoadingGui.Parent = parent
 
@@ -728,7 +727,7 @@ local LoadTitle = Instance.new("TextLabel")
 LoadTitle.Size = UDim2.new(1, 0, 0, 25)
 LoadTitle.Position = UDim2.new(0, 0, 0, 72)
 LoadTitle.BackgroundTransparency = 1
-LoadTitle.Text = "⚡ DFX HUB ⚡"
+LoadTitle.Text = "⚡ KEON HUB ⚡"
 LoadTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 LoadTitle.Font = Enum.Font.FredokaOne
 LoadTitle.TextSize = 20
@@ -761,7 +760,7 @@ Instance.new("UICorner", BarFill).CornerRadius = UDim.new(0, 5)
 -- الهيكل الرئيسي للواجهة
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DFXProV41UI"
+ScreenGui.Name = "KEONProV42UI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parent
 
@@ -830,7 +829,7 @@ local TitleMain = Instance.new("TextLabel")
 TitleMain.Size = UDim2.new(1, -75, 1, 0)
 TitleMain.Position = UDim2.new(0, 10, 0, 0)
 TitleMain.BackgroundTransparency = 1
-TitleMain.Text = "⚡ DFX Hub | المطور: طحبح"
+TitleMain.Text = "⚡ KEON Hub | المطور: طحبح"
 TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.FredokaOne
 TitleMain.TextSize = 18
@@ -865,7 +864,7 @@ CloseBtn.Parent = Header
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
 
 local FloatingMinBox = Instance.new("ImageButton")
-FloatingMinBox.Name = "DFXFloatingMinBox"
+FloatingMinBox.Name = "KEONFloatingMinBox"
 FloatingMinBox.Size = UDim2.new(0, 52, 0, 52)
 FloatingMinBox.Position = UDim2.new(0, 20, 0.5, -26)
 FloatingMinBox.BackgroundColor3 = Color3.fromRGB(15, 12, 18)
@@ -954,7 +953,7 @@ CenterLayout.Parent = CenterScroll
 -- نافذة الشات المباشرة
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
-ChatScreenGui.Name = "DFXTopChatGui"
+ChatScreenGui.Name = "KEONTopChatGui"
 ChatScreenGui.ResetOnSpawn = false
 ChatScreenGui.Parent = parent
 
@@ -1315,10 +1314,10 @@ local function showPrivateScriptUserBubble(userId, text)
     local head = targetPlr.Character:FindFirstChild("Head")
     if not head then return end
 
-    if head:FindFirstChild("DFXScriptBubble") then head.DFXScriptBubble:Destroy() end
+    if head:FindFirstChild("KEONScriptBubble") then head.KEONScriptBubble:Destroy() end
 
     local bb = Instance.new("BillboardGui")
-    bb.Name = "DFXScriptBubble"
+    bb.Name = "KEONScriptBubble"
     bb.Size = UDim2.new(0, 220, 0, 50)
     bb.StudsOffset = Vector3.new(0, 2.5, 0)
     bb.AlwaysOnTop = true
@@ -1555,10 +1554,10 @@ local function applyDeveloperTag(plr)
     local head = plr.Character:WaitForChild("Head", 5)
     if not head then return end
 
-    if head:FindFirstChild("DFXDevTag") then head.DFXDevTag:Destroy() end
+    if head:FindFirstChild("KEONDevTag") then head.KEONDevTag:Destroy() end
 
     local bb = Instance.new("BillboardGui")
-    bb.Name = "DFXDevTag"
+    bb.Name = "KEONDevTag"
     bb.Size = UDim2.new(0, 260, 0, 65)
     bb.StudsOffset = Vector3.new(0, 3.2, 0)
     bb.AlwaysOnTop = true
@@ -1821,7 +1820,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v41.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v42.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1834,7 +1833,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• تحديث زر إعادة تشغيل السكربت ليعيد تشغيل السكربت نفسه حصرياً.\n• إضافة خانة بحث سريعة في قائمة كتم مستخدمي السكربت ليسهل عليك إيجادهم وكتمهم.\n• نظام الحفظ والتحميل التلقائي يعمل بأعلى كفاءة."
+    updatesDesc.Text = "• تغيير اسم السكربت بالكامل إلى KEON Hub.\n• إضافة الصورة الجديدة المخصصة لخلفيات السكربت والشات.\n• إضافة خيارات ألوان وتيمات جديدة ومذهلة."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -1850,7 +1849,7 @@ end)
 -- تبويب "موعد حدث"
 ---------------------------------------------------------
 local EventWidgetGui = Instance.new("ScreenGui")
-EventWidgetGui.Name = "DFXEventWidgetGui"
+EventWidgetGui.Name = "KEONEventWidgetGui"
 EventWidgetGui.ResetOnSpawn = false
 EventWidgetGui.Parent = parent
 
@@ -2256,8 +2255,8 @@ BtnMusic.MouseButton1Click:Connect(function()
         {name = "🎶 6 - الأغنية الخامسة", url = "https://mp3tourl.com/audio/1792780363205-f33c29d1-2233-40f2-96cd-16c263ada79a.mp3", isUrl = true}
     }
 
-    if not _G.DFXActiveMusicSound then
-        _G.DFXActiveMusicSound = nil
+    if not _G.KEONActiveMusicSound then
+        _G.KEONActiveMusicSound = nil
     end
 
     local volumeContainer = Instance.new("Frame")
@@ -2311,16 +2310,16 @@ BtnMusic.MouseButton1Click:Connect(function()
     volDownBtn.MouseButton1Click:Connect(function()
         globalMusicVolume = math.max(1.0, globalMusicVolume - 1.0)
         volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMusicVolume)
-        if _G.DFXActiveMusicSound and _G.DFXActiveMusicSound.Parent then
-            _G.DFXActiveMusicSound.Volume = globalMusicVolume
+        if _G.KEONActiveMusicSound and _G.KEONActiveMusicSound.Parent then
+            _G.KEONActiveMusicSound.Volume = globalMusicVolume
         end
     end)
 
     volUpBtn.MouseButton1Click:Connect(function()
         globalMusicVolume = math.min(10.0, globalMusicVolume + 1.0)
         volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMusicVolume)
-        if _G.DFXActiveMusicSound and _G.DFXActiveMusicSound.Parent then
-            _G.DFXActiveMusicSound.Volume = globalMusicVolume
+        if _G.KEONActiveMusicSound and _G.KEONActiveMusicSound.Parent then
+            _G.KEONActiveMusicSound.Volume = globalMusicVolume
         end
     end)
 
@@ -2337,9 +2336,9 @@ BtnMusic.MouseButton1Click:Connect(function()
 
     stopAllMusicBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
-        if _G.DFXActiveMusicSound then
-            pcall(function() _G.DFXActiveMusicSound:Stop(); _G.DFXActiveMusicSound:Destroy() end)
-            _G.DFXActiveMusicSound = nil
+        if _G.KEONActiveMusicSound then
+            pcall(function() _G.KEONActiveMusicSound:Stop(); _G.KEONActiveMusicSound:Destroy() end)
+            _G.KEONActiveMusicSound = nil
         end
     end)
 
@@ -2383,8 +2382,8 @@ BtnMusic.MouseButton1Click:Connect(function()
 
         playBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
-            if _G.DFXActiveMusicSound then
-                pcall(function() _G.DFXActiveMusicSound:Stop(); _G.DFXActiveMusicSound:Destroy() end)
+            if _G.KEONActiveMusicSound then
+                pcall(function() _G.KEONActiveMusicSound:Stop(); _G.KEONActiveMusicSound:Destroy() end)
             end
 
             playBtn.Text = "جاري التحميل..."
@@ -2392,7 +2391,7 @@ BtnMusic.MouseButton1Click:Connect(function()
             task.spawn(function()
                 local soundAsset = track.id
                 if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v41_" .. tostring(idx))
+                    soundAsset = fetchAudioFile(track.url, "track_v42_" .. tostring(idx))
                 end
 
                 local snd = Instance.new("Sound")
@@ -2407,7 +2406,7 @@ BtnMusic.MouseButton1Click:Connect(function()
 
                 if loadedSuccess then
                     snd:Play()
-                    _G.DFXActiveMusicSound = snd
+                    _G.KEONActiveMusicSound = snd
                     playBtn.Text = "يعمل الآن ▶️"
                 else
                     playBtn.Text = "خطأ بالتحميل ❌"
@@ -2433,9 +2432,9 @@ BtnActivations.MouseButton1Click:Connect(function()
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= LocalPlayer and p.Character then
                     if espEnabled then
-                        if not p.Character:FindFirstChild("DFXProEsp") then
+                        if not p.Character:FindFirstChild("KEONProEsp") then
                             local hl = Instance.new("Highlight")
-                            hl.Name = "DFXProEsp"
+                            hl.Name = "KEONProEsp"
                             hl.FillColor = currentAccentColor
                             hl.OutlineColor = Color3.fromRGB(255, 255, 255)
                             hl.FillTransparency = 0.4
@@ -2443,7 +2442,7 @@ BtnActivations.MouseButton1Click:Connect(function()
                             hl.Parent = p.Character
                         end
                     else
-                        if p.Character:FindFirstChild("DFXProEsp") then p.Character.DFXProEsp:Destroy() end
+                        if p.Character:FindFirstChild("KEONProEsp") then p.Character.KEONProEsp:Destroy() end
                     end
                 end
             end
@@ -2522,7 +2521,7 @@ BtnActivations.MouseButton1Click:Connect(function()
             local TPS = game:GetService("TeleportService")
             local Api = "https://games.roblox.com/v1/games/"
             local _place = game.PlaceId
-            local _servers = Api .. _place /servers/Public?sortOrder=Asc&limit=100"
+            local _servers = Api .. _place .. "/servers/Public?sortOrder=Asc&limit=100"
             pcall(function()
                 local raw = game:HttpGet(_servers)
                 local decoded = Http:JSONDecode(raw)
@@ -2584,7 +2583,7 @@ BtnSuggestions.MouseButton1Click:Connect(function()
                     Headers = {["Content-Type"] = "application/json"},
                     Body = HttpService:JSONEncode({
                         embeds = {{
-                            title = "💡 اقتراح جديد من مستخدم DFX Hub",
+                            title = "💡 اقتراح جديد من مستخدم KEON Hub",
                             description = textToSend,
                             color = 13107456,
                             fields = {
@@ -3099,6 +3098,7 @@ BtnSettings.MouseButton1Click:Connect(function()
             end
         end
 
+        -- مجموعة الألوان والتيمات الموسعة
         addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
         addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
         addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
@@ -3108,6 +3108,12 @@ BtnSettings.MouseButton1Click:Connect(function()
         addAction("الثيم الأخضر الزمردي 🟢", function() updateTheme(Color3.fromRGB(40, 230, 100), Color3.fromRGB(20, 130, 50)) end)
         addAction("الثيم البرتقالي الناري 🟠", function() updateTheme(Color3.fromRGB(255, 120, 20), Color3.fromRGB(180, 70, 10)) end)
         addAction("الثيم الوردي الساطع 🩷", function() updateTheme(Color3.fromRGB(255, 80, 180), Color3.fromRGB(180, 40, 120)) end)
+        -- تيمات إضافية جديدة
+        addAction("الثيم السماوي الفاتح 🌐", function() updateTheme(Color3.fromRGB(100, 220, 255), Color3.fromRGB(40, 120, 180)) end)
+        addAction("الثيم الأصفر الليموني 🍋", function() updateTheme(Color3.fromRGB(230, 255, 0), Color3.fromRGB(140, 150, 0)) end)
+        addAction("الثيم البنفسجي الغامق 🔮", function() updateTheme(Color3.fromRGB(120, 0, 255), Color3.fromRGB(60, 0, 140)) end)
+        addAction("الثيم الوردي الباستيل 💕", function() updateTheme(Color3.fromRGB(255, 150, 200), Color3.fromRGB(180, 80, 130)) end)
+        addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
     end)
 
     addChilliAccordion("تخصيص خلفيات واجهة السكربت Pro", function(addToggle, addAction, contentHolder)
@@ -3116,7 +3122,7 @@ BtnSettings.MouseButton1Click:Connect(function()
         end)
 
         local gridHolder = Instance.new("Frame")
-        gridHolder.Size = UDim2.new(1, 0, 0, 210)
+        gridHolder.Size = UDim2.new(1, 0, 0, 240)
         gridHolder.BackgroundTransparency = 1
         gridHolder.ZIndex = 3
         gridHolder.Parent = contentHolder
