@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v42.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v42.1.0)
 -- Developer: Tahbah (Dms921)
 
 local CoreGui = game:GetService("CoreGui")
@@ -57,11 +57,16 @@ end
 
 local function fetchAsset(url, fileName)
     if writefile and getcustomasset and readfile then
-        local file = "KEONHub_" .. fileName .. ".jpg"
-        if not isfile(file) then
-            pcall(function() writefile(file, game:HttpGet(url)) end)
+        local file = "KEONHub_" .. fileName .. ".png"
+        local success = pcall(function()
+            if not isfile(file) then
+                writefile(file, game:HttpGet(url))
+            end
+        end)
+        if success and isfile(file) then
+            local assetPath = getcustomasset(file)
+            if assetPath then return assetPath end
         end
-        if isfile(file) then return getcustomasset(file) end
     end
     return url
 end
@@ -1820,7 +1825,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v42.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v42.1):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1833,7 +1838,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• تغيير اسم السكربت بالكامل إلى KEON Hub.\n• إضافة الصورة الجديدة المخصصة لخلفيات السكربت والشات.\n• إضافة خيارات ألوان وتيمات جديدة ومذهلة."
+    updatesDesc.Text = "• إصلاح خطأ السيرفر هوب ليعمل السكربت بكفاءة تامة.\n• تغيير الاسم بالكامل إلى KEON Hub.\n• دعم الخلفيات الجديدة والألوان المتعددة."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2521,7 +2526,7 @@ BtnActivations.MouseButton1Click:Connect(function()
             local TPS = game:GetService("TeleportService")
             local Api = "https://games.roblox.com/v1/games/"
             local _place = game.PlaceId
-            local _servers = Api .. _place .. "/servers/Public?sortOrder=Asc&limit=100"
+            local _servers = Api .. tostring(_place) .. "/servers/Public?sortOrder=Asc&limit=100"
             pcall(function()
                 local raw = game:HttpGet(_servers)
                 local decoded = Http:JSONDecode(raw)
@@ -3098,7 +3103,6 @@ BtnSettings.MouseButton1Click:Connect(function()
             end
         end
 
-        -- مجموعة الألوان والتيمات الموسعة
         addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
         addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
         addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
@@ -3108,7 +3112,6 @@ BtnSettings.MouseButton1Click:Connect(function()
         addAction("الثيم الأخضر الزمردي 🟢", function() updateTheme(Color3.fromRGB(40, 230, 100), Color3.fromRGB(20, 130, 50)) end)
         addAction("الثيم البرتقالي الناري 🟠", function() updateTheme(Color3.fromRGB(255, 120, 20), Color3.fromRGB(180, 70, 10)) end)
         addAction("الثيم الوردي الساطع 🩷", function() updateTheme(Color3.fromRGB(255, 80, 180), Color3.fromRGB(180, 40, 120)) end)
-        -- تيمات إضافية جديدة
         addAction("الثيم السماوي الفاتح 🌐", function() updateTheme(Color3.fromRGB(100, 220, 255), Color3.fromRGB(40, 120, 180)) end)
         addAction("الثيم الأصفر الليموني 🍋", function() updateTheme(Color3.fromRGB(230, 255, 0), Color3.fromRGB(140, 150, 0)) end)
         addAction("الثيم البنفسجي الغامق 🔮", function() updateTheme(Color3.fromRGB(120, 0, 255), Color3.fromRGB(60, 0, 140)) end)
