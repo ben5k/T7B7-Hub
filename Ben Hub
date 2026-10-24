@@ -1,4 +1,4 @@
--- DFX Hub - Ultimate Admin Panel, Global Reload & Script Mute System (v40.0.0)
+-- DFX Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v41.0.0)
 -- Developer: Tahbah (Dms921)
 
 local CoreGui = game:GetService("CoreGui")
@@ -12,7 +12,7 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local LocalPlayer = Players.LocalPlayer
 local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if parent:FindFirstChild("DFXProV40UI") then parent.DFXProV40UI:Destroy() end
+if parent:FindFirstChild("DFXProV41UI") then parent.DFXProV41UI:Destroy() end
 if parent:FindFirstChild("DFXAdminBroadcastGui") then parent.DFXAdminBroadcastGui:Destroy() end
 if parent:FindFirstChild("DFXTopChatGui") then parent.DFXTopChatGui:Destroy() end
 if parent:FindFirstChild("DFXLoadingGui") then parent.DFXLoadingGui:Destroy() end
@@ -21,7 +21,7 @@ if parent:FindFirstChild("DFXVoteBannerGui") then parent.DFXVoteBannerGui:Destro
 if parent:FindFirstChild("DFXEventWidgetGui") then parent.DFXEventWidgetGui:Destroy() end
 if parent:FindFirstChild("DFXReloadWidgetGui") then parent.DFXReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "DFX_Config_v40.json"
+local CONFIG_FILE = "DFX_Config_v41.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -182,7 +182,7 @@ local function loadAvatarThumbnail(userId, imageLabel)
 end
 
 ---------------------------------------------------------
--- شاشة إعادة تشغيل السكربت التفاعلية لجميع المستخدمين
+-- شاشة إعادة تشغيل السكربت نفسه لجميع المستخدمين
 ---------------------------------------------------------
 local ReloadGui = Instance.new("ScreenGui")
 ReloadGui.Name = "DFXReloadWidgetGui"
@@ -218,13 +218,13 @@ reloadAvStroke.Thickness = 2
 reloadAvStroke.Parent = ReloadAvatarImg
 
 local ReloadDevNameLbl = Instance.new("TextLabel")
-ReloadDevNameLbl.Size = UDim2.new(0, 160, 0, 20)
+ReloadDevNameLbl.Size = UDim2.new(0, 180, 0, 20)
 ReloadDevNameLbl.Position = UDim2.new(0, 66, 0, 10)
 ReloadDevNameLbl.BackgroundTransparency = 1
-ReloadDevNameLbl.Text = "👑 طحبح (تحديث السكربت)"
+ReloadDevNameLbl.Text = "👑 طحبح (إعادة تشغيل السكربت)"
 ReloadDevNameLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
 ReloadDevNameLbl.Font = Enum.Font.FredokaOne
-ReloadDevNameLbl.TextSize = 12.5
+ReloadDevNameLbl.TextSize = 12
 ReloadDevNameLbl.TextXAlignment = Enum.TextXAlignment.Left
 ReloadDevNameLbl.ZIndex = 801
 ReloadDevNameLbl.Parent = ReloadFrame
@@ -290,11 +290,18 @@ task.spawn(function()
                             task.wait(1)
                         end
                         
-                        ReloadTimerLbl.Text = "⚡ جاري إعادة تحميل السكربت..."
+                        ReloadTimerLbl.Text = "⚡ جاري إعادة تشغيل السكربت..."
                         task.wait(0.5)
                         
-                        -- إعادة تحميل وتفعيل السكربت
-                        pcall(function()
+                        -- مسح الواجهات الحالية وإعادة تشغيل هذا السكربت نفسه
+                        if parent:FindFirstChild("DFXProV41UI") then parent.DFXProV41UI:Destroy() end
+                        if parent:FindFirstChild("DFXTopChatGui") then parent.DFXTopChatGui:Destroy() end
+                        if parent:FindFirstChild("DFXVoteBannerGui") then parent.DFXVoteBannerGui:Destroy() end
+                        if parent:FindFirstChild("DFXEventWidgetGui") then parent.DFXEventWidgetGui:Destroy() end
+                        if parent:FindFirstChild("DFXReloadWidgetGui") then parent.DFXReloadWidgetGui:Destroy() end
+                        
+                        -- إعادة تنفيذ نفس السكربت
+                        task.spawn(function()
                             loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()
                         end)
                     end
@@ -754,7 +761,7 @@ Instance.new("UICorner", BarFill).CornerRadius = UDim.new(0, 5)
 -- الهيكل الرئيسي للواجهة
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DFXProV40UI"
+ScreenGui.Name = "DFXProV41UI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parent
 
@@ -1814,7 +1821,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v40.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v41.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1827,7 +1834,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إضافة ميزة إعادة تشغيل السكربت المباشرة لجميع مستخدمي السكربت مع عداد الـ 10 ثوانٍ.\n• تخصيص نظام الكتم وإلغاء الكتم لمستخدمي السكربت فقط مع الأسباب والمدة.\n• قائمة مخصصة لاستعراض المكتومين وإلغاء كتمهم فوراً."
+    updatesDesc.Text = "• تحديث زر إعادة تشغيل السكربت ليعيد تشغيل السكربت نفسه حصرياً.\n• إضافة خانة بحث سريعة في قائمة كتم مستخدمي السكربت ليسهل عليك إيجادهم وكتمهم.\n• نظام الحفظ والتحميل التلقائي يعمل بأعلى كفاءة."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2385,7 +2392,7 @@ BtnMusic.MouseButton1Click:Connect(function()
             task.spawn(function()
                 local soundAsset = track.id
                 if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v40_" .. tostring(idx))
+                    soundAsset = fetchAudioFile(track.url, "track_v41_" .. tostring(idx))
                 end
 
                 local snd = Instance.new("Sound")
@@ -2515,7 +2522,7 @@ BtnActivations.MouseButton1Click:Connect(function()
             local TPS = game:GetService("TeleportService")
             local Api = "https://games.roblox.com/v1/games/"
             local _place = game.PlaceId
-            local _servers = Api .. _place .. "/servers/Public?sortOrder=Asc&limit=100"
+            local _servers = Api .. _place /servers/Public?sortOrder=Asc&limit=100"
             pcall(function()
                 local raw = game:HttpGet(_servers)
                 local decoded = Http:JSONDecode(raw)
@@ -2606,11 +2613,11 @@ if LocalPlayer.Name == "Dms921" then
         playUiSound(SOUND_CLICK, 1, 0.35)
         clearCenter()
 
-        addChilliAccordion("🔄 نظام إعادة تشغيل السكربت لجميع المستخدمين", function(addToggle, addAction, contentHolder)
+        addChilliAccordion("🔄 نظام إعادة تشغيل السكربت للجميع", function(addToggle, addAction, contentHolder)
             local reloadReasonBox = Instance.new("TextBox")
             reloadReasonBox.Size = UDim2.new(1, 0, 0, 32)
             reloadReasonBox.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-            reloadReasonBox.PlaceholderText = "اكتب سبب إعادة التشغيل هنا..."
+            reloadReasonBox.PlaceholderText = "اكتب سبب إعادة تشغيل السكربت هنا..."
             reloadReasonBox.Text = ""
             reloadReasonBox.TextColor3 = Color3.fromRGB(255, 255, 255)
             reloadReasonBox.Font = Enum.Font.FredokaOne
@@ -2655,6 +2662,19 @@ if LocalPlayer.Name == "Dms921" then
         end)
 
         addChilliAccordion("🔇 نظام كتم مستخدمي السكربت وإدارتهم", function(addToggle, addAction, contentHolder)
+            local searchMuteBox = Instance.new("TextBox")
+            searchMuteBox.Size = UDim2.new(1, 0, 0, 32)
+            searchMuteBox.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+            searchMuteBox.PlaceholderText = "🔍 ابحث عن اسم مستخدم السكربت لكتمه..."
+            searchMuteBox.Text = ""
+            searchMuteBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+            searchMuteBox.Font = Enum.Font.FredokaOne
+            searchMuteBox.TextSize = 12
+            searchMuteBox.TextXAlignment = Enum.TextXAlignment.Right
+            searchMuteBox.ZIndex = 3
+            searchMuteBox.Parent = contentHolder
+            Instance.new("UICorner", searchMuteBox).CornerRadius = UDim.new(0, 6)
+
             local muteReasonBox = Instance.new("TextBox")
             muteReasonBox.Size = UDim2.new(1, 0, 0, 32)
             muteReasonBox.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
@@ -2692,75 +2712,92 @@ if LocalPlayer.Name == "Dms921" then
             suLayout.Padding = UDim.new(0, 6)
             suLayout.Parent = scriptUsersContainer
 
-            local function fetchAndRenderMuteUsers()
+            local cachedScriptUsers = {}
+            local function renderScriptUsersList(filterQuery)
+                pcall(function()
+                    for _, child in ipairs(scriptUsersContainer:GetChildren()) do
+                        if not child:IsA("UIListLayout") then child:Destroy() end
+                    end
+
+                    for _, u in ipairs(cachedScriptUsers) do
+                        local userName = tostring(u.displayName or u.name)
+                        if filterQuery == "" or string.find(string.lower(userName), string.lower(filterQuery)) then
+                            local uRow = Instance.new("Frame")
+                            uRow.Size = UDim2.new(1, 0, 0, 38)
+                            uRow.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+                            uRow.ZIndex = 4
+                            uRow.Parent = scriptUsersContainer
+                            Instance.new("UICorner", uRow).CornerRadius = UDim.new(0, 6)
+
+                            local uNameLbl = Instance.new("TextLabel")
+                            uNameLbl.Size = UDim2.new(1, -95, 1, 0)
+                            uNameLbl.Position = UDim2.new(0, 90, 0, 0)
+                            uNameLbl.BackgroundTransparency = 1
+                            uNameLbl.Text = "★ " .. userName
+                            uNameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            uNameLbl.Font = Enum.Font.FredokaOne
+                            uNameLbl.TextSize = 12
+                            uNameLbl.TextXAlignment = Enum.TextXAlignment.Right
+                            uNameLbl.ZIndex = 5
+                            uNameLbl.Parent = uRow
+
+                            local doMuteBtn = Instance.new("TextButton")
+                            doMuteBtn.Size = UDim2.new(0, 80, 0, 26)
+                            doMuteBtn.Position = UDim2.new(0, 6, 0.5, -13)
+                            doMuteBtn.BackgroundColor3 = Color3.fromRGB(200, 120, 0)
+                            doMuteBtn.Text = "كتم 🔇"
+                            doMuteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            doMuteBtn.Font = Enum.Font.FredokaOne
+                            doMuteBtn.TextSize = 11
+                            doMuteBtn.ZIndex = 5
+                            doMuteBtn.Parent = uRow
+                            Instance.new("UICorner", doMuteBtn).CornerRadius = UDim.new(0, 4)
+
+                            doMuteBtn.MouseButton1Click:Connect(function()
+                                local reason = muteReasonBox.Text ~= "" and muteReasonBox.Text or "مخالفة القوانين"
+                                local duration = muteDurationBox.Text ~= "" and muteDurationBox.Text or "دائمي"
+                                pcall(function()
+                                    customRequest({
+                                        Url = FIREBASE_BASE_URL .. "/admin_actions/mutes/" .. tostring(u.userId) .. ".json",
+                                        Method = "PUT",
+                                        Headers = {["Content-Type"] = "application/json"},
+                                        Body = HttpService:JSONEncode({
+                                            muted = true,
+                                            reason = reason,
+                                            duration = duration,
+                                            name = userName
+                                        })
+                                    })
+                                end)
+                                doMuteBtn.Text = "تم الكتم ✅"
+                            end)
+                        end
+                    end
+                    scriptUsersContainer.CanvasSize = UDim2.new(0, 0, 0, suLayout.AbsoluteContentSize.Y + 10)
+                end)
+            end
+
+            task.spawn(function()
                 pcall(function()
                     local res = customRequest({Url = FIREBASE_USERS_URL, Method = "GET"})
                     if res and res.StatusCode == 200 then
                         local data = safeDecode(res.Body)
                         if data then
-                            for _, child in ipairs(scriptUsersContainer:GetChildren()) do
-                                if not child:IsA("UIListLayout") then child:Destroy() end
-                            end
-
+                            cachedScriptUsers = {}
                             for uid, u in pairs(data) do
                                 if type(u) == "table" and u.userId and tonumber(u.userId) ~= LocalPlayer.UserId then
-                                    local uRow = Instance.new("Frame")
-                                    uRow.Size = UDim2.new(1, 0, 0, 38)
-                                    uRow.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-                                    uRow.ZIndex = 4
-                                    uRow.Parent = scriptUsersContainer
-                                    Instance.new("UICorner", uRow).CornerRadius = UDim.new(0, 6)
-
-                                    local uNameLbl = Instance.new("TextLabel")
-                                    uNameLbl.Size = UDim2.new(1, -95, 1, 0)
-                                    uNameLbl.Position = UDim2.new(0, 90, 0, 0)
-                                    uNameLbl.BackgroundTransparency = 1
-                                    uNameLbl.Text = "★ " .. (u.displayName or u.name)
-                                    uNameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-                                    uNameLbl.Font = Enum.Font.FredokaOne
-                                    uNameLbl.TextSize = 12
-                                    uNameLbl.TextXAlignment = Enum.TextXAlignment.Right
-                                    uNameLbl.ZIndex = 5
-                                    uNameLbl.Parent = uRow
-
-                                    local doMuteBtn = Instance.new("TextButton")
-                                    doMuteBtn.Size = UDim2.new(0, 80, 0, 26)
-                                    doMuteBtn.Position = UDim2.new(0, 6, 0.5, -13)
-                                    doMuteBtn.BackgroundColor3 = Color3.fromRGB(200, 120, 0)
-                                    doMuteBtn.Text = "كتم 🔇"
-                                    doMuteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                                    doMuteBtn.Font = Enum.Font.FredokaOne
-                                    doMuteBtn.TextSize = 11
-                                    doMuteBtn.ZIndex = 5
-                                    doMuteBtn.Parent = uRow
-                                    Instance.new("UICorner", doMuteBtn).CornerRadius = UDim.new(0, 4)
-
-                                    doMuteBtn.MouseButton1Click:Connect(function()
-                                        local reason = muteReasonBox.Text ~= "" and muteReasonBox.Text or "مخالفة القوانين"
-                                        local duration = muteDurationBox.Text ~= "" and muteDurationBox.Text or "دائمي"
-                                        pcall(function()
-                                            customRequest({
-                                                Url = FIREBASE_BASE_URL .. "/admin_actions/mutes/" .. tostring(u.userId) .. ".json",
-                                                Method = "PUT",
-                                                Headers = {["Content-Type"] = "application/json"},
-                                                Body = HttpService:JSONEncode({
-                                                    muted = true,
-                                                    reason = reason,
-                                                    duration = duration,
-                                                    name = u.displayName or u.name
-                                                })
-                                            })
-                                        end)
-                                        doMuteBtn.Text = "تم الكتم ✅"
-                                    end)
+                                    table.insert(cachedScriptUsers, u)
                                 end
                             end
-                            scriptUsersContainer.CanvasSize = UDim2.new(0, 0, 0, suLayout.AbsoluteContentSize.Y + 10)
+                            renderScriptUsersList("")
                         end
                     end
                 end)
-            end
-            fetchAndRenderMuteUsers()
+            end)
+
+            searchMuteBox:GetPropertyChangedSignal("Text"):Connect(function()
+                renderScriptUsersList(searchMuteBox.Text)
+            end)
         end)
 
         addChilliAccordion("📋 قائمة المكتومين حالياً وإلغاء الكتم", function(addToggle, addAction, contentHolder)
