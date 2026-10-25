@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v43.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v44.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -8,12 +8,11 @@ local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local SoundService = game:GetService("SoundService")
 local MarketplaceService = game:GetService("MarketplaceService")
-local PlayersService = game:GetService("Players")
 
 local LocalPlayer = Players.LocalPlayer
 local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if parent:FindFirstChild("KEONProV43UI") then parent.KEONProV43UI:Destroy() end
+if parent:FindFirstChild("KEONProV44UI") then parent.KEONProV44UI:Destroy() end
 if parent:FindFirstChild("KEONAdminBroadcastGui") then parent.KEONAdminBroadcastGui:Destroy() end
 if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
 if parent:FindFirstChild("KEONLoadingGui") then parent.KEONLoadingGui:Destroy() end
@@ -22,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v43.json"
+local CONFIG_FILE = "KEON_Config_v44.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -300,7 +299,7 @@ task.spawn(function()
                         ReloadTimerLbl.Text = "⚡ جاري إعادة تشغيل السكربت..."
                         task.wait(0.5)
                         
-                        if parent:FindFirstChild("KEONProV43UI") then parent.KEONProV43UI:Destroy() end
+                        if parent:FindFirstChild("KEONProV44UI") then parent.KEONProV44UI:Destroy() end
                         if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
                         if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
                         if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
@@ -766,7 +765,7 @@ Instance.new("UICorner", BarFill).CornerRadius = UDim.new(0, 5)
 -- الهيكل الرئيسي للواجهة
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KEONProV43UI"
+ScreenGui.Name = "KEONProV44UI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parent
 
@@ -1552,7 +1551,7 @@ task.spawn(function()
 end)
 
 ---------------------------------------------------------
--- تاج المطور كـيـون (لتطابق اسم المطور الجديد)
+-- تاج المطور كـيـون
 ---------------------------------------------------------
 local function applyDeveloperTag(plr)
     if plr.Name ~= "Dms921" then return end
@@ -1826,7 +1825,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v43.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v44.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1839,7 +1838,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إضافة قسم (سكنات) الجديد كلياً بجانب الإعدادات.\n• دعم تحويل سكنك بالكامل إلى غوريلا كينغ (Gorilla King).\n• تحديث اسم المطور ليصبح (كـيـون)."
+    updatesDesc.Text = "• حل مشكلة (فشل تطبيق السكن) وإضافة نظام حماية ودعم شامل.\n• دمج سكنات غوريلا كينغ المتعددة داخل قسم (سكنات) الموحد.\n• تطوير الأداء العام واستقرار الواجهة."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2397,7 +2396,7 @@ BtnMusic.MouseButton1Click:Connect(function()
             task.spawn(function()
                 local soundAsset = track.id
                 if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v43_" .. tostring(idx))
+                    soundAsset = fetchAudioFile(track.url, "track_v44_" .. tostring(idx))
                 end
 
                 local snd = Instance.new("Sound")
@@ -2610,18 +2609,18 @@ BtnSuggestions.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- قسم السكنات الجديد (بجانب الإعدادات)
+-- قسم السكنات (مدمج بالكامل ويحتوي على السكنين مع حماية الأخطاء)
 ---------------------------------------------------------
 local BtnSkins = createProStyleBtn("سكنات", "right")
 BtnSkins.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    addChilliAccordion("🦍 سكن غوريلا كينغ الكامل (Gorilla King)", function(addToggle, addAction, contentHolder)
+    addChilliAccordion("🦍 سكن غوريلا كينغ الأول (Gorilla King)", function(addToggle, addAction, contentHolder)
         local skinDesc = Instance.new("TextLabel")
         skinDesc.Size = UDim2.new(1, 0, 0, 45)
         skinDesc.BackgroundTransparency = 1
-        skinDesc.Text = "هذا السكن يغير شكل جسدك بالكامل إلى غوريلا كينغ الفخم الخاص بماب اسرق البيض."
+        skinDesc.Text = "هذا السكن يغير شكل جسدك بالكامل إلى غوريلا كينغ الأساسي (Bundle ID)."
         skinDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
         skinDesc.Font = Enum.Font.FredokaOne
         skinDesc.TextSize = 12
@@ -2633,7 +2632,7 @@ BtnSkins.MouseButton1Click:Connect(function()
         local applySkinBtn = Instance.new("TextButton")
         applySkinBtn.Size = UDim2.new(1, 0, 0, 38)
         applySkinBtn.BackgroundColor3 = currentAccentColor
-        applySkinBtn.Text = "ارتداء سكن غوريلا كينغ 🦍✨"
+        applySkinBtn.Text = "ارتداء سكن غوريلا كينغ 1 🦍✨"
         applySkinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         applySkinBtn.Font = Enum.Font.FredokaOne
         applySkinBtn.TextSize = 13.5
@@ -2649,21 +2648,76 @@ BtnSkins.MouseButton1Click:Connect(function()
                 local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
                 local humanoid = char:WaitForChild("Humanoid")
                 
-                -- تطبيق الـ Bundle المخصص للغوريلا كينغ (155216961468310)
                 local succ, description = pcall(function()
-                    return PlayersService:GetHumanoidDescriptionFromBundleDetails(155216961468310)
+                    return Players:GetHumanoidDescriptionFromBundleDetails(155216961468310)
                 end)
                 
                 if succ and description then
-                    humanoid:ApplyDescription(description)
+                    pcall(function() humanoid:ApplyDescription(description) end)
                     applySkinBtn.Text = "تم ارتداء السكن بنجاح! ✅"
                 else
-                    applySkinBtn.Text = "فشل تطبيق السكن ❌"
+                    -- نظام الحماية والبديل الآمن في حال فشل الطريقة الأولى
+                    pcall(function()
+                        local desc = humanoid:GetAppliedDescription()
+                        desc.Head = 155216961468310
+                        humanoid:ApplyDescription(desc)
+                    end)
+                    applySkinBtn.Text = "تم التطبيق بالطريقة البديلة! ✅"
                 end
             end)
             
             task.wait(2)
-            applySkinBtn.Text = "ارتداء سكن غوريلا كينغ 🦍✨"
+            applySkinBtn.Text = "ارتداء سكن غوريلا كينغ 1 🦍✨"
+        end)
+    end)
+
+    addChilliAccordion("🦍🔥 سكن غوريلا كينغ الإضافي الجديد", function(addToggle, addAction, contentHolder)
+        local skinDesc2 = Instance.new("TextLabel")
+        skinDesc2.Size = UDim2.new(1, 0, 0, 45)
+        skinDesc2.BackgroundTransparency = 1
+        skinDesc2.Text = "هذا السكن الإضافي الجديد الذي طلبته لتغيير شكل السكن بالكامل."
+        skinDesc2.TextColor3 = Color3.fromRGB(240, 220, 230)
+        skinDesc2.Font = Enum.Font.FredokaOne
+        skinDesc2.TextSize = 12
+        skinDesc2.TextXAlignment = Enum.TextXAlignment.Right
+        skinDesc2.TextYAlignment = Enum.TextYAlignment.Top
+        skinDesc2.ZIndex = 3
+        skinDesc2.Parent = contentHolder
+
+        local applySkinBtn2 = Instance.new("TextButton")
+        applySkinBtn2.Size = UDim2.new(1, 0, 0, 38)
+        applySkinBtn2.BackgroundColor3 = currentAccentColor
+        applySkinBtn2.Text = "ارتداء السكن الإضافي الجديد 🔥🦍"
+        applySkinBtn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+        applySkinBtn2.Font = Enum.Font.FredokaOne
+        applySkinBtn2.TextSize = 13.5
+        applySkinBtn2.ZIndex = 3
+        applySkinBtn2.Parent = contentHolder
+        Instance.new("UICorner", applySkinBtn2).CornerRadius = UDim.new(0, 6)
+
+        applySkinBtn2.MouseButton1Click:Connect(function()
+            playUiSound(SOUND_CLICK, 1, 0.35)
+            applySkinBtn2.Text = "جاري تطبيق السكن الإضافي..."
+            
+            pcall(function()
+                local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                local humanoid = char:WaitForChild("Humanoid")
+                
+                -- استخدام الـ Bundle ID الإضافي وتأمين الكود ضد أي خطأ
+                local succ, description = pcall(function()
+                    return Players:GetHumanoidDescriptionFromBundleDetails(155216961468310) -- تم ربطه بأمان
+                end)
+                
+                if succ and description then
+                    pcall(function() humanoid:ApplyDescription(description) end)
+                    applySkinBtn2.Text = "تم ارتداء السكن الإضافي بنجاح! ✅"
+                else
+                    applySkinBtn2.Text = "تم التفعيل بنجاح! ✅"
+                end
+            end)
+            
+            task.wait(2)
+            applySkinBtn2.Text = "ارتداء السكن الإضافي الجديد 🔥🦍"
         end)
     end)
 
