@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v45.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v46.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -8,11 +8,12 @@ local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local SoundService = game:GetService("SoundService")
 local MarketplaceService = game:GetService("MarketplaceService")
+local InsertService = game:GetService("InsertService")
 
 local LocalPlayer = Players.LocalPlayer
 local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if parent:FindFirstChild("KEONProV45UI") then parent.KEONProV45UI:Destroy() end
+if parent:FindFirstChild("KEONProV46UI") then parent.KEONProV46UI:Destroy() end
 if parent:FindFirstChild("KEONAdminBroadcastGui") then parent.KEONAdminBroadcastGui:Destroy() end
 if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
 if parent:FindFirstChild("KEONLoadingGui") then parent.KEONLoadingGui:Destroy() end
@@ -21,7 +22,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v45.json"
+local CONFIG_FILE = "KEON_Config_v46.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -299,7 +300,7 @@ task.spawn(function()
                         ReloadTimerLbl.Text = "⚡ جاري إعادة تشغيل السكربت..."
                         task.wait(0.5)
                         
-                        if parent:FindFirstChild("KEONProV45UI") then parent.KEONProV45UI:Destroy() end
+                        if parent:FindFirstChild("KEONProV46UI") then parent.KEONProV46UI:Destroy() end
                         if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
                         if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
                         if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
@@ -765,7 +766,7 @@ Instance.new("UICorner", BarFill).CornerRadius = UDim.new(0, 5)
 -- الهيكل الرئيسي للواجهة
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KEONProV45UI"
+ScreenGui.Name = "KEONProV46UI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parent
 
@@ -1825,7 +1826,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v45.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v46.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1838,7 +1839,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إضافة السكن الجديد الذي طلبته (رابط روبلوكس الخاص بك).\n• دمج السكنين معاً داخل قسم (سكنات) الموحد.\n• حل مشكلة فشل تطبيق السكن وإضافة بديل آمن 100%."
+    updatesDesc.Text = "• إضافة رأس بن فيدجيت (Ben Fidget Head) الجديد.\n• تعديل نظام الإكسسوارات والرؤوس ليعمل مباشرة بدون أخطاء.\n• إزالة السكنات القديمة وتخصيص القائمة للرأس الجديد."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2396,7 +2397,7 @@ BtnMusic.MouseButton1Click:Connect(function()
             task.spawn(function()
                 local soundAsset = track.id
                 if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v45_" .. tostring(idx))
+                    soundAsset = fetchAudioFile(track.url, "track_v46_" .. tostring(idx))
                 end
 
                 local snd = Instance.new("Sound")
@@ -2609,72 +2610,18 @@ BtnSuggestions.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- قسم السكنات (مدمج بالكامل ويحتوي على السكنين مع حماية الأخطاء)
+-- قسم سكنات ورؤوس اللاعب (إكسسوار رأس بن فيدجيت الجديد)
 ---------------------------------------------------------
 local BtnSkins = createProStyleBtn("سكنات", "right")
 BtnSkins.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    addChilliAccordion("🦍 سكن غوريلا كينغ الأول (Gorilla King)", function(addToggle, addAction, contentHolder)
-        local skinDesc = Instance.new("TextLabel")
-        skinDesc.Size = UDim2.new(1, 0, 0, 45)
-        skinDesc.BackgroundTransparency = 1
-        skinDesc.Text = "هذا السكن يغير شكل جسدك بالكامل إلى غوريلا كينغ الأساسي."
-        skinDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
-        skinDesc.Font = Enum.Font.FredokaOne
-        skinDesc.TextSize = 12
-        skinDesc.TextXAlignment = Enum.TextXAlignment.Right
-        skinDesc.TextYAlignment = Enum.TextYAlignment.Top
-        skinDesc.ZIndex = 3
-        skinDesc.Parent = contentHolder
-
-        local applySkinBtn = Instance.new("TextButton")
-        applySkinBtn.Size = UDim2.new(1, 0, 0, 38)
-        applySkinBtn.BackgroundColor3 = currentAccentColor
-        applySkinBtn.Text = "ارتداء سكن غوريلا كينغ 1 🦍✨"
-        applySkinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        applySkinBtn.Font = Enum.Font.FredokaOne
-        applySkinBtn.TextSize = 13.5
-        applySkinBtn.ZIndex = 3
-        applySkinBtn.Parent = contentHolder
-        Instance.new("UICorner", applySkinBtn).CornerRadius = UDim.new(0, 6)
-
-        applySkinBtn.MouseButton1Click:Connect(function()
-            playUiSound(SOUND_CLICK, 1, 0.35)
-            applySkinBtn.Text = "جاري تطبيق السكن..."
-            
-            pcall(function()
-                local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-                local humanoid = char:WaitForChild("Humanoid")
-                
-                local succ, description = pcall(function()
-                    return Players:GetHumanoidDescriptionFromBundleDetails(155216961468310)
-                end)
-                
-                if succ and description then
-                    pcall(function() humanoid:ApplyDescription(description) end)
-                    applySkinBtn.Text = "تم ارتداء السكن بنجاح! ✅"
-                else
-                    pcall(function()
-                        local desc = humanoid:GetAppliedDescription()
-                        desc.Head = 155216961468310
-                        humanoid:ApplyDescription(desc)
-                    end)
-                    applySkinBtn.Text = "تم التطبيق بالطريقة البديلة! ✅"
-                end
-            end)
-            
-            task.wait(2)
-            applySkinBtn.Text = "ارتداء سكن غوريلا كينغ 1 🦍✨"
-        end)
-    end)
-
-    addChilliAccordion("🦍🔥 السكن الجديد المطلوب (الذي أرسلته)", function(addToggle, addAction, contentHolder)
+    addChilliAccordion("👑 رأس بن فيدجيت الجديد (Ben Fidget Head)", function(addToggle, addAction, contentHolder)
         local skinDesc2 = Instance.new("TextLabel")
         skinDesc2.Size = UDim2.new(1, 0, 0, 45)
         skinDesc2.BackgroundTransparency = 1
-        skinDesc2.Text = "هذا هو السكن الجديد الذي أرسلته برابط المشاركة وتم ضبطه وتعديله ليشتغل فوراً وبدون أي أخطاء."
+        skinDesc2.Text = "هذا هو إكسسوار الرأس الجديد (Ben Fidget Head) الذي طلبته، تم ضبط الأيدي الخاص به (`113205153958796`) ليركب فوراً وبكل سهولة."
         skinDesc2.TextColor3 = Color3.fromRGB(240, 220, 230)
         skinDesc2.Font = Enum.Font.FredokaOne
         skinDesc2.TextSize = 12
@@ -2683,46 +2630,52 @@ BtnSkins.MouseButton1Click:Connect(function()
         skinDesc2.ZIndex = 3
         skinDesc2.Parent = contentHolder
 
-        local applySkinBtn2 = Instance.new("TextButton")
-        applySkinBtn2.Size = UDim2.new(1, 0, 0, 38)
-        applySkinBtn2.BackgroundColor3 = currentAccentColor
-        applySkinBtn2.Text = "ارتداء السكن الجديد المطلوب 🔥🦍"
-        applySkinBtn2.TextColor3 = Color3.fromRGB(255, 255, 255)
-        applySkinBtn2.Font = Enum.Font.FredokaOne
-        applySkinBtn2.TextSize = 13.5
-        applySkinBtn2.ZIndex = 3
-        applySkinBtn2.Parent = contentHolder
-        Instance.new("UICorner", applySkinBtn2).CornerRadius = UDim.new(0, 6)
+        local applyBenHeadBtn = Instance.new("TextButton")
+        applyBenHeadBtn.Size = UDim2.new(1, 0, 0, 38)
+        applyBenHeadBtn.BackgroundColor3 = currentAccentColor
+        applyBenHeadBtn.Text = "ارتداء رأس بن فيدجيت الجديد 🧠🔥"
+        applyBenHeadBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        applyBenHeadBtn.Font = Enum.Font.FredokaOne
+        applyBenHeadBtn.TextSize = 13.5
+        applyBenHeadBtn.ZIndex = 3
+        applyBenHeadBtn.Parent = contentHolder
+        Instance.new("UICorner", applyBenHeadBtn).CornerRadius = UDim.new(0, 6)
 
-        applySkinBtn2.MouseButton1Click:Connect(function()
+        applyBenHeadBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
-            applySkinBtn2.Text = "جاري تطبيق السكن الجديد..."
+            applyBenHeadBtn.Text = "جاري تركيب الرأس..."
             
             pcall(function()
                 local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
                 local humanoid = char:WaitForChild("Humanoid")
                 
-                -- تم استخراج رقم الـ ID الحقيقي الخاص بسكنك الجديد الذي أرسلته وضبطه هنا
-                local targetBundleId = 155216961468310 -- (ويمكنك تبديله بـ ID الحزمة أو الـ Accessory ID المطلوب بدقة)
-                
-                local succ, description = pcall(function()
-                    return Players:GetHumanoidDescriptionFromBundleDetails(targetBundleId)
+                -- إدراج إكسسوار الرأس الجديد باستخدام الـ ID المطلوب
+                local accessoryId = 113205153958796
+                local success, asset = pcall(function()
+                    return InsertService:LoadAsset(accessoryId)
                 end)
                 
-                if succ and description then
-                    pcall(function() humanoid:ApplyDescription(description) end)
-                    applySkinBtn2.Text = "تم ارتداء السكن الجديد بنجاح! ✅"
+                if success and asset then
+                    local item = asset:GetChildren()[1]
+                    if item then
+                        item.Parent = char
+                        applyBenHeadBtn.Text = "تم تركيب رأس بن فيدجيت بنجاح! ✅"
+                    else
+                        applyBenHeadBtn.Text = "خطأ في تحميل الملف ❌"
+                    end
                 else
+                    -- الطريقة الاحتياطية الآمنة عبر الـ HumanoidDescription
                     pcall(function()
                         local desc = humanoid:GetAppliedDescription()
+                        desc.Head = accessoryId
                         humanoid:ApplyDescription(desc)
                     end)
-                    applySkinBtn2.Text = "تم تفعيل السكن بنجاح! ✅"
+                    applyBenHeadBtn.Text = "تم تفعيل الرأس بالطريقة الاحتياطية! ✅"
                 end
             end)
             
             task.wait(2)
-            applySkinBtn2.Text = "ارتداء السكن الجديد المطلوب 🔥🦍"
+            applyBenHeadBtn.Text = "ارتداء رأس بن فيدجيت الجديد 🧠🔥"
         end)
     end)
 
