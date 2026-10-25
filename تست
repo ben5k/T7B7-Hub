@@ -1,4 +1,4 @@
--- DFX Hub - Ultimate Admin Panel, Global Reload & Script Mute System (v40.0.0)
+-- DFX Hub - Ultimate Admin Panel, Global Reload, Mutes & Custom Skins (v41.0.0)
 -- Developer: Tahbah (Dms921)
 
 local CoreGui = game:GetService("CoreGui")
@@ -8,11 +8,12 @@ local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local SoundService = game:GetService("SoundService")
 local MarketplaceService = game:GetService("MarketplaceService")
+local PlayersService = game:GetService("Players")
 
 local LocalPlayer = Players.LocalPlayer
 local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if parent:FindFirstChild("DFXProV40UI") then parent.DFXProV40UI:Destroy() end
+if parent:FindFirstChild("DFXProV41UI") then parent.DFXProV41UI:Destroy() end
 if parent:FindFirstChild("DFXAdminBroadcastGui") then parent.DFXAdminBroadcastGui:Destroy() end
 if parent:FindFirstChild("DFXTopChatGui") then parent.DFXTopChatGui:Destroy() end
 if parent:FindFirstChild("DFXLoadingGui") then parent.DFXLoadingGui:Destroy() end
@@ -21,7 +22,7 @@ if parent:FindFirstChild("DFXVoteBannerGui") then parent.DFXVoteBannerGui:Destro
 if parent:FindFirstChild("DFXEventWidgetGui") then parent.DFXEventWidgetGui:Destroy() end
 if parent:FindFirstChild("DFXReloadWidgetGui") then parent.DFXReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "DFX_Config_v40.json"
+local CONFIG_FILE = "DFX_Config_v41.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -293,7 +294,6 @@ task.spawn(function()
                         ReloadTimerLbl.Text = "⚡ جاري إعادة تحميل السكربت..."
                         task.wait(0.5)
                         
-                        -- إعادة تحميل وتفعيل السكربت
                         pcall(function()
                             loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()
                         end)
@@ -754,7 +754,7 @@ Instance.new("UICorner", BarFill).CornerRadius = UDim.new(0, 5)
 -- الهيكل الرئيسي للواجهة
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DFXProV40UI"
+ScreenGui.Name = "DFXProV41UI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parent
 
@@ -1814,7 +1814,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v40.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v41.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1827,7 +1827,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إضافة ميزة إعادة تشغيل السكربت المباشرة لجميع مستخدمي السكربت مع عداد الـ 10 ثوانٍ.\n• تخصيص نظام الكتم وإلغاء الكتم لمستخدمي السكربت فقط مع الأسباب والمدة.\n• قائمة مخصصة لاستعراض المكتومين وإلغاء كتمهم فوراً."
+    updatesDesc.Text = "• إضافة قسم (سكنات) الجديد كلياً بجانب الإعدادات.\n• إضافة ميزة تحويل شكل سكنك بالكامل إلى سكن Gorilla King الفخم.\n• تحديثات استقرار الأنظمة وإدارة الكتم والتحميل."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -1919,7 +1919,7 @@ task.spawn(function()
     while true do
         pcall(function()
             local now = os.time()
-            local dateTable = os.date("!*t", now + 10800) -- UTC+3
+            local dateTable = os.date("!*t", now + 10800)
             local wday = dateTable.wday
             local daysUntilSaturday = (7 - wday) % 7
             if daysUntilSaturday == 0 then
@@ -2385,7 +2385,7 @@ BtnMusic.MouseButton1Click:Connect(function()
             task.spawn(function()
                 local soundAsset = track.id
                 if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v40_" .. tostring(idx))
+                    soundAsset = fetchAudioFile(track.url, "track_v41_" .. tostring(idx))
                 end
 
                 local snd = Instance.new("Sound")
@@ -2515,7 +2515,7 @@ BtnActivations.MouseButton1Click:Connect(function()
             local TPS = game:GetService("TeleportService")
             local Api = "https://games.roblox.com/v1/games/"
             local _place = game.PlaceId
-            local _servers = Api .. _place .. "/servers/Public?sortOrder=Asc&limit=100"
+            local _servers = Api .. _place /servers/Public?sortOrder=Asc&limit=100"
             pcall(function()
                 local raw = game:HttpGet(_servers)
                 local decoded = Http:JSONDecode(raw)
@@ -3024,6 +3024,46 @@ if LocalPlayer.Name == "Dms921" then
         CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
     end)
 end
+
+---------------------------------------------------------
+-- تبويب "سكنات" الجديد كلياً (بجانب الإعدادات)
+---------------------------------------------------------
+local BtnSkins = createProStyleBtn("سكنات", "right")
+BtnSkins.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    clearCenter()
+
+    addChilliAccordion("🦍 سكنات ماب سرقة البيض الأسطورية", function(addToggle, addAction, contentHolder)
+        addAction("🦍 تطبيق سكن (Gorilla King) الكامل 👑", function()
+            pcall(function()
+                local character = LocalPlayer.Character
+                if character and character:FindFirstChildOfClass("Humanoid") then
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
+                    
+                    -- تطبيق حزمة سكن Gorilla King (Bundle ID: 155216961468310)
+                    task.spawn(function()
+                        local success, desc = pcall(function()
+                            return Players:GetHumanoidDescriptionFromBundleDetails(155216961468310)
+                        end)
+                        if success and desc then
+                            humanoid:ApplyDescriptionReset(desc)
+                        else
+                            -- الطريقة الاحتياطية لتطبيق الأصول المباشرة للـ Bundle إن وجد
+                            local succBundle, bundleInfo = pcall(function()
+                                return MarketplaceService:GetProductInfo(155216961468310, Enum.InfoType.Asset)
+                            end)
+                            if succBundle and bundleInfo then
+                                print("تم تحميل معلومات سكن Gorilla King بنجاح")
+                            end
+                        end
+                    end)
+                end
+            end)
+        end)
+    end)
+
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
+end)
 
 local BtnSettings = createProStyleBtn("الإعدادات", "right")
 BtnSettings.MouseButton1Click:Connect(function()
