@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v54.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v55.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v54.json"
+local CONFIG_FILE = "KEON_Config_v55.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -88,7 +88,7 @@ local function fetchAudioFile(url, fileName)
 end
 
 local wallUrls = {
-    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_new"),
+    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v55"),
     fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
     fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
     fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2"),
@@ -1932,7 +1932,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v54.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v55.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1945,7 +1945,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إضافة خلفية متحركة فخمة جديدة بناءً على طلبك.\n• ربط وتفعيل تغيير خلفيات السكربت بالكامل وبكل سلاسة من الإعدادات.\n• حل مشكلة تعليق المقاطع الصوتية وإضافة نظام تحميل فوري وسريع."
+    updatesDesc.Text = "• حل مشكلة الخلفية المتحركة وإضافتها بشكل دائم وثابت بقائمة الخلفيات.\n• تشغيل المقاطع الصوتية مباشرة وفوراً بدون تعليق.\n• زيادة سرعة وكفاءة أداء واجهة السكربت."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2351,7 +2351,7 @@ BtnScripts.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- تبويب "الميديا والصوتيات" (مع نظام تحميل فوري وسريع بدون تعليق)
+-- تبويب "الميديا والصوتيات" (تشغيل فوري مباشر بدون انتظار)
 ---------------------------------------------------------
 local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
 BtnMedia.MouseButton1Click:Connect(function()
@@ -2519,30 +2519,18 @@ BtnMedia.MouseButton1Click:Connect(function()
                 pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
             end
 
-            playBtn.Text = "جاري التحميل..."
+            playBtn.Text = "جاري التشغيل..."
 
             task.spawn(function()
-                local audioAsset = fetchAudioFile(track.url, "media_v54_" .. tostring(idx))
-
                 local snd = Instance.new("Sound")
-                snd.SoundId = audioAsset
+                snd.SoundId = track.url
                 snd.Volume = globalMediaVolume
                 snd.Looped = true
                 snd.Parent = SoundService
                 
-                local loadedSuccess = pcall(function()
-                    if not snd.IsLoaded then snd.Loaded:Wait(3) end
-                end)
-
-                if loadedSuccess then
-                    snd:Play()
-                    _G.KEONActiveMediaSound = snd
-                    playBtn.Text = "يعمل الآن ▶️"
-                else
-                    playBtn.Text = "تشغيل مباشر ⚡"
-                    snd:Play()
-                    _G.KEONActiveMediaSound = snd
-                end
+                pcall(function() snd:Play() end)
+                _G.KEONActiveMediaSound = snd
+                playBtn.Text = "يعمل الآن ▶️"
 
                 task.wait(2)
                 playBtn.Text = "تشغيل 🎶"
