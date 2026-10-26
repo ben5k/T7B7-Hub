@@ -1,5 +1,5 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v42.1.0)
--- Developer: Tahbah (Dms921)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v51.0.0)
+-- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -12,7 +12,7 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local LocalPlayer = Players.LocalPlayer
 local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if parent:FindFirstChild("KEONProV42UI") then parent.KEONProV42UI:Destroy() end
+if parent:FindFirstChild("KEONProV47UI") then parent.KEONProV47UI:Destroy() end
 if parent:FindFirstChild("KEONAdminBroadcastGui") then parent.KEONAdminBroadcastGui:Destroy() end
 if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
 if parent:FindFirstChild("KEONLoadingGui") then parent.KEONLoadingGui:Destroy() end
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v42.json"
+local CONFIG_FILE = "KEON_Config_v51.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -32,7 +32,6 @@ local FIREBASE_ADMIN_ACTIONS_URL = FIREBASE_BASE_URL .. "/admin_actions.json"
 
 local FIREBASE_VOTE_BASE = FIREBASE_BASE_URL .. "/global_vote"
 local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
-
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
 
 local function customRequest(options)
@@ -98,6 +97,15 @@ local wallUrls = {
     fetchAsset("https://c.top4top.io/p_3947n55o83.jpg", "bg_6"),
     fetchAsset("https://d.top4top.io/p_394754mmu4.jpg", "bg_7"),
     fetchAsset("https://e.top4top.io/p_39475mm3q5.jpg", "bg_8"),
+}
+
+local stickerUrls = {
+    fetchAsset("https://up6.cc/2026/10/179301030915811.jpg", "stk_1"),
+    fetchAsset("https://up6.cc/2026/10/179301030920862.jpg", "stk_2"),
+    fetchAsset("https://up6.cc/2026/10/179301030923343.jpg", "stk_3"),
+    fetchAsset("https://up6.cc/2026/10/179301030928524.jpg", "stk_4"),
+    fetchAsset("https://up6.cc/2026/10/179301041828331.jpg", "stk_5"),
+    fetchAsset("https://up6.cc/2026/10/179301041832562.jpg", "stk_6")
 }
 
 local EGG_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_3948flo0t0.jpg", "egg_map")
@@ -227,7 +235,7 @@ local ReloadDevNameLbl = Instance.new("TextLabel")
 ReloadDevNameLbl.Size = UDim2.new(0, 180, 0, 20)
 ReloadDevNameLbl.Position = UDim2.new(0, 66, 0, 10)
 ReloadDevNameLbl.BackgroundTransparency = 1
-ReloadDevNameLbl.Text = "👑 طحبح (إعادة تشغيل KEON)"
+ReloadDevNameLbl.Text = "👑 كـيـون (إعادة تشغيل KEON)"
 ReloadDevNameLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
 ReloadDevNameLbl.Font = Enum.Font.FredokaOne
 ReloadDevNameLbl.TextSize = 12
@@ -299,7 +307,7 @@ task.spawn(function()
                         ReloadTimerLbl.Text = "⚡ جاري إعادة تشغيل السكربت..."
                         task.wait(0.5)
                         
-                        if parent:FindFirstChild("KEONProV42UI") then parent.KEONProV42UI:Destroy() end
+                        if parent:FindFirstChild("KEONProV47UI") then parent.KEONProV47UI:Destroy() end
                         if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
                         if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
                         if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
@@ -359,7 +367,7 @@ local DevNameLbl = Instance.new("TextLabel")
 DevNameLbl.Size = UDim2.new(0, 140, 0, 20)
 DevNameLbl.Position = UDim2.new(0, 68, 0, 10)
 DevNameLbl.BackgroundTransparency = 1
-DevNameLbl.Text = "👑 طحبح (تصويت KEON)"
+DevNameLbl.Text = "👑 كـيـون (تصويت KEON)"
 DevNameLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
 DevNameLbl.Font = Enum.Font.FredokaOne
 DevNameLbl.TextSize = 12
@@ -765,7 +773,7 @@ Instance.new("UICorner", BarFill).CornerRadius = UDim.new(0, 5)
 -- الهيكل الرئيسي للواجهة
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KEONProV42UI"
+ScreenGui.Name = "KEONProV47UI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parent
 
@@ -834,7 +842,7 @@ local TitleMain = Instance.new("TextLabel")
 TitleMain.Size = UDim2.new(1, -75, 1, 0)
 TitleMain.Position = UDim2.new(0, 10, 0, 0)
 TitleMain.BackgroundTransparency = 1
-TitleMain.Text = "⚡ KEON Hub | المطور: طحبح"
+TitleMain.Text = "⚡ KEON Hub | المطور: كـيـون"
 TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.FredokaOne
 TitleMain.TextSize = 18
@@ -955,7 +963,7 @@ CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
 
 ---------------------------------------------------------
--- نافذة الشات المباشرة
+-- نافذة الشات المباشرة (مع قائمة خلفيات قابلة للتمرير وملصقات واضحة)
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
 ChatScreenGui.Name = "KEONTopChatGui"
@@ -1033,7 +1041,7 @@ ResetTimerLbl.ZIndex = 3
 ResetTimerLbl.Parent = ChatWin
 
 local ChatHeaderBtn1 = Instance.new("TextButton")
-ChatHeaderBtn1.Size = UDim2.new(0, 85, 0, 24)
+ChatHeaderBtn1.Size = UDim2.new(0, 100, 0, 24)
 ChatHeaderBtn1.Position = UDim2.new(0, 6, 0, 25)
 ChatHeaderBtn1.BackgroundColor3 = currentAccentColor
 ChatHeaderBtn1.Text = "💬 الشات"
@@ -1045,10 +1053,10 @@ ChatHeaderBtn1.Parent = ChatWin
 Instance.new("UICorner", ChatHeaderBtn1).CornerRadius = UDim.new(0, 6)
 
 local ChatHeaderBtn2 = Instance.new("TextButton")
-ChatHeaderBtn2.Size = UDim2.new(0, 75, 0, 24)
-ChatHeaderBtn2.Position = UDim2.new(0, 95, 0, 25)
+ChatHeaderBtn2.Size = UDim2.new(0, 105, 0, 24)
+ChatHeaderBtn2.Position = UDim2.new(0, 112, 0, 25)
 ChatHeaderBtn2.BackgroundColor3 = currentAccentColor
-ChatHeaderBtn2.Text = "★ مميزات"
+ChatHeaderBtn2.Text = "★ خلفيات"
 ChatHeaderBtn2.TextColor3 = Color3.fromRGB(255, 255, 255)
 ChatHeaderBtn2.Font = Enum.Font.FredokaOne
 ChatHeaderBtn2.TextSize = 11
@@ -1057,10 +1065,10 @@ ChatHeaderBtn2.Parent = ChatWin
 Instance.new("UICorner", ChatHeaderBtn2).CornerRadius = UDim.new(0, 6)
 
 local ChatHeaderBtn3 = Instance.new("TextButton")
-ChatHeaderBtn3.Size = UDim2.new(0, 130, 0, 24)
-ChatHeaderBtn3.Position = UDim2.new(0, 174, 0, 25)
+ChatHeaderBtn3.Size = UDim2.new(0, 115, 0, 24)
+ChatHeaderBtn3.Position = UDim2.new(0, 223, 0, 25)
 ChatHeaderBtn3.BackgroundColor3 = currentAccentColor
-ChatHeaderBtn3.Text = "👥 المتواجدون (0)"
+ChatHeaderBtn3.Text = "👥 متواجدون"
 ChatHeaderBtn3.TextColor3 = Color3.fromRGB(255, 255, 255)
 ChatHeaderBtn3.Font = Enum.Font.FredokaOne
 ChatHeaderBtn3.TextSize = 11
@@ -1075,17 +1083,19 @@ ChatMainContainer.BackgroundTransparency = 1
 ChatMainContainer.ZIndex = 2
 ChatMainContainer.Parent = ChatWin
 
+-- قسم الخلفيات المحدث (ScrollingFrame قابل للتمرير بالكامل لتفادي أي اختفاء للخلفيات)
 local ChatFeaturesContainer = Instance.new("ScrollingFrame")
-ChatFeaturesContainer.Size = UDim2.new(1, -20, 1, -70)
-ChatFeaturesContainer.Position = UDim2.new(0, 10, 0, 58)
+ChatFeaturesContainer.Size = UDim2.new(1, -20, 1, -65)
+ChatFeaturesContainer.Position = UDim2.new(0, 10, 0, 55)
 ChatFeaturesContainer.BackgroundTransparency = 1
 ChatFeaturesContainer.Visible = false
 ChatFeaturesContainer.ZIndex = 2
-ChatFeaturesContainer.ScrollBarThickness = 3
+ChatFeaturesContainer.ScrollBarThickness = 4
 ChatFeaturesContainer.Parent = ChatWin
 
 local featLayout = Instance.new("UIListLayout")
 featLayout.Padding = UDim.new(0, 8)
+featLayout.SortOrder = Enum.SortOrder.LayoutOrder
 featLayout.Parent = ChatFeaturesContainer
 
 local ChatOnlineContainer = Instance.new("ScrollingFrame")
@@ -1116,7 +1126,7 @@ local function fetchScriptUsersOnly()
                     end
                 end
                 
-                ChatHeaderBtn3.Text = "👥 المتواجدون (" .. #activeUsers .. ")"
+                ChatHeaderBtn3.Text = "👥 متواجدون (" .. #activeUsers .. ")"
                 
                 for _, child in ipairs(ChatOnlineContainer:GetChildren()) do
                     if not child:IsA("UIListLayout") then child:Destroy() end
@@ -1227,19 +1237,6 @@ ChatHeaderBtn3.MouseButton1Click:Connect(function()
     fetchScriptUsersOnly()
 end)
 
-local function applyScriptBackground(idx)
-    selectedScriptBgIndex = idx
-    saveUserSettings()
-    if idx > 0 and wallUrls[idx] then
-        BgImage.Image = wallUrls[idx]
-        BgImage.Visible = true
-        CenterBox.BackgroundTransparency = 0.85
-    else
-        BgImage.Visible = false
-        CenterBox.BackgroundTransparency = 0
-    end
-end
-
 local function applyChatBackground(idx)
     selectedChatBgIndex = idx
     saveUserSettings()
@@ -1253,7 +1250,6 @@ local function applyChatBackground(idx)
     end
 end
 
-applyScriptBackground(selectedScriptBgIndex)
 applyChatBackground(selectedChatBgIndex)
 
 local chatFeatTitle = Instance.new("TextLabel")
@@ -1268,7 +1264,7 @@ chatFeatTitle.Parent = ChatFeaturesContainer
 table.insert(activeNameLabels, chatFeatTitle)
 
 local removeChatBgBtn = Instance.new("TextButton")
-removeChatBgBtn.Size = UDim2.new(1, 0, 0, 28)
+removeChatBgBtn.Size = UDim2.new(1, 0, 0, 32)
 removeChatBgBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 60)
 removeChatBgBtn.Text = "❌ إغلاق خلفية الشات"
 removeChatBgBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1278,32 +1274,33 @@ removeChatBgBtn.ZIndex = 3
 removeChatBgBtn.Parent = ChatFeaturesContainer
 Instance.new("UICorner", removeChatBgBtn).CornerRadius = UDim.new(0, 6)
 
-removeChatBgBtn.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    applyChatBackground(0)
-end)
-
 local chatGridHolder = Instance.new("Frame")
-chatGridHolder.Size = UDim2.new(1, 0, 0, 360)
+chatGridHolder.Size = UDim2.new(1, 0, 0, 340)
 chatGridHolder.BackgroundTransparency = 1
 chatGridHolder.ZIndex = 3
 chatGridHolder.Parent = ChatFeaturesContainer
 
 local chatGridLayout = Instance.new("UIGridLayout")
-chatGridLayout.CellSize = UDim2.new(0, 140, 0, 75)
+chatGridLayout.CellSize = UDim2.new(0, 155, 0, 85)
 chatGridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
 chatGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 chatGridLayout.Parent = chatGridHolder
 
 for i, url in ipairs(wallUrls) do
     local cBtn = Instance.new("ImageButton")
-    cBtn.Size = UDim2.new(0, 140, 0, 75)
+    cBtn.Size = UDim2.new(0, 155, 0, 85)
     cBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
     cBtn.Image = url
     cBtn.ScaleType = Enum.ScaleType.Crop
     cBtn.ZIndex = 4
     cBtn.Parent = chatGridHolder
-    Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 6)
+    Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 8)
+
+    local cStroke = Instance.new("UIStroke")
+    cStroke.Color = currentAccentColor
+    cStroke.Thickness = 1.5
+    cStroke.Parent = cBtn
+    table.insert(registeredOptionStrokes, cStroke)
 
     cBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
@@ -1311,7 +1308,70 @@ for i, url in ipairs(wallUrls) do
     end)
 end
 
-ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, 440)
+ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, featLayout.AbsoluteContentSize.Y + 40)
+
+removeChatBgBtn.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    applyChatBackground(0)
+end)
+
+-- نافذة منبثقة للملصقات (بتصميم الإيموجي وتأكيد ظهور صور الملصقات بوضوح)
+local StickerModal = Instance.new("Frame")
+StickerModal.Name = "StickerModal"
+StickerModal.Size = UDim2.new(0, 220, 0, 160)
+StickerModal.Position = UDim2.new(1, -225, 1, -200)
+StickerModal.BackgroundColor3 = Color3.fromRGB(15, 12, 20)
+StickerModal.Visible = false
+StickerModal.ZIndex = 50
+StickerModal.Parent = ChatWin
+Instance.new("UICorner", StickerModal).CornerRadius = UDim.new(0, 10)
+
+local stickerModalStroke = Instance.new("UIStroke")
+stickerModalStroke.Color = currentAccentColor
+stickerModalStroke.Thickness = 2
+stickerModalStroke.Parent = StickerModal
+
+local stickerModalGrid = Instance.new("UIGridLayout")
+stickerModalGrid.CellSize = UDim2.new(0, 60, 0, 60)
+stickerModalGrid.CellPadding = UDim2.new(0, 8, 0, 8)
+stickerModalGrid.SortOrder = Enum.SortOrder.LayoutOrder
+stickerModalGrid.Parent = StickerModal
+
+local stickerPadding = Instance.new("UIPadding")
+stickerPadding.PaddingTop = UDim.new(0, 10)
+stickerPadding.PaddingLeft = UDim.new(0, 10)
+stickerPadding.Parent = StickerModal
+
+for _, sUrl in ipairs(stickerUrls) do
+    local stBtn = Instance.new("ImageButton")
+    stBtn.Size = UDim2.new(0, 60, 0, 60)
+    stBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    stBtn.Image = sUrl
+    stBtn.ScaleType = Enum.ScaleType.Fit
+    stBtn.ZIndex = 51
+    stBtn.Parent = StickerModal
+    Instance.new("UICorner", stBtn).CornerRadius = UDim.new(0, 6)
+
+    stBtn.MouseButton1Click:Connect(function()
+        playUiSound(SOUND_CLICK, 1, 0.35)
+        StickerModal.Visible = false
+
+        pcall(function()
+            customRequest({
+                Url = FIREBASE_CHAT_URL,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HttpService:JSONEncode({
+                    sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
+                    userId = LocalPlayer.UserId,
+                    text = sUrl,
+                    isSticker = true,
+                    time = os.time()
+                })
+            })
+        end)
+    end)
+end
 
 local function showPrivateScriptUserBubble(userId, text)
     local targetPlr = Players:GetPlayerByUserId(userId)
@@ -1370,7 +1430,7 @@ ChatLayout.Padding = UDim.new(0, 6)
 ChatLayout.Parent = ChatScroll
 
 local ChatInput = Instance.new("TextBox")
-ChatInput.Size = UDim2.new(1, -115, 0, 30)
+ChatInput.Size = UDim2.new(1, -135, 0, 30)
 ChatInput.Position = UDim2.new(0, 10, 1, -36)
 ChatInput.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
 ChatInput.PlaceholderText = "اكتب رسالتك هنا..."
@@ -1383,14 +1443,26 @@ ChatInput.ZIndex = 2
 ChatInput.Parent = ChatWin
 Instance.new("UICorner", ChatInput).CornerRadius = UDim.new(0, 6)
 
+local StickerBtn = Instance.new("TextButton")
+StickerBtn.Size = UDim2.new(0, 30, 0, 30)
+StickerBtn.Position = UDim2.new(1, -130, 1, -36)
+StickerBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 35)
+StickerBtn.Text = "⭐"
+StickerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+StickerBtn.Font = Enum.Font.FredokaOne
+StickerBtn.TextSize = 14
+StickerBtn.ZIndex = 2
+StickerBtn.Parent = ChatWin
+Instance.new("UICorner", StickerBtn).CornerRadius = UDim.new(0, 6)
+
 local SendBtn = Instance.new("TextButton")
-SendBtn.Size = UDim2.new(0, 95, 0, 30)
-SendBtn.Position = UDim2.new(1, -105, 1, -36)
+SendBtn.Size = UDim2.new(0, 90, 0, 30)
+SendBtn.Position = UDim2.new(1, -95, 1, -36)
 SendBtn.BackgroundColor3 = currentAccentColor
 SendBtn.Text = "إرسال 🚀"
 SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 SendBtn.Font = Enum.Font.FredokaOne
-SendBtn.TextSize = 13
+SendBtn.TextSize = 12
 SendBtn.ZIndex = 2
 SendBtn.Parent = ChatWin
 Instance.new("UICorner", SendBtn).CornerRadius = UDim.new(0, 6)
@@ -1400,11 +1472,17 @@ FloatingChatBtn.MouseButton1Click:Connect(function()
     ChatWin.Visible = not ChatWin.Visible
 end)
 
+StickerBtn.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    StickerModal.Visible = not StickerModal.Visible
+end)
+
 local renderedMsgs = {}
-local function addChatMessage(sender, text, userId, msgKey)
+local function addChatMessage(sender, text, userId, msgKey, isSticker)
+    local frameHeight = isSticker and 110 or 44
     local msgFrame = Instance.new("Frame")
     msgFrame.Name = msgKey or "MsgItem"
-    msgFrame.Size = UDim2.new(1, 0, 0, 44)
+    msgFrame.Size = UDim2.new(1, 0, 0, frameHeight)
     msgFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
     msgFrame.ZIndex = 2
     msgFrame.Parent = ChatScroll
@@ -1417,15 +1495,15 @@ local function addChatMessage(sender, text, userId, msgKey)
     table.insert(registeredOptionStrokes, stroke)
 
     local rightHeader = Instance.new("Frame")
-    rightHeader.Size = UDim2.new(0, 110, 1, 0)
-    rightHeader.Position = UDim2.new(1, -110, 0, 0)
+    rightHeader.Size = UDim2.new(0, 110, 0, 36)
+    rightHeader.Position = UDim2.new(1, -110, 0, 4)
     rightHeader.BackgroundTransparency = 1
     rightHeader.ZIndex = 3
     rightHeader.Parent = msgFrame
 
     local avatarImg = Instance.new("ImageLabel")
     avatarImg.Size = UDim2.new(0, 32, 0, 32)
-    avatarImg.Position = UDim2.new(1, -36, 0.5, -16)
+    avatarImg.Position = UDim2.new(1, -36, 0, 2)
     avatarImg.BackgroundColor3 = Color3.fromRGB(30, 20, 35)
     avatarImg.ZIndex = 4
     avatarImg.Parent = rightHeader
@@ -1446,23 +1524,35 @@ local function addChatMessage(sender, text, userId, msgKey)
     nameLbl.Parent = rightHeader
     table.insert(activeNameLabels, nameLbl)
 
-    local msgTextLbl = Instance.new("TextLabel")
-    msgTextLbl.Size = UDim2.new(1, -120, 1, 0)
-    msgTextLbl.Position = UDim2.new(0, 8, 0, 0)
-    msgTextLbl.BackgroundTransparency = 1
-    msgTextLbl.Text = text
-    msgTextLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-    msgTextLbl.Font = Enum.Font.FredokaOne
-    msgTextLbl.TextSize = 13
-    msgTextLbl.TextXAlignment = Enum.TextXAlignment.Left
-    msgTextLbl.TextWrapped = true
-    msgTextLbl.ZIndex = 4
-    msgTextLbl.Parent = msgFrame
+    if isSticker then
+        local stickerContent = Instance.new("ImageLabel")
+        stickerContent.Size = UDim2.new(0, 75, 0, 75)
+        stickerContent.Position = UDim2.new(1, -95, 0, 32)
+        stickerContent.BackgroundColor3 = Color3.fromRGB(15, 12, 18)
+        stickerContent.Image = text
+        stickerContent.ScaleType = Enum.ScaleType.Fit
+        stickerContent.ZIndex = 4
+        stickerContent.Parent = msgFrame
+        Instance.new("UICorner", stickerContent).CornerRadius = UDim.new(0, 8)
+    else
+        local msgTextLbl = Instance.new("TextLabel")
+        msgTextLbl.Size = UDim2.new(1, -120, 1, 0)
+        msgTextLbl.Position = UDim2.new(0, 8, 0, 0)
+        msgTextLbl.BackgroundTransparency = 1
+        msgTextLbl.Text = text
+        msgTextLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        msgTextLbl.Font = Enum.Font.FredokaOne
+        msgTextLbl.TextSize = 13
+        msgTextLbl.TextXAlignment = Enum.TextXAlignment.Left
+        msgTextLbl.TextWrapped = true
+        msgTextLbl.ZIndex = 4
+        msgTextLbl.Parent = msgFrame
+    end
 
     ChatScroll.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y + 10)
     ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.AbsoluteCanvasSize.Y)
 
-    if userId then
+    if userId and not isSticker then
         showPrivateScriptUserBubble(userId, text)
     end
 end
@@ -1474,7 +1564,6 @@ local function sendMessageNow()
         
         local isMuted = false
         local muteReason = ""
-        local muteDuration = ""
         pcall(function()
             local res = customRequest({Url = FIREBASE_ADMIN_ACTIONS_URL, Method = "GET"})
             if res and res.StatusCode == 200 then
@@ -1484,14 +1573,13 @@ local function sendMessageNow()
                     if mInfo.muted then
                         isMuted = true
                         muteReason = mInfo.reason or "مخالفة القوانين"
-                        muteDuration = mInfo.duration or "غير محدد"
                     end
                 end
             end
         end)
 
         if isMuted then
-            addChatMessage("طحبح 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم من استخدام الشات.\nالسبب: " .. muteReason .. "\nالمدة: " .. muteDuration, LocalPlayer.UserId, "muted_notice")
+            addChatMessage("كـيـون 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم.\nالسبب: " .. muteReason, LocalPlayer.UserId, "muted_notice", false)
             return
         end
 
@@ -1504,6 +1592,7 @@ local function sendMessageNow()
                     sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
                     userId = LocalPlayer.UserId,
                     text = msg,
+                    isSticker = false,
                     time = os.time()
                 })
             })
@@ -1511,7 +1600,7 @@ local function sendMessageNow()
     end
 end
 
-SendBtn.MouseButton1Click:Connect(sendMessageNow)
+SendBtn.MouseButton1Click:Connect(function() sendMessageNow() end)
 ChatInput.FocusLost:Connect(function(enter) if enter then sendMessageNow() end end)
 
 task.spawn(function()
@@ -1551,7 +1640,7 @@ task.spawn(function()
 end)
 
 ---------------------------------------------------------
--- تاج المطور Dms921
+-- تاج المطور كـيـون
 ---------------------------------------------------------
 local function applyDeveloperTag(plr)
     if plr.Name ~= "Dms921" then return end
@@ -1573,7 +1662,7 @@ local function applyDeveloperTag(plr)
     lbl.BackgroundTransparency = 1
     lbl.Font = Enum.Font.FredokaOne
     lbl.TextSize = 22
-    lbl.Text = "👑 طحبح 👑"
+    lbl.Text = "👑 كـيـون 👑"
     lbl.TextColor3 = Color3.fromRGB(255, 215, 0)
     lbl.Parent = bb
 
@@ -1825,7 +1914,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v42.1):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v51.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1838,7 +1927,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إصلاح خطأ السيرفر هوب ليعمل السكربت بكفاءة تامة.\n• تغيير الاسم بالكامل إلى KEON Hub.\n• دعم الخلفيات الجديدة والألوان المتعددة."
+    updatesDesc.Text = "• جعل قائمة خلفيات الشات قابلة للتمرير بالكامل لكي تظهر جميع الخلفيات بوضوح ودون أي اختفاء.\n• تحويل روابط صور الملصقات إلى أصول محلية مضمونة الظهور بوضوح تام.\n• تحديث السيرفر هوب ليقبل 1 أو 2 لاعبين بكل سلاسة."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -1889,7 +1978,7 @@ local DevNameWidgetLbl = Instance.new("TextLabel")
 DevNameWidgetLbl.Size = UDim2.new(1, -60, 0, 20)
 DevNameWidgetLbl.Position = UDim2.new(0, 55, 0, 8)
 DevNameWidgetLbl.BackgroundTransparency = 1
-DevNameWidgetLbl.Text = "👑 طحبح (موعد الحدث)"
+DevNameWidgetLbl.Text = "👑 كـيـون (موعد الحدث)"
 DevNameWidgetLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
 DevNameWidgetLbl.Font = Enum.Font.FredokaOne
 DevNameWidgetLbl.TextSize = 12
@@ -2396,7 +2485,7 @@ BtnMusic.MouseButton1Click:Connect(function()
             task.spawn(function()
                 local soundAsset = track.id
                 if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v42_" .. tostring(idx))
+                    soundAsset = fetchAudioFile(track.url, "track_v51_" .. tostring(idx))
                 end
 
                 local snd = Instance.new("Sound")
@@ -2520,23 +2609,47 @@ BtnActivations.MouseButton1Click:Connect(function()
         end
     end)
 
-    addChilliAccordion("تغيير السيرفر (Server Hop)", function(addToggle, addAction)
-        addAction("الانتقال لسيرفر آخر عشوائي 🔄", function()
+    addChilliAccordion("الانتقال لسيرفر فارغ حقيقي (Strict Empty Server Hop) 🌐", function(addToggle, addAction)
+        addAction("بحث والدخول حصرياً لسيرفر فيه لاعب واحد أو لاعبين (1 or 2 Players) ⚡", function()
             local Http = game:GetService("HttpService")
             local TPS = game:GetService("TeleportService")
             local Api = "https://games.roblox.com/v1/games/"
             local _place = game.PlaceId
-            local _servers = Api .. tostring(_place) .. "/servers/Public?sortOrder=Asc&limit=100"
-            pcall(function()
-                local raw = game:HttpGet(_servers)
-                local decoded = Http:JSONDecode(raw)
-                if decoded and decoded.data then
-                    for _, s in ipairs(decoded.data) do
-                        if s.playing ~= s.maxPlayers and s.id ~= game.JobId then
-                            TPS:TeleportToPlaceInstance(_place, s.id, LocalPlayer)
+            
+            task.spawn(function()
+                local cursor = ""
+                local targetServerId = nil
+                
+                repeat
+                    local url = Api .. tostring(_place) .. "/servers/Public?sortOrder=Asc&limit=100"
+                    if cursor ~= "" then
+                        url = url .. "&cursor=" .. cursor
+                    end
+                    
+                    local success, raw = pcall(function() return game:HttpGet(url) end)
+                    if success and raw then
+                        local decoded = Http:JSONDecode(raw)
+                        if decoded and decoded.data then
+                            for _, s in ipairs(decoded.data) do
+                                if s.playing and (s.playing == 1 or s.playing == 2) and s.id ~= game.JobId then
+                                    targetServerId = s.id
+                                    break
+                                end
+                            end
+                            cursor = decoded.nextPageCursor
+                        else
                             break
                         end
+                    else
+                        break
                     end
+                    task.wait(0.2)
+                until targetServerId or not cursor or cursor == ""
+                
+                if targetServerId then
+                    TPS:TeleportToPlaceInstance(_place, targetServerId, LocalPlayer)
+                else
+                    TPS:Teleport(_place, LocalPlayer)
                 end
             end)
         end)
@@ -2609,7 +2722,7 @@ BtnSuggestions.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- لوحة الأدمن الحصرية للمطور Dms921
+-- لوحة الأدمن الحصرية للمطور كـيـون
 ---------------------------------------------------------
 if LocalPlayer.Name == "Dms921" then
     local BtnAdmin = createProStyleBtn("لوحة الأدمن", "right")
@@ -3171,7 +3284,7 @@ task.spawn(function()
                         if type(b) == "table" and b.text and not renderedBroadcasts[k] then
                             renderedBroadcasts[k] = true
                             if (os.time() - (b.time or 0)) < 30 then
-                                showBroadcastBanner(tostring(b.sender or "طحبح"), tostring(b.text or ""), tonumber(b.userId))
+                                showBroadcastBanner(tostring(b.sender or "كـيـون"), tostring(b.text or ""), tonumber(b.userId))
                             end
                         end
                     end
@@ -3192,7 +3305,7 @@ task.spawn(function()
                     for k, m in pairs(data) do
                         if type(m) == "table" and m.text and not renderedMsgs[k] then
                             renderedMsgs[k] = true
-                            addChatMessage(tostring(m.sender or "مجهول"), tostring(m.text or ""), tonumber(m.userId), k)
+                            addChatMessage(tostring(m.sender or "مجهول"), tostring(m.text or ""), tonumber(m.userId), k, m.isSticker)
                         end
                     end
                 end
