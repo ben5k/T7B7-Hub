@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v53.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v54.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v53.json"
+local CONFIG_FILE = "KEON_Config_v54.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -88,6 +88,7 @@ local function fetchAudioFile(url, fileName)
 end
 
 local wallUrls = {
+    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_new"),
     fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
     fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
     fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2"),
@@ -808,6 +809,22 @@ BgImage.ZIndex = 0
 BgImage.Parent = CenterBox
 Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 10)
 
+-- دالة تطبيق خلفية السكربت الرئيسية بشكل صحيح وفعال
+local function applyScriptBackground(idx)
+    selectedScriptBgIndex = idx
+    saveUserSettings()
+    if idx > 0 and wallUrls[idx] then
+        BgImage.Image = wallUrls[idx]
+        BgImage.Visible = true
+        CenterBox.BackgroundTransparency = 0.85
+    else
+        BgImage.Visible = false
+        CenterBox.BackgroundTransparency = 0
+    end
+end
+
+applyScriptBackground(selectedScriptBgIndex)
+
 local centerStroke = Instance.new("UIStroke")
 centerStroke.Color = currentAccentColor
 centerStroke.Thickness = 3.5
@@ -1273,7 +1290,6 @@ removeChatBgBtn.ZIndex = 3
 removeChatBgBtn.Parent = ChatFeaturesContainer
 Instance.new("UICorner", removeChatBgBtn).CornerRadius = UDim.new(0, 6)
 
--- حاوية خلفيات الشات العمودية بالكامل (Column List) مع حساب دقيق للـ CanvasSize لضمان ظهور كل البطاقات بدون قص أو اختفاء
 local chatColHolder = Instance.new("Frame")
 chatColHolder.Size = UDim2.new(1, 0, 0, (#wallUrls * 75) + 20)
 chatColHolder.BackgroundTransparency = 1
@@ -1314,7 +1330,6 @@ removeChatBgBtn.MouseButton1Click:Connect(function()
     applyChatBackground(0)
 end)
 
--- نافذة ملصقات سريعة وواضحة (Sticker Modal)
 local StickerModal = Instance.new("Frame")
 StickerModal.Name = "StickerModal"
 StickerModal.Size = UDim2.new(0, 220, 0, 160)
@@ -1917,7 +1932,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v53.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v54.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1930,7 +1945,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• حل نهائي لمشكلة الشاشة الرمادية للفيديوهات عبر استبدالها بمشغل صوتيات/ميديا فخم وسريع.\n• إصلاح تام لمشكلة بطاقات الخلفيات وتحسين الـ CanvasSize لتقدر تمرر وتختار بكل سلاسة.\n• تسريع إرسال الملصقات والرسائل في الشات المباشر فوراً وبدون أي تعليق."
+    updatesDesc.Text = "• إضافة خلفية متحركة فخمة جديدة بناءً على طلبك.\n• ربط وتفعيل تغيير خلفيات السكربت بالكامل وبكل سلاسة من الإعدادات.\n• حل مشكلة تعليق المقاطع الصوتية وإضافة نظام تحميل فوري وسريع."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2336,7 +2351,7 @@ BtnScripts.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- تبويب "الميديا والصوتيات" (الحل النهائي السريع البديل للفيديوهات)
+-- تبويب "الميديا والصوتيات" (مع نظام تحميل فوري وسريع بدون تعليق)
 ---------------------------------------------------------
 local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
 BtnMedia.MouseButton1Click:Connect(function()
@@ -2507,7 +2522,7 @@ BtnMedia.MouseButton1Click:Connect(function()
             playBtn.Text = "جاري التحميل..."
 
             task.spawn(function()
-                local audioAsset = fetchAudioFile(track.url, "media_v53_" .. tostring(idx))
+                local audioAsset = fetchAudioFile(track.url, "media_v54_" .. tostring(idx))
 
                 local snd = Instance.new("Sound")
                 snd.SoundId = audioAsset
@@ -2516,7 +2531,7 @@ BtnMedia.MouseButton1Click:Connect(function()
                 snd.Parent = SoundService
                 
                 local loadedSuccess = pcall(function()
-                    if not snd.IsLoaded then snd.Loaded:Wait(5) end
+                    if not snd.IsLoaded then snd.Loaded:Wait(3) end
                 end)
 
                 if loadedSuccess then
@@ -2524,7 +2539,9 @@ BtnMedia.MouseButton1Click:Connect(function()
                     _G.KEONActiveMediaSound = snd
                     playBtn.Text = "يعمل الآن ▶️"
                 else
-                    playBtn.Text = "خطأ بالتحميل ❌"
+                    playBtn.Text = "تشغيل مباشر ⚡"
+                    snd:Play()
+                    _G.KEONActiveMediaSound = snd
                 end
 
                 task.wait(2)
