@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v49.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v50.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v49.json"
+local CONFIG_FILE = "KEON_Config_v50.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -963,7 +963,7 @@ CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
 
 ---------------------------------------------------------
--- نافذة الشات المباشرة (مع قسم الملصقات المربعة الصغيرة)
+-- نافذة الشات المباشرة (مع زر ملصقات بتصميم الإيموجي في الأسفل)
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
 ChatScreenGui.Name = "KEONTopChatGui"
@@ -1041,7 +1041,7 @@ ResetTimerLbl.ZIndex = 3
 ResetTimerLbl.Parent = ChatWin
 
 local ChatHeaderBtn1 = Instance.new("TextButton")
-ChatHeaderBtn1.Size = UDim2.new(0, 75, 0, 24)
+ChatHeaderBtn1.Size = UDim2.new(0, 100, 0, 24)
 ChatHeaderBtn1.Position = UDim2.new(0, 6, 0, 25)
 ChatHeaderBtn1.BackgroundColor3 = currentAccentColor
 ChatHeaderBtn1.Text = "💬 الشات"
@@ -1052,21 +1052,9 @@ ChatHeaderBtn1.ZIndex = 2
 ChatHeaderBtn1.Parent = ChatWin
 Instance.new("UICorner", ChatHeaderBtn1).CornerRadius = UDim.new(0, 6)
 
-local ChatHeaderBtnStickers = Instance.new("TextButton")
-ChatHeaderBtnStickers.Size = UDim2.new(0, 80, 0, 24)
-ChatHeaderBtnStickers.Position = UDim2.new(0, 85, 0, 25)
-ChatHeaderBtnStickers.BackgroundColor3 = currentAccentColor
-ChatHeaderBtnStickers.Text = "⭐ ملصقات"
-ChatHeaderBtnStickers.TextColor3 = Color3.fromRGB(255, 255, 255)
-ChatHeaderBtnStickers.Font = Enum.Font.FredokaOne
-ChatHeaderBtnStickers.TextSize = 11
-ChatHeaderBtnStickers.ZIndex = 2
-ChatHeaderBtnStickers.Parent = ChatWin
-Instance.new("UICorner", ChatHeaderBtnStickers).CornerRadius = UDim.new(0, 6)
-
 local ChatHeaderBtn2 = Instance.new("TextButton")
-ChatHeaderBtn2.Size = UDim2.new(0, 70, 0, 24)
-ChatHeaderBtn2.Position = UDim2.new(0, 169, 0, 25)
+ChatHeaderBtn2.Size = UDim2.new(0, 105, 0, 24)
+ChatHeaderBtn2.Position = UDim2.new(0, 112, 0, 25)
 ChatHeaderBtn2.BackgroundColor3 = currentAccentColor
 ChatHeaderBtn2.Text = "★ خلفيات"
 ChatHeaderBtn2.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1077,8 +1065,8 @@ ChatHeaderBtn2.Parent = ChatWin
 Instance.new("UICorner", ChatHeaderBtn2).CornerRadius = UDim.new(0, 6)
 
 local ChatHeaderBtn3 = Instance.new("TextButton")
-ChatHeaderBtn3.Size = UDim2.new(0, 95, 0, 24)
-ChatHeaderBtn3.Position = UDim2.new(0, 243, 0, 25)
+ChatHeaderBtn3.Size = UDim2.new(0, 115, 0, 24)
+ChatHeaderBtn3.Position = UDim2.new(0, 223, 0, 25)
 ChatHeaderBtn3.BackgroundColor3 = currentAccentColor
 ChatHeaderBtn3.Text = "👥 متواجدون"
 ChatHeaderBtn3.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1094,21 +1082,6 @@ ChatMainContainer.Position = UDim2.new(0, 0, 0, 55)
 ChatMainContainer.BackgroundTransparency = 1
 ChatMainContainer.ZIndex = 2
 ChatMainContainer.Parent = ChatWin
-
-local ChatStickersContainer = Instance.new("ScrollingFrame")
-ChatStickersContainer.Size = UDim2.new(1, -20, 1, -70)
-ChatStickersContainer.Position = UDim2.new(0, 10, 0, 58)
-ChatStickersContainer.BackgroundTransparency = 1
-ChatStickersContainer.Visible = false
-ChatStickersContainer.ZIndex = 2
-ChatStickersContainer.ScrollBarThickness = 3
-ChatStickersContainer.Parent = ChatWin
-
-local stickerGridLayout = Instance.new("UIGridLayout")
-stickerGridLayout.CellSize = UDim2.new(0, 95, 0, 95)
-stickerGridLayout.CellPadding = UDim2.new(0, 12, 0, 12)
-stickerGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-stickerGridLayout.Parent = ChatStickersContainer
 
 local ChatFeaturesContainer = Instance.new("ScrollingFrame")
 ChatFeaturesContainer.Size = UDim2.new(1, -20, 1, -70)
@@ -1243,15 +1216,6 @@ end)
 ChatHeaderBtn1.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     ChatMainContainer.Visible = true
-    ChatStickersContainer.Visible = false
-    ChatFeaturesContainer.Visible = false
-    ChatOnlineContainer.Visible = false
-end)
-
-ChatHeaderBtnStickers.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    ChatMainContainer.Visible = false
-    ChatStickersContainer.Visible = true
     ChatFeaturesContainer.Visible = false
     ChatOnlineContainer.Visible = false
 end)
@@ -1259,7 +1223,6 @@ end)
 ChatHeaderBtn2.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     ChatMainContainer.Visible = false
-    ChatStickersContainer.Visible = false
     ChatFeaturesContainer.Visible = true
     ChatOnlineContainer.Visible = false
 end)
@@ -1267,7 +1230,6 @@ end)
 ChatHeaderBtn3.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     ChatMainContainer.Visible = false
-    ChatStickersContainer.Visible = false
     ChatFeaturesContainer.Visible = false
     ChatOnlineContainer.Visible = true
     fetchScriptUsersOnly()
@@ -1300,7 +1262,7 @@ chatFeatTitle.Parent = ChatFeaturesContainer
 table.insert(activeNameLabels, chatFeatTitle)
 
 local removeChatBgBtn = Instance.new("TextButton")
-removeChatBgBtn.Size = UDim2.new(1, 0, 0, 28)
+removeChatBgBtn.Size = UDim2.new(1, 0, 0, 32)
 removeChatBgBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 60)
 removeChatBgBtn.Text = "❌ إغلاق خلفية الشات"
 removeChatBgBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1316,26 +1278,32 @@ removeChatBgBtn.MouseButton1Click:Connect(function()
 end)
 
 local chatGridHolder = Instance.new("Frame")
-chatGridHolder.Size = UDim2.new(1, 0, 0, 360)
+chatGridHolder.Size = UDim2.new(1, 0, 0, 320)
 chatGridHolder.BackgroundTransparency = 1
 chatGridHolder.ZIndex = 3
 chatGridHolder.Parent = ChatFeaturesContainer
 
 local chatGridLayout = Instance.new("UIGridLayout")
-chatGridLayout.CellSize = UDim2.new(0, 140, 0, 75)
+chatGridLayout.CellSize = UDim2.new(0, 155, 0, 85)
 chatGridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
 chatGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 chatGridLayout.Parent = chatGridHolder
 
 for i, url in ipairs(wallUrls) do
     local cBtn = Instance.new("ImageButton")
-    cBtn.Size = UDim2.new(0, 140, 0, 75)
+    cBtn.Size = UDim2.new(0, 155, 0, 85)
     cBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
     cBtn.Image = url
     cBtn.ScaleType = Enum.ScaleType.Crop
     cBtn.ZIndex = 4
     cBtn.Parent = chatGridHolder
-    Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 6)
+    Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 8)
+
+    local cStroke = Instance.new("UIStroke")
+    cStroke.Color = currentAccentColor
+    cStroke.Thickness = 1.5
+    cStroke.Parent = cBtn
+    table.insert(registeredOptionStrokes, cStroke)
 
     cBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
@@ -1343,29 +1311,48 @@ for i, url in ipairs(wallUrls) do
     end)
 end
 
-ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, 440)
+ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, 420)
 
--- تعبئة قسم الملصقات المربعة الصغيرة
+-- نافذة منبثقة للملصقات (بتصميم الإيموجي تماماً فوق زر الملصقات)
+local StickerModal = Instance.new("Frame")
+StickerModal.Name = "StickerModal"
+StickerModal.Size = UDim2.new(0, 220, 0, 160)
+StickerModal.Position = UDim2.new(1, -225, 1, -200)
+StickerModal.BackgroundColor3 = Color3.fromRGB(15, 12, 20)
+StickerModal.Visible = false
+StickerModal.ZIndex = 50
+StickerModal.Parent = ChatWin
+Instance.new("UICorner", StickerModal).CornerRadius = UDim.new(0, 10)
+
+local stickerModalStroke = Instance.new("UIStroke")
+stickerModalStroke.Color = currentAccentColor
+stickerModalStroke.Thickness = 2
+stickerModalStroke.Parent = StickerModal
+
+local stickerModalGrid = Instance.new("UIGridLayout")
+stickerModalGrid.CellSize = UDim2.new(0, 60, 0, 60)
+stickerModalGrid.CellPadding = UDim2.new(0, 8, 0, 8)
+stickerModalGrid.SortOrder = Enum.SortOrder.LayoutOrder
+stickerModalGrid.Parent = StickerModal
+
+local stickerPadding = Instance.new("UIPadding")
+stickerPadding.PaddingTop = UDim.new(0, 10)
+stickerPadding.PaddingLeft = UDim.new(0, 10)
+stickerPadding.Parent = StickerModal
+
 for _, sUrl in ipairs(stickerUrls) do
-    local sBtn = Instance.new("ImageButton")
-    sBtn.Size = UDim2.new(0, 95, 0, 95)
-    sBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-    sBtn.Image = sUrl
-    sBtn.ScaleType = Enum.ScaleType.Fit
-    sBtn.ZIndex = 3
-    sBtn.Parent = ChatStickersContainer
-    Instance.new("UICorner", sBtn).CornerRadius = UDim.new(0, 8)
+    local stBtn = Instance.new("ImageButton")
+    stBtn.Size = UDim2.new(0, 60, 0, 60)
+    stBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    stBtn.Image = sUrl
+    stBtn.ScaleType = Enum.ScaleType.Fit
+    stBtn.ZIndex = 51
+    stBtn.Parent = StickerModal
+    Instance.new("UICorner", stBtn).CornerRadius = UDim.new(0, 6)
 
-    local sStroke = Instance.new("UIStroke")
-    sStroke.Color = currentAccentColor
-    sStroke.Thickness = 1.5
-    sStroke.Parent = sBtn
-    table.insert(registeredOptionStrokes, sStroke)
-
-    sBtn.MouseButton1Click:Connect(function()
+    stBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
-        ChatStickersContainer.Visible = false
-        ChatMainContainer.Visible = true
+        StickerModal.Visible = false
 
         pcall(function()
             customRequest({
@@ -1383,7 +1370,6 @@ for _, sUrl in ipairs(stickerUrls) do
         end)
     end)
 end
-ChatStickersContainer.CanvasSize = UDim2.new(0, 0, 0, 230)
 
 local function showPrivateScriptUserBubble(userId, text)
     local targetPlr = Players:GetPlayerByUserId(userId)
@@ -1442,7 +1428,7 @@ ChatLayout.Padding = UDim.new(0, 6)
 ChatLayout.Parent = ChatScroll
 
 local ChatInput = Instance.new("TextBox")
-ChatInput.Size = UDim2.new(1, -105, 0, 30)
+ChatInput.Size = UDim2.new(1, -135, 0, 30)
 ChatInput.Position = UDim2.new(0, 10, 1, -36)
 ChatInput.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
 ChatInput.PlaceholderText = "اكتب رسالتك هنا..."
@@ -1455,14 +1441,26 @@ ChatInput.ZIndex = 2
 ChatInput.Parent = ChatWin
 Instance.new("UICorner", ChatInput).CornerRadius = UDim.new(0, 6)
 
+local StickerBtn = Instance.new("TextButton")
+StickerBtn.Size = UDim2.new(0, 30, 0, 30)
+StickerBtn.Position = UDim2.new(1, -130, 1, -36)
+StickerBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 35)
+StickerBtn.Text = "⭐"
+StickerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+StickerBtn.Font = Enum.Font.FredokaOne
+StickerBtn.TextSize = 14
+StickerBtn.ZIndex = 2
+StickerBtn.Parent = ChatWin
+Instance.new("UICorner", StickerBtn).CornerRadius = UDim.new(0, 6)
+
 local SendBtn = Instance.new("TextButton")
-SendBtn.Size = UDim2.new(0, 95, 0, 30)
-SendBtn.Position = UDim2.new(1, -100, 1, -36)
+SendBtn.Size = UDim2.new(0, 90, 0, 30)
+SendBtn.Position = UDim2.new(1, -95, 1, -36)
 SendBtn.BackgroundColor3 = currentAccentColor
 SendBtn.Text = "إرسال 🚀"
 SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 SendBtn.Font = Enum.Font.FredokaOne
-SendBtn.TextSize = 13
+SendBtn.TextSize = 12
 SendBtn.ZIndex = 2
 SendBtn.Parent = ChatWin
 Instance.new("UICorner", SendBtn).CornerRadius = UDim.new(0, 6)
@@ -1470,6 +1468,11 @@ Instance.new("UICorner", SendBtn).CornerRadius = UDim.new(0, 6)
 FloatingChatBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     ChatWin.Visible = not ChatWin.Visible
+end)
+
+StickerBtn.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    StickerModal.Visible = not StickerModal.Visible
 end)
 
 local renderedMsgs = {}
@@ -1909,7 +1912,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v49.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v50.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1922,7 +1925,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• استبدال ميزة الصور بقسم ملصقات احترافي داخل الشات المباشر (أحجام مربعة صغيرة ومناسبة).\n• إضافة الملصقات الستة المخصصة الخاصة بك لتظهر وتُرسل بضغطة زر.\n• تثبيت البحث الفعّال والدقيق عن سيرفرات بـ 1 لاعب حصرياً."
+    updatesDesc.Text = "• تعديل سيرفر هوب ليقبل السيرفرات بـ 1 أو 2 لاعبين حصرياً (1 or 2 Players).\n• نقل زر الملصقات ليصبح بجانب زر الإرسال مباشرة وبتصميم إيموجي أنيق.\n• تحسين وترتيب شكل بطاقات الخلفيات وتوضيح الملصقات بدقة عالية."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2480,7 +2483,7 @@ BtnMusic.MouseButton1Click:Connect(function()
             task.spawn(function()
                 local soundAsset = track.id
                 if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v49_" .. tostring(idx))
+                    soundAsset = fetchAudioFile(track.url, "track_v50_" .. tostring(idx))
                 end
 
                 local snd = Instance.new("Sound")
@@ -2605,7 +2608,7 @@ BtnActivations.MouseButton1Click:Connect(function()
     end)
 
     addChilliAccordion("الانتقال لسيرفر فارغ حقيقي (Strict Empty Server Hop) 🌐", function(addToggle, addAction)
-        addAction("بحث والدخول حصرياً لسيرفر فيه لاعب واحد (1 Player) فقط ⚡", function()
+        addAction("بحث والدخول حصرياً لسيرفر فيه لاعب واحد أو لاعبين (1 or 2 Players) ⚡", function()
             local Http = game:GetService("HttpService")
             local TPS = game:GetService("TeleportService")
             local Api = "https://games.roblox.com/v1/games/"
@@ -2626,7 +2629,8 @@ BtnActivations.MouseButton1Click:Connect(function()
                         local decoded = Http:JSONDecode(raw)
                         if decoded and decoded.data then
                             for _, s in ipairs(decoded.data) do
-                                if s.playing and s.playing == 1 and s.id ~= game.JobId then
+                                -- شرط محدث: يقبل سيرفر فيه 1 أو 2 لاعبين بالضبط وغير السيرفر الحالي
+                                if s.playing and (s.playing == 1 or s.playing == 2) and s.id ~= game.JobId then
                                     targetServerId = s.id
                                     break
                                 end
@@ -3196,7 +3200,6 @@ BtnSettings.MouseButton1Click:Connect(function()
             eventFloatStroke.Color = Color3.fromRGB(255, 215, 0)
 
             ChatHeaderBtn1.BackgroundColor3 = accent
-            ChatHeaderBtnStickers.BackgroundColor3 = accent
             ChatHeaderBtn2.BackgroundColor3 = accent
             ChatHeaderBtn3.BackgroundColor3 = accent
             SendBtn.BackgroundColor3 = accent
