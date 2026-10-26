@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v51.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v52.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v51.json"
+local CONFIG_FILE = "KEON_Config_v52.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -70,23 +70,6 @@ local function fetchAsset(url, fileName)
     return url
 end
 
-local function fetchAudioFile(url, fileName)
-    if writefile and getcustomasset and readfile then
-        local file = "KEONMusic_" .. fileName .. ".mp3"
-        local success = pcall(function()
-            if not isfile(file) then
-                local data = game:HttpGet(url)
-                writefile(file, data)
-            end
-        end)
-        if success and isfile(file) then
-            local assetPath = getcustomasset(file)
-            if assetPath then return assetPath end
-        end
-    end
-    return url
-end
-
 local wallUrls = {
     fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
     fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
@@ -121,7 +104,6 @@ local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 local neonSpeed = 8
 local currentAccentColor = Color3.fromRGB(200, 20, 60)
 local currentHeaderColor = Color3.fromRGB(140, 10, 40)
-local globalMusicVolume = 4.0
 
 local selectedScriptBgIndex = 0
 local selectedChatBgIndex = 0
@@ -963,7 +945,7 @@ CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
 
 ---------------------------------------------------------
--- نافذة الشات المباشرة (مع قائمة خلفيات قابلة للتمرير وملصقات واضحة)
+-- نافذة الشات المباشرة (مع ملصقات واضحة جداً)
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
 ChatScreenGui.Name = "KEONTopChatGui"
@@ -1083,7 +1065,6 @@ ChatMainContainer.BackgroundTransparency = 1
 ChatMainContainer.ZIndex = 2
 ChatMainContainer.Parent = ChatWin
 
--- قسم الخلفيات المحدث (ScrollingFrame قابل للتمرير بالكامل لتفادي أي اختفاء للخلفيات)
 local ChatFeaturesContainer = Instance.new("ScrollingFrame")
 ChatFeaturesContainer.Size = UDim2.new(1, -20, 1, -65)
 ChatFeaturesContainer.Position = UDim2.new(0, 10, 0, 55)
@@ -1274,26 +1255,26 @@ removeChatBgBtn.ZIndex = 3
 removeChatBgBtn.Parent = ChatFeaturesContainer
 Instance.new("UICorner", removeChatBgBtn).CornerRadius = UDim.new(0, 6)
 
-local chatGridHolder = Instance.new("Frame")
-chatGridHolder.Size = UDim2.new(1, 0, 0, 340)
-chatGridHolder.BackgroundTransparency = 1
-chatGridHolder.ZIndex = 3
-chatGridHolder.Parent = ChatFeaturesContainer
+-- قسم خلفيات الشات بطريقة عمودية بالطول (Column List) لضمان عدم اختفاء أي صورة بالأسفل
+local chatColHolder = Instance.new("Frame")
+chatColHolder.Size = UDim2.new(1, 0, 0, 620)
+chatColHolder.BackgroundTransparency = 1
+chatColHolder.ZIndex = 3
+chatColHolder.Parent = ChatFeaturesContainer
 
-local chatGridLayout = Instance.new("UIGridLayout")
-chatGridLayout.CellSize = UDim2.new(0, 155, 0, 85)
-chatGridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
-chatGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-chatGridLayout.Parent = chatGridHolder
+local chatColLayout = Instance.new("UIListLayout")
+chatColLayout.Padding = UDim.new(0, 10)
+chatColLayout.SortOrder = Enum.SortOrder.LayoutOrder
+chatColLayout.Parent = chatColHolder
 
 for i, url in ipairs(wallUrls) do
     local cBtn = Instance.new("ImageButton")
-    cBtn.Size = UDim2.new(0, 155, 0, 85)
+    cBtn.Size = UDim2.new(1, 0, 0, 65)
     cBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
     cBtn.Image = url
     cBtn.ScaleType = Enum.ScaleType.Crop
     cBtn.ZIndex = 4
-    cBtn.Parent = chatGridHolder
+    cBtn.Parent = chatColHolder
     Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 8)
 
     local cStroke = Instance.new("UIStroke")
@@ -1308,7 +1289,7 @@ for i, url in ipairs(wallUrls) do
     end)
 end
 
-ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, featLayout.AbsoluteContentSize.Y + 40)
+ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, featLayout.AbsoluteContentSize.Y + chatColHolder.AbsoluteSize.Y + 60)
 
 removeChatBgBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
@@ -1914,7 +1895,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v51.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v52.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1927,7 +1908,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• جعل قائمة خلفيات الشات قابلة للتمرير بالكامل لكي تظهر جميع الخلفيات بوضوح ودون أي اختفاء.\n• تحويل روابط صور الملصقات إلى أصول محلية مضمونة الظهور بوضوح تام.\n• تحديث السيرفر هوب ليقبل 1 أو 2 لاعبين بكل سلاسة."
+    updatesDesc.Text = "• تعديل قسم خلفيات الشات لتصبح مرتبة بالطول لضمان سهولة التمرير واختيار أي صورة.\n• تحويل قسم الموسيقى إلى مشغل فيديو احترافي مع روابطك الجديدة وزر إعجاب (Like) لكل فيديو!\n• ضمان ظهور الملصقات بوضوح تام بالتشات."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2333,110 +2314,47 @@ BtnScripts.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- تبويب "موسيقى"
+-- تبويب "موسيقى وفيديو" (مع مشغل الفيديوهات وزر الإعجاب Like)
 ---------------------------------------------------------
-local BtnMusic = createProStyleBtn("موسيقى", "left")
+local BtnMusic = createProStyleBtn("موسيقى وفيديو", "left")
 BtnMusic.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    local musicTracks = {
-        {name = "🎵 1 - الأيدي المخصص", id = "rbxassetid://118507373399694", isUrl = false},
-        {name = "🎶 2 - الأغنية الأولى", url = "https://mp3tourl.com/audio/1792780112768-901dee91-778d-4268-a0e5-a172df4368a3.mp3", isUrl = true},
-        {name = "🎶 3 - الأغنية الثانية", url = "https://mp3tourl.com/audio/1792780265689-b8732859-419f-4820-8867-ad22abc1ced4.mp3", isUrl = true},
-        {name = "🎶 4 - الأغنية الثالثة", url = "https://mp3tourl.com/audio/1792780298987-4e0c816b-71a9-4ce5-aa88-7cd3f01b41c4.mp3", isUrl = true},
-        {name = "🎶 5 - الأغنية الرابعة", url = "https://mp3tourl.com/audio/1792780337922-c513da7f-8c32-499c-9346-dfb1f7400d8f.mp3", isUrl = true},
-        {name = "🎶 6 - الأغنية الخامسة", url = "https://mp3tourl.com/audio/1792780363205-f33c29d1-2233-40f2-96cd-16c263ada79a.mp3", isUrl = true}
+    local videoTracks = {
+        {name = "🎬 فيديو 1 - العرض الأول", url = "https://videotourl.com/videos/1793025425254-0a61332e-f221-40e6-8c1b-ef5806830a09.mp4"},
+        {name = "🎬 فيديو 2 - العرض الثاني", url = "https://videotourl.com/videos/1793025754852-fae67bd8-b1b9-4e78-88ff-c9c6cb89d194.mp4"},
+        {name = "🎬 فيديو 3 - العرض الثالث", url = "https://videotourl.com/videos/1793025781745-157e3b9c-d6d0-4b6c-aa71-7771dd320b4f.mp4"},
+        {name = "🎬 فيديو 4 - العرض الرابع", url = "https://videotourl.com/videos/1793025818854-4849ddc5-46c5-4d47-8a33-40617f369775.mp4"},
+        {name = "🎬 فيديو 5 - العرض الخامس", url = "https://videotourl.com/videos/1793025841646-f237bebc-93e7-46d9-ba13-ba83768f916d.mp4"},
+        {name = "🎬 فيديو 6 - العرض السادس", url = "https://videotourl.com/videos/1793025892422-76d8cd2f-c555-4afa-96d5-72ed94c43e44.mp4"},
+        {name = "🎬 فيديو 7 - العرض السابع", url = "https://videotourl.com/videos/1793025907490-e1d0e708-4f8e-4722-b2f7-2bf1d4bd4490.mp4"}
     }
 
-    if not _G.KEONActiveMusicSound then
-        _G.KEONActiveMusicSound = nil
+    if not _G.KEONActiveVideoGui then
+        _G.KEONActiveVideoGui = nil
     end
 
-    local volumeContainer = Instance.new("Frame")
-    volumeContainer.Size = UDim2.new(1, 0, 0, 45)
-    volumeContainer.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-    volumeContainer.ZIndex = 3
-    volumeContainer.Parent = CenterScroll
-    Instance.new("UICorner", volumeContainer).CornerRadius = UDim.new(0, 8)
+    local stopAllVideoBtn = Instance.new("TextButton")
+    stopAllVideoBtn.Size = UDim2.new(1, 0, 0, 36)
+    stopAllVideoBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
+    stopAllVideoBtn.Text = "⏹️ إيقاف وإغلاق الفيديو الحالي"
+    stopAllVideoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    stopAllVideoBtn.Font = Enum.Font.FredokaOne
+    stopAllVideoBtn.TextSize = 14
+    stopAllVideoBtn.ZIndex = 3
+    stopAllVideoBtn.Parent = CenterScroll
+    Instance.new("UICorner", stopAllVideoBtn).CornerRadius = UDim.new(0, 8)
 
-    local volStroke = Instance.new("UIStroke")
-    volStroke.Color = currentAccentColor
-    volStroke.Thickness = 1.5
-    volStroke.Parent = volumeContainer
-
-    local volLabel = Instance.new("TextLabel")
-    volLabel.Size = UDim2.new(1, -20, 0, 20)
-    volLabel.Position = UDim2.new(0, 10, 0, 2)
-    volLabel.BackgroundTransparency = 1
-    volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMusicVolume)
-    volLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    volLabel.Font = Enum.Font.FredokaOne
-    volLabel.TextSize = 12
-    volLabel.TextXAlignment = Enum.TextXAlignment.Right
-    volLabel.ZIndex = 4
-    volLabel.Parent = volumeContainer
-
-    local volDownBtn = Instance.new("TextButton")
-    volDownBtn.Size = UDim2.new(0, 50, 0, 20)
-    volDownBtn.Position = UDim2.new(0, 10, 0, 22)
-    volDownBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
-    volDownBtn.Text = "🔉 خفض"
-    volDownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    volDownBtn.Font = Enum.Font.FredokaOne
-    volDownBtn.TextSize = 11
-    volDownBtn.ZIndex = 4
-    volDownBtn.Parent = volumeContainer
-    Instance.new("UICorner", volDownBtn).CornerRadius = UDim.new(0, 4)
-
-    local volUpBtn = Instance.new("TextButton")
-    volUpBtn.Size = UDim2.new(0, 50, 0, 20)
-    volUpBtn.Position = UDim2.new(0, 68, 0, 22)
-    volUpBtn.BackgroundColor3 = currentAccentColor
-    volUpBtn.Text = "🔊 رفع"
-    volUpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    volUpBtn.Font = Enum.Font.FredokaOne
-    volUpBtn.TextSize = 11
-    volUpBtn.ZIndex = 4
-    volUpBtn.Parent = volumeContainer
-    Instance.new("UICorner", volUpBtn).CornerRadius = UDim.new(0, 4)
-
-    volDownBtn.MouseButton1Click:Connect(function()
-        globalMusicVolume = math.max(1.0, globalMusicVolume - 1.0)
-        volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMusicVolume)
-        if _G.KEONActiveMusicSound and _G.KEONActiveMusicSound.Parent then
-            _G.KEONActiveMusicSound.Volume = globalMusicVolume
-        end
-    end)
-
-    volUpBtn.MouseButton1Click:Connect(function()
-        globalMusicVolume = math.min(10.0, globalMusicVolume + 1.0)
-        volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMusicVolume)
-        if _G.KEONActiveMusicSound and _G.KEONActiveMusicSound.Parent then
-            _G.KEONActiveMusicSound.Volume = globalMusicVolume
-        end
-    end)
-
-    local stopAllMusicBtn = Instance.new("TextButton")
-    stopAllMusicBtn.Size = UDim2.new(1, 0, 0, 36)
-    stopAllMusicBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
-    stopAllMusicBtn.Text = "⏹️ إيقاف جميع الأغاني والموسيقى"
-    stopAllMusicBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    stopAllMusicBtn.Font = Enum.Font.FredokaOne
-    stopAllMusicBtn.TextSize = 14
-    stopAllMusicBtn.ZIndex = 3
-    stopAllMusicBtn.Parent = CenterScroll
-    Instance.new("UICorner", stopAllMusicBtn).CornerRadius = UDim.new(0, 8)
-
-    stopAllMusicBtn.MouseButton1Click:Connect(function()
+    stopAllVideoBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
-        if _G.KEONActiveMusicSound then
-            pcall(function() _G.KEONActiveMusicSound:Stop(); _G.KEONActiveMusicSound:Destroy() end)
-            _G.KEONActiveMusicSound = nil
+        if _G.KEONActiveVideoGui and _G.KEONActiveVideoGui.Parent then
+            pcall(function() _G.KEONActiveVideoGui:Destroy() end)
+            _G.KEONActiveVideoGui = nil
         end
     end)
 
-    for idx, track in ipairs(musicTracks) do
+    for idx, track in ipairs(videoTracks) do
         local mCard = Instance.new("Frame")
         mCard.Size = UDim2.new(1, 0, 0, 50)
         mCard.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
@@ -2451,7 +2369,7 @@ BtnMusic.MouseButton1Click:Connect(function()
         table.insert(registeredOptionStrokes, mStroke)
 
         local mTitle = Instance.new("TextLabel")
-        mTitle.Size = UDim2.new(1, -120, 1, 0)
+        mTitle.Size = UDim2.new(1, -165, 1, 0)
         mTitle.Position = UDim2.new(0, 10, 0, 0)
         mTitle.BackgroundTransparency = 1
         mTitle.Text = track.name
@@ -2462,52 +2380,94 @@ BtnMusic.MouseButton1Click:Connect(function()
         mTitle.ZIndex = 4
         mTitle.Parent = mCard
 
+        local likeBtn = Instance.new("TextButton")
+        likeBtn.Size = UDim2.new(0, 45, 0, 34)
+        likeBtn.Position = UDim2.new(0, 10, 0.5, -17)
+        likeBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 35)
+        likeBtn.Text = "🤍"
+        likeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        likeBtn.Font = Enum.Font.FredokaOne
+        likeBtn.TextSize = 15
+        likeBtn.ZIndex = 4
+        likeBtn.Parent = mCard
+        Instance.new("UICorner", likeBtn).CornerRadius = UDim.new(0, 6)
+
+        local isLiked = false
+        likeBtn.MouseButton1Click:Connect(function()
+            playUiSound(SOUND_CLICK, 1, 0.35)
+            isLiked = not isLiked
+            likeBtn.Text = isLiked and "❤️" or "🤍"
+            likeBtn.BackgroundColor3 = isLiked and Color3.fromRGB(200, 20, 60) or Color3.fromRGB(30, 20, 35)
+        end)
+
         local playBtn = Instance.new("TextButton")
-        playBtn.Size = UDim2.new(0, 100, 0, 34)
-        playBtn.Position = UDim2.new(0, 10, 0.5, -17)
+        playBtn.Size = UDim2.new(0, 95, 0, 34)
+        playBtn.Position = UDim2.new(0, 60, 0.5, -17)
         playBtn.BackgroundColor3 = currentAccentColor
-        playBtn.Text = "تشغيل 🎶"
+        playBtn.Text = "تشغيل 🎬"
         playBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         playBtn.Font = Enum.Font.FredokaOne
-        playBtn.TextSize = 13
+        playBtn.TextSize = 12
         playBtn.ZIndex = 4
         playBtn.Parent = mCard
         Instance.new("UICorner", playBtn).CornerRadius = UDim.new(0, 6)
 
         playBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
-            if _G.KEONActiveMusicSound then
-                pcall(function() _G.KEONActiveMusicSound:Stop(); _G.KEONActiveMusicSound:Destroy() end)
+            if _G.KEONActiveVideoGui and _G.KEONActiveVideoGui.Parent then
+                pcall(function() _G.KEONActiveVideoGui:Destroy() end)
             end
 
-            playBtn.Text = "جاري التحميل..."
+            playBtn.Text = "جاري العرض..."
 
             task.spawn(function()
-                local soundAsset = track.id
-                if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v51_" .. tostring(idx))
-                end
+                local vGui = Instance.new("ScreenGui")
+                vGui.Name = "KEONVideoPlayerGui"
+                vGui.ResetOnSpawn = false
+                vGui.Parent = parent
+                _G.KEONActiveVideoGui = vGui
 
-                local snd = Instance.new("Sound")
-                snd.SoundId = soundAsset
-                snd.Volume = globalMusicVolume
-                snd.Looped = true
-                snd.Parent = SoundService
-                
-                local loadedSuccess = pcall(function()
-                    if not snd.IsLoaded then snd.Loaded:Wait(5) end
+                local vFrame = Instance.new("Frame")
+                vFrame.Size = UDim2.new(0, 360, 0, 240)
+                vFrame.Position = UDim2.new(0.5, -180, 0.5, -120)
+                vFrame.BackgroundColor3 = Color3.fromRGB(10, 8, 12)
+                vFrame.Active = true
+                vFrame.Draggable = true
+                vFrame.Parent = vGui
+                Instance.new("UICorner", vFrame).CornerRadius = UDim.new(0, 10)
+
+                local vStroke = Instance.new("UIStroke")
+                vStroke.Color = currentAccentColor
+                vStroke.Thickness = 2.5
+                vStroke.Parent = vFrame
+
+                local vidObj = Instance.new("VideoFrame")
+                vidObj.Size = UDim2.new(1, -12, 1, -45)
+                vidObj.Position = UDim2.new(0, 6, 0, 6)
+                vidObj.Video = track.url
+                vidObj.Looped = true
+                vidObj.Parent = vFrame
+                Instance.new("UICorner", vidObj).CornerRadius = UDim.new(0, 8)
+
+                local closeVidBtn = Instance.new("TextButton")
+                closeVidBtn.Size = UDim2.new(1, -20, 0, 28)
+                closeVidBtn.Position = UDim2.new(0, 10, 1, -34)
+                closeVidBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
+                closeVidBtn.Text = "إغلاق الفيديو ✖"
+                closeVidBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                closeVidBtn.Font = Enum.Font.FredokaOne
+                closeVidBtn.TextSize = 12
+                closeVidBtn.Parent = vFrame
+                Instance.new("UICorner", closeVidBtn).CornerRadius = UDim.new(0, 6)
+
+                closeVidBtn.MouseButton1Click:Connect(function()
+                    playUiSound(SOUND_CLICK, 1, 0.35)
+                    vGui:Destroy()
+                    _G.KEONActiveVideoGui = nil
                 end)
 
-                if loadedSuccess then
-                    snd:Play()
-                    _G.KEONActiveMusicSound = snd
-                    playBtn.Text = "يعمل الآن ▶️"
-                else
-                    playBtn.Text = "خطأ بالتحميل ❌"
-                end
-
-                task.wait(2)
-                playBtn.Text = "تشغيل 🎶"
+                pcall(function() vidObj:Play() end)
+                playBtn.Text = "تشغيل 🎬"
             end)
         end)
     end
