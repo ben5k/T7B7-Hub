@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v46.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v47.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -13,7 +13,7 @@ local InsertService = game:GetService("InsertService")
 local LocalPlayer = Players.LocalPlayer
 local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if parent:FindFirstChild("KEONProV46UI") then parent.KEONProV46UI:Destroy() end
+if parent:FindFirstChild("KEONProV47UI") then parent.KEONProV47UI:Destroy() end
 if parent:FindFirstChild("KEONAdminBroadcastGui") then parent.KEONAdminBroadcastGui:Destroy() end
 if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
 if parent:FindFirstChild("KEONLoadingGui") then parent.KEONLoadingGui:Destroy() end
@@ -22,7 +22,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v46.json"
+local CONFIG_FILE = "KEON_Config_v47.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -33,7 +33,6 @@ local FIREBASE_ADMIN_ACTIONS_URL = FIREBASE_BASE_URL .. "/admin_actions.json"
 
 local FIREBASE_VOTE_BASE = FIREBASE_BASE_URL .. "/global_vote"
 local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
-
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
 
 local function customRequest(options)
@@ -300,7 +299,7 @@ task.spawn(function()
                         ReloadTimerLbl.Text = "⚡ جاري إعادة تشغيل السكربت..."
                         task.wait(0.5)
                         
-                        if parent:FindFirstChild("KEONProV46UI") then parent.KEONProV46UI:Destroy() end
+                        if parent:FindFirstChild("KEONProV47UI") then parent.KEONProV47UI:Destroy() end
                         if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
                         if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
                         if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
@@ -766,7 +765,7 @@ Instance.new("UICorner", BarFill).CornerRadius = UDim.new(0, 5)
 -- الهيكل الرئيسي للواجهة
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KEONProV46UI"
+ScreenGui.Name = "KEONProV47UI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parent
 
@@ -956,7 +955,7 @@ CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
 
 ---------------------------------------------------------
--- نافذة الشات المباشرة
+-- نافذة الشات المباشرة (مع ميزة إرسال الصور الحقيقية)
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
 ChatScreenGui.Name = "KEONTopChatGui"
@@ -1371,10 +1370,10 @@ ChatLayout.Padding = UDim.new(0, 6)
 ChatLayout.Parent = ChatScroll
 
 local ChatInput = Instance.new("TextBox")
-ChatInput.Size = UDim2.new(1, -115, 0, 30)
+ChatInput.Size = UDim2.new(1, -155, 0, 30)
 ChatInput.Position = UDim2.new(0, 10, 1, -36)
 ChatInput.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-ChatInput.PlaceholderText = "اكتب رسالتك هنا..."
+ChatInput.PlaceholderText = "اكتب رسالتك أو رابط صورة..."
 ChatInput.Text = ""
 ChatInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 ChatInput.Font = Enum.Font.FredokaOne
@@ -1384,9 +1383,21 @@ ChatInput.ZIndex = 2
 ChatInput.Parent = ChatWin
 Instance.new("UICorner", ChatInput).CornerRadius = UDim.new(0, 6)
 
+local SendImgBtn = Instance.new("TextButton")
+SendImgBtn.Size = UDim2.new(0, 35, 0, 30)
+SendImgBtn.Position = UDim2.new(1, -140, 1, -36)
+SendImgBtn.BackgroundColor3 = Color3.fromRGB(40, 30, 50)
+SendImgBtn.Text = "📷"
+SendImgBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SendImgBtn.Font = Enum.Font.FredokaOne
+SendImgBtn.TextSize = 13
+SendImgBtn.ZIndex = 2
+SendImgBtn.Parent = ChatWin
+Instance.new("UICorner", SendImgBtn).CornerRadius = UDim.new(0, 6)
+
 local SendBtn = Instance.new("TextButton")
 SendBtn.Size = UDim2.new(0, 95, 0, 30)
-SendBtn.Position = UDim2.new(1, -105, 1, -36)
+SendBtn.Position = UDim2.new(1, -100, 1, -36)
 SendBtn.BackgroundColor3 = currentAccentColor
 SendBtn.Text = "إرسال 🚀"
 SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1402,10 +1413,11 @@ FloatingChatBtn.MouseButton1Click:Connect(function()
 end)
 
 local renderedMsgs = {}
-local function addChatMessage(sender, text, userId, msgKey)
+local function addChatMessage(sender, text, userId, msgKey, isImg)
+    local frameHeight = isImg and 140 or 44
     local msgFrame = Instance.new("Frame")
     msgFrame.Name = msgKey or "MsgItem"
-    msgFrame.Size = UDim2.new(1, 0, 0, 44)
+    msgFrame.Size = UDim2.new(1, 0, 0, frameHeight)
     msgFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
     msgFrame.ZIndex = 2
     msgFrame.Parent = ChatScroll
@@ -1418,15 +1430,15 @@ local function addChatMessage(sender, text, userId, msgKey)
     table.insert(registeredOptionStrokes, stroke)
 
     local rightHeader = Instance.new("Frame")
-    rightHeader.Size = UDim2.new(0, 110, 1, 0)
-    rightHeader.Position = UDim2.new(1, -110, 0, 0)
+    rightHeader.Size = UDim2.new(0, 110, 0, 36)
+    rightHeader.Position = UDim2.new(1, -110, 0, 4)
     rightHeader.BackgroundTransparency = 1
     rightHeader.ZIndex = 3
     rightHeader.Parent = msgFrame
 
     local avatarImg = Instance.new("ImageLabel")
     avatarImg.Size = UDim2.new(0, 32, 0, 32)
-    avatarImg.Position = UDim2.new(1, -36, 0.5, -16)
+    avatarImg.Position = UDim2.new(1, -36, 0, 2)
     avatarImg.BackgroundColor3 = Color3.fromRGB(30, 20, 35)
     avatarImg.ZIndex = 4
     avatarImg.Parent = rightHeader
@@ -1447,28 +1459,40 @@ local function addChatMessage(sender, text, userId, msgKey)
     nameLbl.Parent = rightHeader
     table.insert(activeNameLabels, nameLbl)
 
-    local msgTextLbl = Instance.new("TextLabel")
-    msgTextLbl.Size = UDim2.new(1, -120, 1, 0)
-    msgTextLbl.Position = UDim2.new(0, 8, 0, 0)
-    msgTextLbl.BackgroundTransparency = 1
-    msgTextLbl.Text = text
-    msgTextLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-    msgTextLbl.Font = Enum.Font.FredokaOne
-    msgTextLbl.TextSize = 13
-    msgTextLbl.TextXAlignment = Enum.TextXAlignment.Left
-    msgTextLbl.TextWrapped = true
-    msgTextLbl.ZIndex = 4
-    msgTextLbl.Parent = msgFrame
+    if isImg then
+        local imgContent = Instance.new("ImageLabel")
+        imgContent.Size = UDim2.new(1, -20, 0, 90)
+        imgContent.Position = UDim2.new(0, 10, 0, 42)
+        imgContent.BackgroundColor3 = Color3.fromRGB(15, 12, 18)
+        imgContent.Image = text
+        imgContent.ScaleType = Enum.ScaleType.Fit
+        imgContent.ZIndex = 4
+        imgContent.Parent = msgFrame
+        Instance.new("UICorner", imgContent).CornerRadius = UDim.new(0, 6)
+    else
+        local msgTextLbl = Instance.new("TextLabel")
+        msgTextLbl.Size = UDim2.new(1, -120, 1, 0)
+        msgTextLbl.Position = UDim2.new(0, 8, 0, 0)
+        msgTextLbl.BackgroundTransparency = 1
+        msgTextLbl.Text = text
+        msgTextLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        msgTextLbl.Font = Enum.Font.FredokaOne
+        msgTextLbl.TextSize = 13
+        msgTextLbl.TextXAlignment = Enum.TextXAlignment.Left
+        msgTextLbl.TextWrapped = true
+        msgTextLbl.ZIndex = 4
+        msgTextLbl.Parent = msgFrame
+    end
 
     ChatScroll.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y + 10)
     ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.AbsoluteCanvasSize.Y)
 
-    if userId then
+    if userId and not isImg then
         showPrivateScriptUserBubble(userId, text)
     end
 end
 
-local function sendMessageNow()
+local function sendMessageNow(isImg)
     if ChatInput.Text ~= "" then
         local msg = ChatInput.Text
         ChatInput.Text = ""
@@ -1492,7 +1516,7 @@ local function sendMessageNow()
         end)
 
         if isMuted then
-            addChatMessage("كـيـون 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم من استخدام الشات.\nالسبب: " .. muteReason .. "\nالمدة: " .. muteDuration, LocalPlayer.UserId, "muted_notice")
+            addChatMessage("كـيـون 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم.\nالسبب: " .. muteReason, LocalPlayer.UserId, "muted_notice", false)
             return
         end
 
@@ -1505,6 +1529,7 @@ local function sendMessageNow()
                     sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
                     userId = LocalPlayer.UserId,
                     text = msg,
+                    isImg = isImg and true or false,
                     time = os.time()
                 })
             })
@@ -1512,8 +1537,17 @@ local function sendMessageNow()
     end
 end
 
-SendBtn.MouseButton1Click:Connect(sendMessageNow)
-ChatInput.FocusLost:Connect(function(enter) if enter then sendMessageNow() end end)
+SendBtn.MouseButton1Click:Connect(function() sendMessageNow(false) end)
+SendImgBtn.MouseButton1Click:Connect(function()
+    if ChatInput.Text ~= "" then
+        sendMessageNow(true)
+    else
+        ChatInput.PlaceholderText = "ضع رابط الصورة هنا أولاً!"
+        task.wait(2)
+        ChatInput.PlaceholderText = "اكتب رسالتك أو رابط صورة..."
+    end
+end)
+ChatInput.FocusLost:Connect(function(enter) if enter then sendMessageNow(false) end end)
 
 task.spawn(function()
     local timer = 300
@@ -1826,7 +1860,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v46.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v47.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1839,7 +1873,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إضافة رأس بن فيدجيت (Ben Fidget Head) الجديد.\n• تعديل نظام الإكسسوارات والرؤوس ليعمل مباشرة بدون أخطاء.\n• إزالة السكنات القديمة وتخصيص القائمة للرأس الجديد."
+    updatesDesc.Text = "• إضافة ميزة الانتقال لسيرفر فارغ حقيقي (فيه 1 لاعب فقط) في التفعيلات.\n• إضافة ميزة إرسال صور حقيقية داخل الشات المباشر.\n• تفعيل رأس بن فيدجيت وإزالة السكنات القديمة تماماً."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2397,7 +2431,7 @@ BtnMusic.MouseButton1Click:Connect(function()
             task.spawn(function()
                 local soundAsset = track.id
                 if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v46_" .. tostring(idx))
+                    soundAsset = fetchAudioFile(track.url, "track_v47_" .. tostring(idx))
                 end
 
                 local snd = Instance.new("Sound")
@@ -2521,22 +2555,41 @@ BtnActivations.MouseButton1Click:Connect(function()
         end
     end)
 
-    addChilliAccordion("تغيير السيرفر (Server Hop)", function(addToggle, addAction)
-        addAction("الانتقال لسيرفر آخر عشوائي 🔄", function()
+    addChilliAccordion("الانتقال لسيرفر فارغ حقيقي (Empty Server Hop) 🌐", function(addToggle, addAction)
+        addAction("بحث والانتقال لسيرفر فيه لاعب واحد فقط ⚡", function()
             local Http = game:GetService("HttpService")
             local TPS = game:GetService("TeleportService")
             local Api = "https://games.roblox.com/v1/games/"
             local _place = game.PlaceId
             local _servers = Api .. tostring(_place) .. "/servers/Public?sortOrder=Asc&limit=100"
+            
             pcall(function()
                 local raw = game:HttpGet(_servers)
                 local decoded = Http:JSONDecode(raw)
                 if decoded and decoded.data then
+                    local targetServerId = nil
                     for _, s in ipairs(decoded.data) do
-                        if s.playing ~= s.maxPlayers and s.id ~= game.JobId then
-                            TPS:TeleportToPlaceInstance(_place, s.id, LocalPlayer)
+                        -- ابحث عن سيرفر عدد اللاعبين فيه 1 (أنت فقط أو شخص واحد) وغير السيرفر الحالي
+                        if s.playing == 1 and s.id ~= game.JobId then
+                            targetServerId = s.id
                             break
                         end
+                    end
+                    -- لو ما حصل سيرفر بـ 1 لاعب، ابحث عن أقرب سيرفر شبه فارغ (مثلاً أقل من نصف السعة)
+                    if not targetServerId then
+                        for _, s in ipairs(decoded.data) do
+                            if s.playing < s.maxPlayers and s.id ~= game.JobId then
+                                targetServerId = s.id
+                                break
+                            end
+                        end
+                    end
+                    
+                    if targetServerId then
+                        TPS:TeleportToPlaceInstance(_place, targetServerId, LocalPlayer)
+                    else
+                        -- الاحتياطي: سيرفر عشوائي آخر
+                        TPS:Teleport(_place, LocalPlayer)
                     end
                 end
             end)
@@ -2610,7 +2663,7 @@ BtnSuggestions.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- قسم سكنات ورؤوس اللاعب (إكسسوار رأس بن فيدجيت الجديد)
+-- قسم رأس بن فيدجيت الجديد
 ---------------------------------------------------------
 local BtnSkins = createProStyleBtn("سكنات", "right")
 BtnSkins.MouseButton1Click:Connect(function()
@@ -2649,7 +2702,6 @@ BtnSkins.MouseButton1Click:Connect(function()
                 local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
                 local humanoid = char:WaitForChild("Humanoid")
                 
-                -- إدراج إكسسوار الرأس الجديد باستخدام الـ ID المطلوب
                 local accessoryId = 113205153958796
                 local success, asset = pcall(function()
                     return InsertService:LoadAsset(accessoryId)
@@ -2664,7 +2716,6 @@ BtnSkins.MouseButton1Click:Connect(function()
                         applyBenHeadBtn.Text = "خطأ في تحميل الملف ❌"
                     end
                 else
-                    -- الطريقة الاحتياطية الآمنة عبر الـ HumanoidDescription
                     pcall(function()
                         local desc = humanoid:GetAppliedDescription()
                         desc.Head = accessoryId
@@ -3266,7 +3317,7 @@ task.spawn(function()
                     for k, m in pairs(data) do
                         if type(m) == "table" and m.text and not renderedMsgs[k] then
                             renderedMsgs[k] = true
-                            addChatMessage(tostring(m.sender or "مجهول"), tostring(m.text or ""), tonumber(m.userId), k)
+                            addChatMessage(tostring(m.sender or "مجهول"), tostring(m.text or ""), tonumber(m.userId), k, m.isImg)
                         end
                     end
                 end
