@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v52.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v53.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v52.json"
+local CONFIG_FILE = "KEON_Config_v53.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -70,6 +70,23 @@ local function fetchAsset(url, fileName)
     return url
 end
 
+local function fetchAudioFile(url, fileName)
+    if writefile and getcustomasset and readfile then
+        local file = "KEONMedia_" .. fileName .. ".mp3"
+        local success = pcall(function()
+            if not isfile(file) then
+                local data = game:HttpGet(url)
+                writefile(file, data)
+            end
+        end)
+        if success and isfile(file) then
+            local assetPath = getcustomasset(file)
+            if assetPath then return assetPath end
+        end
+    end
+    return url
+end
+
 local wallUrls = {
     fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
     fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
@@ -104,6 +121,7 @@ local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 local neonSpeed = 8
 local currentAccentColor = Color3.fromRGB(200, 20, 60)
 local currentHeaderColor = Color3.fromRGB(140, 10, 40)
+local globalMediaVolume = 5.0
 
 local selectedScriptBgIndex = 0
 local selectedChatBgIndex = 0
@@ -945,7 +963,7 @@ CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
 
 ---------------------------------------------------------
--- نافذة الشات المباشرة (مع ملصقات واضحة جداً)
+-- نافذة الشات المباشرة (مع حل تداخل واختفاء الخلفيات والملصقات)
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
 ChatScreenGui.Name = "KEONTopChatGui"
@@ -1255,9 +1273,9 @@ removeChatBgBtn.ZIndex = 3
 removeChatBgBtn.Parent = ChatFeaturesContainer
 Instance.new("UICorner", removeChatBgBtn).CornerRadius = UDim.new(0, 6)
 
--- قسم خلفيات الشات بطريقة عمودية بالطول (Column List) لضمان عدم اختفاء أي صورة بالأسفل
+-- حاوية خلفيات الشات العمودية بالكامل (Column List) مع حساب دقيق للـ CanvasSize لضمان ظهور كل البطاقات بدون قص أو اختفاء
 local chatColHolder = Instance.new("Frame")
-chatColHolder.Size = UDim2.new(1, 0, 0, 620)
+chatColHolder.Size = UDim2.new(1, 0, 0, (#wallUrls * 75) + 20)
 chatColHolder.BackgroundTransparency = 1
 chatColHolder.ZIndex = 3
 chatColHolder.Parent = ChatFeaturesContainer
@@ -1289,14 +1307,14 @@ for i, url in ipairs(wallUrls) do
     end)
 end
 
-ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, featLayout.AbsoluteContentSize.Y + chatColHolder.AbsoluteSize.Y + 60)
+ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, chatColHolder.AbsolutePosition.Y + chatColHolder.AbsoluteSize.Y + 50)
 
 removeChatBgBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     applyChatBackground(0)
 end)
 
--- نافذة منبثقة للملصقات (بتصميم الإيموجي وتأكيد ظهور صور الملصقات بوضوح)
+-- نافذة ملصقات سريعة وواضحة (Sticker Modal)
 local StickerModal = Instance.new("Frame")
 StickerModal.Name = "StickerModal"
 StickerModal.Size = UDim2.new(0, 220, 0, 160)
@@ -1337,19 +1355,21 @@ for _, sUrl in ipairs(stickerUrls) do
         playUiSound(SOUND_CLICK, 1, 0.35)
         StickerModal.Visible = false
 
-        pcall(function()
-            customRequest({
-                Url = FIREBASE_CHAT_URL,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = HttpService:JSONEncode({
-                    sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
-                    userId = LocalPlayer.UserId,
-                    text = sUrl,
-                    isSticker = true,
-                    time = os.time()
+        task.spawn(function()
+            pcall(function()
+                customRequest({
+                    Url = FIREBASE_CHAT_URL,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({
+                        sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
+                        userId = LocalPlayer.UserId,
+                        text = sUrl,
+                        isSticker = true,
+                        time = os.time()
+                    })
                 })
-            })
+            end)
         end)
     end)
 end
@@ -1543,40 +1563,42 @@ local function sendMessageNow()
         local msg = ChatInput.Text
         ChatInput.Text = ""
         
-        local isMuted = false
-        local muteReason = ""
-        pcall(function()
-            local res = customRequest({Url = FIREBASE_ADMIN_ACTIONS_URL, Method = "GET"})
-            if res and res.StatusCode == 200 then
-                local data = safeDecode(res.Body)
-                if data and data.mutes and data.mutes[tostring(LocalPlayer.UserId)] then
-                    local mInfo = data.mutes[tostring(LocalPlayer.UserId)]
-                    if mInfo.muted then
-                        isMuted = true
-                        muteReason = mInfo.reason or "مخالفة القوانين"
+        task.spawn(function()
+            local isMuted = false
+            local muteReason = ""
+            pcall(function()
+                local res = customRequest({Url = FIREBASE_ADMIN_ACTIONS_URL, Method = "GET"})
+                if res and res.StatusCode == 200 then
+                    local data = safeDecode(res.Body)
+                    if data and data.mutes and data.mutes[tostring(LocalPlayer.UserId)] then
+                        local mInfo = data.mutes[tostring(LocalPlayer.UserId)]
+                        if mInfo.muted then
+                            isMuted = true
+                            muteReason = mInfo.reason or "مخالفة القوانين"
+                        end
                     end
                 end
+            end)
+
+            if isMuted then
+                addChatMessage("كـيـون 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم.\nالسبب: " .. muteReason, LocalPlayer.UserId, "muted_notice", false)
+                return
             end
-        end)
 
-        if isMuted then
-            addChatMessage("كـيـون 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم.\nالسبب: " .. muteReason, LocalPlayer.UserId, "muted_notice", false)
-            return
-        end
-
-        pcall(function()
-            customRequest({
-                Url = FIREBASE_CHAT_URL,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = HttpService:JSONEncode({
-                    sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
-                    userId = LocalPlayer.UserId,
-                    text = msg,
-                    isSticker = false,
-                    time = os.time()
+            pcall(function()
+                customRequest({
+                    Url = FIREBASE_CHAT_URL,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({
+                        sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
+                        userId = LocalPlayer.UserId,
+                        text = msg,
+                        isSticker = false,
+                        time = os.time()
+                    })
                 })
-            })
+            end)
         end)
     end
 end
@@ -1895,7 +1917,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v52.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v53.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1908,7 +1930,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• تعديل قسم خلفيات الشات لتصبح مرتبة بالطول لضمان سهولة التمرير واختيار أي صورة.\n• تحويل قسم الموسيقى إلى مشغل فيديو احترافي مع روابطك الجديدة وزر إعجاب (Like) لكل فيديو!\n• ضمان ظهور الملصقات بوضوح تام بالتشات."
+    updatesDesc.Text = "• حل نهائي لمشكلة الشاشة الرمادية للفيديوهات عبر استبدالها بمشغل صوتيات/ميديا فخم وسريع.\n• إصلاح تام لمشكلة بطاقات الخلفيات وتحسين الـ CanvasSize لتقدر تمرر وتختار بكل سلاسة.\n• تسريع إرسال الملصقات والرسائل في الشات المباشر فوراً وبدون أي تعليق."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2314,47 +2336,111 @@ BtnScripts.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- تبويب "موسيقى وفيديو" (مع مشغل الفيديوهات وزر الإعجاب Like)
+-- تبويب "الميديا والصوتيات" (الحل النهائي السريع البديل للفيديوهات)
 ---------------------------------------------------------
-local BtnMusic = createProStyleBtn("موسيقى وفيديو", "left")
-BtnMusic.MouseButton1Click:Connect(function()
+local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
+BtnMedia.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    local videoTracks = {
-        {name = "🎬 فيديو 1 - العرض الأول", url = "https://videotourl.com/videos/1793025425254-0a61332e-f221-40e6-8c1b-ef5806830a09.mp4"},
-        {name = "🎬 فيديو 2 - العرض الثاني", url = "https://videotourl.com/videos/1793025754852-fae67bd8-b1b9-4e78-88ff-c9c6cb89d194.mp4"},
-        {name = "🎬 فيديو 3 - العرض الثالث", url = "https://videotourl.com/videos/1793025781745-157e3b9c-d6d0-4b6c-aa71-7771dd320b4f.mp4"},
-        {name = "🎬 فيديو 4 - العرض الرابع", url = "https://videotourl.com/videos/1793025818854-4849ddc5-46c5-4d47-8a33-40617f369775.mp4"},
-        {name = "🎬 فيديو 5 - العرض الخامس", url = "https://videotourl.com/videos/1793025841646-f237bebc-93e7-46d9-ba13-ba83768f916d.mp4"},
-        {name = "🎬 فيديو 6 - العرض السادس", url = "https://videotourl.com/videos/1793025892422-76d8cd2f-c555-4afa-96d5-72ed94c43e44.mp4"},
-        {name = "🎬 فيديو 7 - العرض السابع", url = "https://videotourl.com/videos/1793025907490-e1d0e708-4f8e-4722-b2f7-2bf1d4bd4490.mp4"}
+    local mediaTracks = {
+        {name = "🎬 فيديو وعرض 1", url = "https://videotourl.com/videos/1793025425254-0a61332e-f221-40e6-8c1b-ef5806830a09.mp4"},
+        {name = "🎬 فيديو وعرض 2", url = "https://videotourl.com/videos/1793025754852-fae67bd8-b1b9-4e78-88ff-c9c6cb89d194.mp4"},
+        {name = "🎬 فيديو وعرض 3", url = "https://videotourl.com/videos/1793025781745-157e3b9c-d6d0-4b6c-aa71-7771dd320b4f.mp4"},
+        {name = "🎬 فيديو وعرض 4", url = "https://videotourl.com/videos/1793025818854-4849ddc5-46c5-4d47-8a33-40617f369775.mp4"},
+        {name = "🎬 فيديو وعرض 5", url = "https://videotourl.com/videos/1793025841646-f237bebc-93e7-46d9-ba13-ba83768f916d.mp4"},
+        {name = "🎬 فيديو وعرض 6", url = "https://videotourl.com/videos/1793025892422-76d8cd2f-c555-4afa-96d5-72ed94c43e44.mp4"},
+        {name = "🎬 فيديو وعرض 7", url = "https://videotourl.com/videos/1793025907490-e1d0e708-4f8e-4722-b2f7-2bf1d4bd4490.mp4"}
     }
 
-    if not _G.KEONActiveVideoGui then
-        _G.KEONActiveVideoGui = nil
+    if not _G.KEONActiveMediaSound then
+        _G.KEONActiveMediaSound = nil
     end
 
-    local stopAllVideoBtn = Instance.new("TextButton")
-    stopAllVideoBtn.Size = UDim2.new(1, 0, 0, 36)
-    stopAllVideoBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
-    stopAllVideoBtn.Text = "⏹️ إيقاف وإغلاق الفيديو الحالي"
-    stopAllVideoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    stopAllVideoBtn.Font = Enum.Font.FredokaOne
-    stopAllVideoBtn.TextSize = 14
-    stopAllVideoBtn.ZIndex = 3
-    stopAllVideoBtn.Parent = CenterScroll
-    Instance.new("UICorner", stopAllVideoBtn).CornerRadius = UDim.new(0, 8)
+    local volumeContainer = Instance.new("Frame")
+    volumeContainer.Size = UDim2.new(1, 0, 0, 45)
+    volumeContainer.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    volumeContainer.ZIndex = 3
+    volumeContainer.Parent = CenterScroll
+    Instance.new("UICorner", volumeContainer).CornerRadius = UDim.new(0, 8)
 
-    stopAllVideoBtn.MouseButton1Click:Connect(function()
-        playUiSound(SOUND_CLICK, 1, 0.35)
-        if _G.KEONActiveVideoGui and _G.KEONActiveVideoGui.Parent then
-            pcall(function() _G.KEONActiveVideoGui:Destroy() end)
-            _G.KEONActiveVideoGui = nil
+    local volStroke = Instance.new("UIStroke")
+    volStroke.Color = currentAccentColor
+    volStroke.Thickness = 1.5
+    volStroke.Parent = volumeContainer
+
+    local volLabel = Instance.new("TextLabel")
+    volLabel.Size = UDim2.new(1, -20, 0, 20)
+    volLabel.Position = UDim2.new(0, 10, 0, 2)
+    volLabel.BackgroundTransparency = 1
+    volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMediaVolume)
+    volLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    volLabel.Font = Enum.Font.FredokaOne
+    volLabel.TextSize = 12
+    volLabel.TextXAlignment = Enum.TextXAlignment.Right
+    volLabel.ZIndex = 4
+    volLabel.Parent = volumeContainer
+
+    local volDownBtn = Instance.new("TextButton")
+    volDownBtn.Size = UDim2.new(0, 50, 0, 20)
+    volDownBtn.Position = UDim2.new(0, 10, 0, 22)
+    volDownBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
+    volDownBtn.Text = "🔉 خفض"
+    volDownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    volDownBtn.Font = Enum.Font.FredokaOne
+    volDownBtn.TextSize = 11
+    volDownBtn.ZIndex = 4
+    volDownBtn.Parent = volumeContainer
+    Instance.new("UICorner", volDownBtn).CornerRadius = UDim.new(0, 4)
+
+    local volUpBtn = Instance.new("TextButton")
+    volUpBtn.Size = UDim2.new(0, 50, 0, 20)
+    volUpBtn.Position = UDim2.new(0, 68, 0, 22)
+    volUpBtn.BackgroundColor3 = currentAccentColor
+    volUpBtn.Text = "🔊 رفع"
+    volUpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    volUpBtn.Font = Enum.Font.FredokaOne
+    volUpBtn.TextSize = 11
+    volUpBtn.ZIndex = 4
+    volUpBtn.Parent = volumeContainer
+    Instance.new("UICorner", volUpBtn).CornerRadius = UDim.new(0, 4)
+
+    volDownBtn.MouseButton1Click:Connect(function()
+        globalMediaVolume = math.max(1.0, globalMediaVolume - 1.0)
+        volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMediaVolume)
+        if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
+            _G.KEONActiveMediaSound.Volume = globalMediaVolume
         end
     end)
 
-    for idx, track in ipairs(videoTracks) do
+    volUpBtn.MouseButton1Click:Connect(function()
+        globalMediaVolume = math.min(10.0, globalMediaVolume + 1.0)
+        volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMediaVolume)
+        if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
+            _G.KEONActiveMediaSound.Volume = globalMediaVolume
+        end
+    end)
+
+    local stopAllMediaBtn = Instance.new("TextButton")
+    stopAllMediaBtn.Size = UDim2.new(1, 0, 0, 36)
+    stopAllMediaBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
+    stopAllMediaBtn.Text = "⏹️ إيقاف جميع المقاطع"
+    stopAllMediaBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    stopAllMediaBtn.Font = Enum.Font.FredokaOne
+    stopAllMediaBtn.TextSize = 14
+    stopAllMediaBtn.ZIndex = 3
+    stopAllMediaBtn.Parent = CenterScroll
+    Instance.new("UICorner", stopAllMediaBtn).CornerRadius = UDim.new(0, 8)
+
+    stopAllMediaBtn.MouseButton1Click:Connect(function()
+        playUiSound(SOUND_CLICK, 1, 0.35)
+        if _G.KEONActiveMediaSound then
+            pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
+            _G.KEONActiveMediaSound = nil
+        end
+    end)
+
+    for idx, track in ipairs(mediaTracks) do
         local mCard = Instance.new("Frame")
         mCard.Size = UDim2.new(1, 0, 0, 50)
         mCard.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
@@ -2404,7 +2490,7 @@ BtnMusic.MouseButton1Click:Connect(function()
         playBtn.Size = UDim2.new(0, 95, 0, 34)
         playBtn.Position = UDim2.new(0, 60, 0.5, -17)
         playBtn.BackgroundColor3 = currentAccentColor
-        playBtn.Text = "تشغيل 🎬"
+        playBtn.Text = "تشغيل 🎶"
         playBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         playBtn.Font = Enum.Font.FredokaOne
         playBtn.TextSize = 12
@@ -2414,60 +2500,35 @@ BtnMusic.MouseButton1Click:Connect(function()
 
         playBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
-            if _G.KEONActiveVideoGui and _G.KEONActiveVideoGui.Parent then
-                pcall(function() _G.KEONActiveVideoGui:Destroy() end)
+            if _G.KEONActiveMediaSound then
+                pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
             end
 
-            playBtn.Text = "جاري العرض..."
+            playBtn.Text = "جاري التحميل..."
 
             task.spawn(function()
-                local vGui = Instance.new("ScreenGui")
-                vGui.Name = "KEONVideoPlayerGui"
-                vGui.ResetOnSpawn = false
-                vGui.Parent = parent
-                _G.KEONActiveVideoGui = vGui
+                local audioAsset = fetchAudioFile(track.url, "media_v53_" .. tostring(idx))
 
-                local vFrame = Instance.new("Frame")
-                vFrame.Size = UDim2.new(0, 360, 0, 240)
-                vFrame.Position = UDim2.new(0.5, -180, 0.5, -120)
-                vFrame.BackgroundColor3 = Color3.fromRGB(10, 8, 12)
-                vFrame.Active = true
-                vFrame.Draggable = true
-                vFrame.Parent = vGui
-                Instance.new("UICorner", vFrame).CornerRadius = UDim.new(0, 10)
-
-                local vStroke = Instance.new("UIStroke")
-                vStroke.Color = currentAccentColor
-                vStroke.Thickness = 2.5
-                vStroke.Parent = vFrame
-
-                local vidObj = Instance.new("VideoFrame")
-                vidObj.Size = UDim2.new(1, -12, 1, -45)
-                vidObj.Position = UDim2.new(0, 6, 0, 6)
-                vidObj.Video = track.url
-                vidObj.Looped = true
-                vidObj.Parent = vFrame
-                Instance.new("UICorner", vidObj).CornerRadius = UDim.new(0, 8)
-
-                local closeVidBtn = Instance.new("TextButton")
-                closeVidBtn.Size = UDim2.new(1, -20, 0, 28)
-                closeVidBtn.Position = UDim2.new(0, 10, 1, -34)
-                closeVidBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
-                closeVidBtn.Text = "إغلاق الفيديو ✖"
-                closeVidBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                closeVidBtn.Font = Enum.Font.FredokaOne
-                closeVidBtn.TextSize = 12
-                closeVidBtn.Parent = vFrame
-                Instance.new("UICorner", closeVidBtn).CornerRadius = UDim.new(0, 6)
-
-                closeVidBtn.MouseButton1Click:Connect(function()
-                    playUiSound(SOUND_CLICK, 1, 0.35)
-                    vGui:Destroy()
-                    _G.KEONActiveVideoGui = nil
+                local snd = Instance.new("Sound")
+                snd.SoundId = audioAsset
+                snd.Volume = globalMediaVolume
+                snd.Looped = true
+                snd.Parent = SoundService
+                
+                local loadedSuccess = pcall(function()
+                    if not snd.IsLoaded then snd.Loaded:Wait(5) end
                 end)
 
-                pcall(function() vidObj:Play() end)
-                playBtn.Text = "تشغيل 🎬"
+                if loadedSuccess then
+                    snd:Play()
+                    _G.KEONActiveMediaSound = snd
+                    playBtn.Text = "يعمل الآن ▶️"
+                else
+                    playBtn.Text = "خطأ بالتحميل ❌"
+                end
+
+                task.wait(2)
+                playBtn.Text = "تشغيل 🎶"
             end)
         end)
     end
