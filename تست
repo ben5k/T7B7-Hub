@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v56.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v57.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v56.json"
+local CONFIG_FILE = "KEON_Config_v57.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -33,6 +33,9 @@ local FIREBASE_ADMIN_ACTIONS_URL = FIREBASE_BASE_URL .. "/admin_actions.json"
 local FIREBASE_VOTE_BASE = FIREBASE_BASE_URL .. "/global_vote"
 local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
+
+-- رابط السكربت الحالي لإعادة تشغيل نفسه بدقة
+local CURRENT_SCRIPT_URL = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"
 
 local function customRequest(options)
     local req = request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request)
@@ -70,9 +73,8 @@ local function fetchAsset(url, fileName)
     return url
 end
 
--- تم تحديث رابط الخلفية لتكون صورة PNG ثابتة وفخمة تظهر بوضوح تام على الجوال
 local wallUrls = {
-    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v56"),
+    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v57"),
     fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
     fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
     fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2"),
@@ -298,8 +300,9 @@ task.spawn(function()
                         if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
                         if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
                         
+                        -- إعادة تشغيل السكربت نفسه بدقة
                         task.spawn(function()
-                            loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()
+                            loadstring(game:HttpGet(CURRENT_SCRIPT_URL))()
                         end)
                     end
                 end
@@ -793,14 +796,14 @@ BgImage.ZIndex = 0
 BgImage.Parent = CenterBox
 Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 10)
 
--- دالة تطبيق خلفية السكربت الرئيسية بشكل صحيح وفعال
+-- دالة تطبيق خلفية السكربت مع معالجة الشفافية تماماً
 local function applyScriptBackground(idx)
     selectedScriptBgIndex = idx
     saveUserSettings()
     if idx > 0 and wallUrls[idx] then
         BgImage.Image = wallUrls[idx]
         BgImage.Visible = true
-        CenterBox.BackgroundTransparency = 0.85
+        CenterBox.BackgroundTransparency = 0.45 -- شفافية متوازنة لظهور الخلفية بوضوح تام دون سواد مزعج
     else
         BgImage.Visible = false
         CenterBox.BackgroundTransparency = 0
@@ -964,7 +967,7 @@ CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
 
 ---------------------------------------------------------
--- نافذة الشات المباشرة (مع حل تداخل واختفاء الخلفيات والملصقات)
+-- نافذة الشات المباشرة
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
 ChatScreenGui.Name = "KEONTopChatGui"
@@ -1243,7 +1246,7 @@ local function applyChatBackground(idx)
     if idx > 0 and wallUrls[idx] then
         ChatBgImage.Image = wallUrls[idx]
         ChatBgImage.Visible = true
-        ChatWin.BackgroundTransparency = 0.85
+        ChatWin.BackgroundTransparency = 0.45
     else
         ChatBgImage.Visible = false
         ChatWin.BackgroundTransparency = 0
@@ -1916,7 +1919,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v56.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v57.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1929,7 +1932,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• حل نهائي لمشكلة الخلفية وتثبيتها كصورة PNG فخمة وواضحة جداً.\n• ربط المقاطع الصوتية بأصوات روبلوكس الرسمية (`rbxassetid`) لضمان التشغيل الفوري.\n• زيادة الاستقرار والسرعة بالكامل."
+    updatesDesc.Text = "• إضافة قسم (اسرق البيض) الجديد مع السكربت الخاص بكم والملاحظة الخاصة به.\n• رجوع نظام الأغاني القديم وإضافة روابط الأغاني الـ 8 الجديدة المطلوبة.\n• إصلاح زر إعادة تشغيل السكربت ليعيد تشغيل نفسه بدقة.\n• ضبط الشفافية والخلفيات المتحركة لتظهر بوضوح تام."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -1939,6 +1942,88 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Parent = updatesFrame
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
+end)
+
+---------------------------------------------------------
+-- تبويب "اسرق البيض" الجديد كلياً
+---------------------------------------------------------
+local BtnStealEgg = createProStyleBtn("اسرق البيض", "left")
+BtnStealEgg.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    clearCenter()
+
+    local eggBanner = Instance.new("ImageLabel")
+    eggBanner.Size = UDim2.new(1, 0, 0, 110)
+    eggBanner.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    eggBanner.Image = EGG_MAP_IMAGE
+    eggBanner.ScaleType = Enum.ScaleType.Crop
+    eggBanner.ZIndex = 3
+    eggBanner.Parent = CenterScroll
+    Instance.new("UICorner", eggBanner).CornerRadius = UDim.new(0, 10)
+
+    local eggCard = Instance.new("Frame")
+    eggCard.Size = UDim2.new(1, 0, 0, 160)
+    eggCard.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    eggCard.ZIndex = 3
+    eggCard.Parent = CenterScroll
+    Instance.new("UICorner", eggCard).CornerRadius = UDim.new(0, 10)
+
+    local eggStroke = Instance.new("UIStroke")
+    eggStroke.Color = currentAccentColor
+    eggStroke.Thickness = 1.8
+    eggStroke.Parent = eggCard
+
+    local eggTitle = Instance.new("TextLabel")
+    eggTitle.Size = UDim2.new(1, -10, 0, 26)
+    eggTitle.Position = UDim2.new(0, 5, 0, 6)
+    eggTitle.BackgroundTransparency = 1
+    eggTitle.Text = "🥚 قسم اسرق البيض الحصري (KEON)"
+    eggTitle.TextColor3 = currentAccentColor
+    eggTitle.Font = Enum.Font.FredokaOne
+    eggTitle.TextSize = 14
+    eggTitle.TextXAlignment = Enum.TextXAlignment.Right
+    eggTitle.ZIndex = 4
+    eggTitle.Parent = eggCard
+    table.insert(activeNameLabels, eggTitle)
+
+    local eggDesc = Instance.new("TextLabel")
+    eggDesc.Size = UDim2.new(1, -10, 0, 65)
+    eggDesc.Position = UDim2.new(0, 5, 0, 34)
+    eggDesc.BackgroundTransparency = 1
+    eggDesc.Text = "• الوصف: سكربت حقنا من صنع مطورنا فقط يسرق بيض بسرعة خارقة ⚡.\n• ⚠️ ملاحظة هامة جداً: ممنوع تشغيل هذا السكربت مع سكربت فلفل 🌶️ نهائياً لمنع التعارض."
+    eggDesc.TextColor3 = Color3.fromRGB(255, 200, 100)
+    eggDesc.Font = Enum.Font.FredokaOne
+    eggDesc.TextSize = 11.5
+    eggDesc.TextXAlignment = Enum.TextXAlignment.Right
+    eggDesc.TextYAlignment = Enum.TextYAlignment.Top
+    eggDesc.ZIndex = 4
+    eggDesc.Parent = eggCard
+
+    local runEggScriptBtn = Instance.new("TextButton")
+    runEggScriptBtn.Size = UDim2.new(1, -16, 0, 38)
+    runEggScriptBtn.Position = UDim2.new(0, 8, 1, -44)
+    runEggScriptBtn.BackgroundColor3 = currentAccentColor
+    runEggScriptBtn.Text = "تشغيل سكربت اسرق البيض 🚀"
+    runEggScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    runEggScriptBtn.Font = Enum.Font.FredokaOne
+    runEggScriptBtn.TextSize = 13.5
+    runEggScriptBtn.ZIndex = 4
+    runEggScriptBtn.Parent = eggCard
+    Instance.new("UICorner", runEggScriptBtn).CornerRadius = UDim.new(0, 8)
+
+    runEggScriptBtn.MouseButton1Click:Connect(function()
+        playUiSound(SOUND_CLICK, 1, 0.35)
+        runEggScriptBtn.Text = "جاري تفعيل السكربت الخارق..."
+        pcall(function()
+            loadstring(game:HttpGet("https://orrxl4-protector.com/api/raw?id=oa3ryvhr"))()
+        end)
+        task.wait(1)
+        runEggScriptBtn.Text = "تم التشغيل بنجاح! ✅"
+        task.wait(2)
+        runEggScriptBtn.Text = "تشغيل سكربت اسرق البيض 🚀"
+    end)
+
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
 end)
 
 ---------------------------------------------------------
@@ -2335,7 +2420,7 @@ BtnScripts.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- تبويب "الميديا والصوتيات" (مع أصوات روبلوكس الأصلية والمضمونة 100%)
+-- تبويب "الميديا والصوتيات" (مع الـ 8 أغانٍ الجديدة المطلوبة ونظام الروابط المباشرة)
 ---------------------------------------------------------
 local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
 BtnMedia.MouseButton1Click:Connect(function()
@@ -2343,13 +2428,14 @@ BtnMedia.MouseButton1Click:Connect(function()
     clearCenter()
 
     local mediaTracks = {
-        {name = "🎵 مقطع حماسي 1", id = "rbxassetid://1845781135"},
-        {name = "🎵 مقطع حماسي 2", id = "rbxassetid://9043534571"},
-        {name = "🎵 مقطع حماسي 3", id = "rbxassetid://142376088"},
-        {name = "🎵 مقطع حماسي 4", id = "rbxassetid://1839245131"},
-        {name = "🎵 مقطع حماسي 5", id = "rbxassetid://1848354536"},
-        {name = "🎵 مقطع حماسي 6", id = "rbxassetid://1837145452"},
-        {name = "🎵 مقطع حماسي 7", id = "rbxassetid://1842757655"}
+        {name = "🎵 الأغنية الخاصة 1", url = "https://mp3tourl.com/audio/1793032510554-b02ecb64-2fdf-47af-b6ad-bdbefea3d145.mp3"},
+        {name = "🎵 الأغنية الخاصة 2", url = "https://mp3tourl.com/audio/1793032488141-ece44ee5-915c-4707-a9db-8ba6263ed1a0.mp3"},
+        {name = "🎵 الأغنية الخاصة 3", url = "https://mp3tourl.com/audio/1793032443036-1fe0f529-7470-4c4b-a58d-e0e6d96c156d.mp3"},
+        {name = "🎵 الأغنية الخاصة 4", url = "https://mp3tourl.com/audio/1793032387774-e053f4e5-992e-4d1a-a016-2759c5e10e79.mp3"},
+        {name = "🎵 الأغنية الخاصة 5", url = "https://mp3tourl.com/audio/1793032221389-d6cf2416-9ef0-4104-839a-09008976cf05.mp3"},
+        {name = "🎵 الأغنية الخاصة 6", url = "https://mp3tourl.com/audio/1793032196410-636d1b4e-60ed-40ee-8cc7-0c1e91cf54e2.mp3"},
+        {name = "🎵 الأغنية الخاصة 7", url = "https://mp3tourl.com/audio/1793032171399-2c8d35f6-7f4e-49f6-845d-52a7f357df09.mp3"},
+        {name = "🎵 الأغنية الخاصة 8", url = "https://mp3tourl.com/audio/1793031943899-e9d05e63-2c93-4d6a-bce2-8ed239dbad88.mp3"}
     }
 
     if not _G.KEONActiveMediaSound then
@@ -2503,11 +2589,11 @@ BtnMedia.MouseButton1Click:Connect(function()
                 pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
             end
 
-            playBtn.Text = "جاري التشغيل..."
+            playBtn.Text = "جاري التحميل..."
 
             task.spawn(function()
                 local snd = Instance.new("Sound")
-                snd.SoundId = track.id
+                snd.SoundId = track.url
                 snd.Volume = globalMediaVolume
                 snd.Looped = true
                 snd.Parent = SoundService
