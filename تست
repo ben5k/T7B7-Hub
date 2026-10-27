@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Pro UI + AutoSave + KEON AI Drawer (v66.0.0)
+-- KEON Hub - PS5 Neon Pro UI + AutoSave + KEON AI Drawer (v66.1.0)
 -- Developer: كـيـون
 
 CoreGui = game:GetService("CoreGui")
