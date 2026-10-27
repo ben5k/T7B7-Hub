@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v58.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v58.1.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v58.json"
+local CONFIG_FILE = "KEON_Config_v581.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -56,9 +56,10 @@ local function safeDecode(jsonStr)
     return nil
 end
 
-local function fetchAsset(url, fileName)
+local function fetchAsset(url, fileName, isAudio)
     if writefile and getcustomasset and readfile then
-        local file = "KEONHub_" .. fileName .. ".png"
+        local ext = isAudio and ".mp3" or ".png"
+        local file = "KEONHub_" .. fileName .. ext
         local success = pcall(function()
             if not isfile(file) then
                 writefile(file, game:HttpGet(url))
@@ -73,31 +74,31 @@ local function fetchAsset(url, fileName)
 end
 
 local wallUrls = {
-    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v58"),
-    fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
-    fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
-    fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2"),
-    fetchAsset("https://l.top4top.io/p_3947ds5ic0.jpg", "bg_3"),
-    fetchAsset("https://a.top4top.io/p_3947hoh3p1.jpg", "bg_4"),
-    fetchAsset("https://b.top4top.io/p_3947wn78l2.jpg", "bg_5"),
-    fetchAsset("https://c.top4top.io/p_3947n55o83.jpg", "bg_6"),
-    fetchAsset("https://d.top4top.io/p_394754mmu4.jpg", "bg_7"),
-    fetchAsset("https://e.top4top.io/p_39475mm3q5.jpg", "bg_8"),
+    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v58", false),
+    fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new", false),
+    fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1", false),
+    fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2", false),
+    fetchAsset("https://l.top4top.io/p_3947ds5ic0.jpg", "bg_3", false),
+    fetchAsset("https://a.top4top.io/p_3947hoh3p1.jpg", "bg_4", false),
+    fetchAsset("https://b.top4top.io/p_3947wn78l2.jpg", "bg_5", false),
+    fetchAsset("https://c.top4top.io/p_3947n55o83.jpg", "bg_6", false),
+    fetchAsset("https://d.top4top.io/p_394754mmu4.jpg", "bg_7", false),
+    fetchAsset("https://e.top4top.io/p_39475mm3q5.jpg", "bg_8", false),
 }
 
 local stickerUrls = {
-    fetchAsset("https://up6.cc/2026/10/179301030915811.jpg", "stk_1"),
-    fetchAsset("https://up6.cc/2026/10/179301030920862.jpg", "stk_2"),
-    fetchAsset("https://up6.cc/2026/10/179301030923343.jpg", "stk_3"),
-    fetchAsset("https://up6.cc/2026/10/179301030928524.jpg", "stk_4"),
-    fetchAsset("https://up6.cc/2026/10/179301041828331.jpg", "stk_5"),
-    fetchAsset("https://up6.cc/2026/10/179301041832562.jpg", "stk_6")
+    fetchAsset("https://up6.cc/2026/10/179301030915811.jpg", "stk_1", false),
+    fetchAsset("https://up6.cc/2026/10/179301030920862.jpg", "stk_2", false),
+    fetchAsset("https://up6.cc/2026/10/179301030923343.jpg", "stk_3", false),
+    fetchAsset("https://up6.cc/2026/10/179301030928524.jpg", "stk_4", false),
+    fetchAsset("https://up6.cc/2026/10/179301041828331.jpg", "stk_5", false),
+    fetchAsset("https://up6.cc/2026/10/179301041832562.jpg", "stk_6", false)
 }
 
-local EGG_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_3948flo0t0.jpg", "egg_map")
-local BREAK_EGG_MAP_IMAGE = fetchAsset("https://e.top4top.io/p_3948fd0c20.jpg", "break_egg_map")
-local EVENT_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_39498vdws0.jpg", "event_map")
-local MINIMIZE_ICON_IMAGE = fetchAsset("https://k.top4top.io/p_3948z05tb0.png", "min_icon")
+local EGG_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_3948flo0t0.jpg", "egg_map", false)
+local BREAK_EGG_MAP_IMAGE = fetchAsset("https://e.top4top.io/p_3948fd0c20.jpg", "break_egg_map", false)
+local EVENT_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_39498vdws0.jpg", "event_map", false)
+local MINIMIZE_ICON_IMAGE = fetchAsset("https://k.top4top.io/p_3948z05tb0.png", "min_icon", false)
 
 local SOUND_OPEN = "rbxassetid://98797174600699"
 local SOUND_CLICK = "rbxassetid://6895079853"
@@ -794,14 +795,13 @@ BgImage.ZIndex = 0
 BgImage.Parent = CenterBox
 Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 10)
 
--- دالة تطبيق الخلفية المتحركة أو العادية بدقة وتجنب السواد تماماً للجوال
 local function applyScriptBackground(idx)
     selectedScriptBgIndex = idx
     saveUserSettings()
     if idx > 0 and wallUrls[idx] then
         BgImage.Image = wallUrls[idx]
         BgImage.Visible = true
-        CenterBox.BackgroundTransparency = 0.35 -- شفافية ممتازة لظهور الخلفية المتحركة بوضوح فائق وبدون شاشة سوداء
+        CenterBox.BackgroundTransparency = 0.35
     else
         BgImage.Visible = false
         CenterBox.BackgroundTransparency = 0
@@ -1917,7 +1917,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v58.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v58.1):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1930,7 +1930,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• نقل قسم (اسرق البيض) وصار بالجانب الأيمن مباشرة بجانب الإعدادات.\n• إصلاح مشكلة الأغاني وربطها بشكل مباشر وسلس مع الصوت.\n• حل مشكلة الخلفية المتحركة والشفافية وتجنب الشاشة السوداء بالكامل.\n• تحسين الأداء العام وسرعة تصفح الواجهة."
+    updatesDesc.Text = "• حل مشكلة عدم اشتغال روابط الـ MP3 عبر نظام جلب Caching وتخزين مؤقت مباشر للصوتيات.\n• ضمان تشغيل الأغاني بسلاسة تامة على الجوال والكمبيوتر.\n• استقرار تام في مشغل الصوت والتنقل."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2022,7 +2022,7 @@ task.spawn(function()
     while true do
         pcall(function()
             local now = os.time()
-            local dateTable = os.date("!*t", now + 10800) -- UTC+3
+            local dateTable = os.date("!*t", now + 10800)
             local wday = dateTable.wday
             local daysUntilSaturday = (7 - wday) % 7
             if daysUntilSaturday == 0 then
@@ -2336,7 +2336,7 @@ BtnScripts.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- تبويب "الميديا والصوتيات"
+-- تبويب "الميديا والصوتيات" (محدث بروابط MP3 المباشرة)
 ---------------------------------------------------------
 local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
 BtnMedia.MouseButton1Click:Connect(function()
@@ -2344,14 +2344,14 @@ BtnMedia.MouseButton1Click:Connect(function()
     clearCenter()
 
     local mediaTracks = {
-        {name = "🎵 الأغنية الخاصة 1", url = "https://mp3tourl.com/audio/1793032510554-b02ecb64-2fdf-47af-b6ad-bdbefea3d145.mp3"},
-        {name = "🎵 الأغنية الخاصة 2", url = "https://mp3tourl.com/audio/1793032488141-ece44ee5-915c-4707-a9db-8ba6263ed1a0.mp3"},
-        {name = "🎵 الأغنية الخاصة 3", url = "https://mp3tourl.com/audio/1793032443036-1fe0f529-7470-4c4b-a58d-e0e6d96c156d.mp3"},
-        {name = "🎵 الأغنية الخاصة 4", url = "https://mp3tourl.com/audio/1793032387774-e053f4e5-992e-4d1a-a016-2759c5e10e79.mp3"},
-        {name = "🎵 الأغنية الخاصة 5", url = "https://mp3tourl.com/audio/1793032221389-d6cf2416-9ef0-4104-839a-09008976cf05.mp3"},
-        {name = "🎵 الأغنية الخاصة 6", url = "https://mp3tourl.com/audio/1793032196410-636d1b4e-60ed-40ee-8cc7-0c1e91cf54e2.mp3"},
-        {name = "🎵 الأغنية الخاصة 7", url = "https://mp3tourl.com/audio/1793032171399-2c8d35f6-7f4e-49f6-845d-52a7f357df09.mp3"},
-        {name = "🎵 الأغنية الخاصة 8", url = "https://mp3tourl.com/audio/1793031943899-e9d05e63-2c93-4d6a-bce2-8ed239dbad88.mp3"}
+        {name = "🎵 الأغنية الخاصة 1", url = fetchAsset("https://mp3tourl.com/audio/1793032510554-b02ecb64-2fdf-47af-b6ad-bdbefea3d145.mp3", "track_1", true)},
+        {name = "🎵 الأغنية الخاصة 2", url = fetchAsset("https://mp3tourl.com/audio/1793032488141-ece44ee5-915c-4707-a9db-8ba6263ed1a0.mp3", "track_2", true)},
+        {name = "🎵 الأغنية الخاصة 3", url = fetchAsset("https://mp3tourl.com/audio/1793032443036-1fe0f529-7470-4c4b-a58d-e0e6d96c156d.mp3", "track_3", true)},
+        {name = "🎵 الأغنية الخاصة 4", url = fetchAsset("https://mp3tourl.com/audio/1793032387774-e053f4e5-992e-4d1a-a016-2759c5e10e79.mp3", "track_4", true)},
+        {name = "🎵 الأغنية الخاصة 5", url = fetchAsset("https://mp3tourl.com/audio/1793032221389-d6cf2416-9ef0-4104-839a-09008976cf05.mp3", "track_5", true)},
+        {name = "🎵 الأغنية الخاصة 6", url = fetchAsset("https://mp3tourl.com/audio/1793032196410-636d1b4e-60ed-40ee-8cc7-0c1e91cf54e2.mp3", "track_6", true)},
+        {name = "🎵 الأغنية الخاصة 7", url = fetchAsset("https://mp3tourl.com/audio/1793032171399-2c8d35f6-7f4e-49f6-845d-52a7f357df09.mp3", "track_7", true)},
+        {name = "🎵 الأغنية الخاصة 8", url = fetchAsset("https://mp3tourl.com/audio/1793031943899-e9d05e63-2c93-4d6a-bce2-8ed239dbad88.mp3", "track_8", true)}
     }
 
     if not _G.KEONActiveMediaSound then
@@ -2828,7 +2828,7 @@ BtnStealEggRight.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- زر الإعدادات في الجانب الأيمن (بجانب اسرق البيض مباشرة)
+-- زر "الإعدادات" في الجانب الأيمن (بجانب اسرق البيض مباشرة)
 ---------------------------------------------------------
 local BtnSettings = createProStyleBtn("الإعدادات", "right")
 BtnSettings.MouseButton1Click:Connect(function()
