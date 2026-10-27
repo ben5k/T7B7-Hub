@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Ultimate Music Edition (v60.0.0)
+-- KEON Hub - PS5 Neon Music Layout Fix (v61.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -22,7 +22,7 @@ if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:De
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
 local CONFIG_FILE = "KEON_Config_v58.json"
-local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
+local DISCORD_WEBHOOK_URL = "" -- ضع Webhook جديداً بعد تدويره؛ لا تشارك رابطاً مكشوفاً
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
 local FIREBASE_CHAT_URL = FIREBASE_BASE_URL .. "/global_chat.json"
@@ -57,21 +57,40 @@ local function safeDecode(jsonStr)
 end
 
 local function fetchAsset(url, fileName)
-    if writefile and getcustomasset and readfile then
-        local ext = url:match("%.([%w]+)[%?]?.*$") or "png"
-        ext = string.lower(ext)
+    local assetGetter = getcustomasset or getsynasset
+    if type(writefile) == "function" and type(assetGetter) == "function" then
+        local ext = string.lower(url:match("%.([%w]+)[%?#]?.*$") or "png")
         if ext ~= "png" and ext ~= "jpg" and ext ~= "jpeg" and ext ~= "webp" then ext = "png" end
         local file = "KEONHub_" .. fileName .. "." .. ext
-        local success = pcall(function()
-            if not isfile(file) then
-                writefile(file, game:HttpGet(url))
+        local haveFile = false
+        if type(isfile) == "function" then
+            pcall(function() haveFile = isfile(file) end)
+        end
+
+        if not haveFile then
+            local response = customRequest({Url = url, Method = "GET"})
+            local body = response and response.Body
+            local isGoodBody = type(body) == "string" and #body > 128
+            if isGoodBody then
+                local sample = string.lower(body:sub(1, 200))
+                if sample:find("<html", 1, true) or sample:find("access denied", 1, true) then
+                    isGoodBody = false
+                end
             end
-        end)
-        if success and isfile(file) then
-            local assetPath = getcustomasset(file)
-            if assetPath then return assetPath end
+            if isGoodBody then
+                local saved = pcall(function() writefile(file, body) end)
+                if saved then haveFile = true end
+            end
+        end
+
+        if haveFile then
+            local assetOk, assetPath = pcall(function() return assetGetter(file) end)
+            if assetOk and type(assetPath) == "string" and assetPath ~= "" then
+                return assetPath
+            end
         end
     end
+    -- Some Delta builds support URL-based images; other builds need getcustomasset/getsynasset.
     return url
 end
 
@@ -117,6 +136,15 @@ local neonSpeed = 3.2
 local currentAccentColor = Color3.fromRGB(0, 170, 255)
 local currentHeaderColor = Color3.fromRGB(7, 22, 48)
 local globalMediaVolume = 5.0
+
+-- تخطيط متجاوب حتى لا تخرج الأزرار عن شاشة الهاتف
+local responsiveState = {
+    narrow = false,
+    mainSize = UDim2.new(0, 560, 0, 360),
+    mainPosition = UDim2.new(0.5, -280, 0.5, -180)
+}
+local applyResponsiveMain
+local applyResponsiveChat
 
 local selectedScriptBgIndex = 0
 local selectedChatBgIndex = 0
@@ -813,6 +841,7 @@ end)
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "KEONProV47UI"
+ScreenGui.DisplayOrder = 10
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = parent
 
@@ -859,7 +888,7 @@ centerSurfaceGradient.Parent = CenterBox
 local BgImage = Instance.new("ImageLabel")
 BgImage.Name = "BgImage"
 BgImage.Size = UDim2.new(1, 0, 1, 0)
-BgImage.BackgroundTransparency = 0
+BgImage.BackgroundTransparency = 1
 BgImage.ImageTransparency = 0
 BgImage.Visible = false
 BgImage.ScaleType = Enum.ScaleType.Crop
@@ -1035,29 +1064,39 @@ FloatingMinBox.MouseButton1Click:Connect(function()
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     TweenService:Create(MainFrame, TweenInfo.new(0.48, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 560, 0, 360),
-        Position = UDim2.new(0.5, -280, 0.5, -180)
+        Size = responsiveState.mainSize,
+        Position = responsiveState.mainPosition
     }):Play()
 end)
 
-local LeftWing = Instance.new("Frame")
+local LeftWing = Instance.new("ScrollingFrame")
 LeftWing.Size = UDim2.new(0, 105, 1, -48)
 LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
 LeftWing.BackgroundTransparency = 1
+LeftWing.BorderSizePixel = 0
+LeftWing.ScrollBarThickness = 0
+LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
+LeftWing.CanvasSize = UDim2.new(0, 0, 0, 0)
 LeftWing.Parent = MainFrame
 
 local LeftLayout = Instance.new("UIListLayout")
 LeftLayout.Padding = UDim.new(0, 7)
+LeftLayout.SortOrder = Enum.SortOrder.LayoutOrder
 LeftLayout.Parent = LeftWing
 
-local RightWing = Instance.new("Frame")
+local RightWing = Instance.new("ScrollingFrame")
 RightWing.Size = UDim2.new(0, 105, 1, -48)
 RightWing.Position = UDim2.new(0.5, 175, 0, 48)
 RightWing.BackgroundTransparency = 1
+RightWing.BorderSizePixel = 0
+RightWing.ScrollBarThickness = 0
+RightWing.ScrollingDirection = Enum.ScrollingDirection.Y
+RightWing.CanvasSize = UDim2.new(0, 0, 0, 0)
 RightWing.Parent = MainFrame
 
 local RightLayout = Instance.new("UIListLayout")
 RightLayout.Padding = UDim.new(0, 7)
+RightLayout.SortOrder = Enum.SortOrder.LayoutOrder
 RightLayout.Parent = RightWing
 
 local CenterScroll = Instance.new("ScrollingFrame")
@@ -1073,6 +1112,120 @@ local CenterLayout = Instance.new("UIListLayout")
 CenterLayout.SortOrder = Enum.SortOrder.LayoutOrder
 CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
+
+local function getViewportSize()
+    local camera = workspace.CurrentCamera
+    if camera then return camera.ViewportSize end
+    return Vector2.new(1280, 720)
+end
+
+applyResponsiveMain = function()
+    local viewport = getViewportSize()
+    local narrow = viewport.X < 650 or viewport.Y < 430
+    responsiveState.narrow = narrow
+
+    if narrow then
+        local width = math.max(300, math.floor(viewport.X - 12))
+        local height = math.max(300, math.min(560, math.floor(viewport.Y - 16)))
+        responsiveState.mainSize = UDim2.new(0, width, 0, height)
+        responsiveState.mainPosition = UDim2.new(0, math.max(0, math.floor((viewport.X - width) / 2)), 0, math.max(0, math.floor((viewport.Y - height) / 2)))
+
+        MainFrame.Size = responsiveState.mainSize
+        MainFrame.Position = responsiveState.mainPosition
+        CenterBox.Size = UDim2.new(1, 0, 1, 0)
+        CenterBox.Position = UDim2.new(0, 0, 0, 0)
+        CenterGlow.Size = UDim2.new(1, 0, 1, 8)
+        CenterGlow.Position = UDim2.new(0, 0, 0, -4)
+
+        LeftWing.Size = UDim2.new(1, -12, 0, 36)
+        LeftWing.Position = UDim2.new(0, 6, 0, 48)
+        RightWing.Size = UDim2.new(1, -12, 0, 36)
+        RightWing.Position = UDim2.new(0, 6, 0, 88)
+        LeftWing.ScrollingDirection = Enum.ScrollingDirection.X
+        RightWing.ScrollingDirection = Enum.ScrollingDirection.X
+        LeftWing.ScrollBarThickness = 2
+        RightWing.ScrollBarThickness = 2
+        LeftLayout.FillDirection = Enum.FillDirection.Horizontal
+        RightLayout.FillDirection = Enum.FillDirection.Horizontal
+        LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+        RightLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+        LeftLayout.Padding = UDim.new(0, 6)
+        RightLayout.Padding = UDim.new(0, 6)
+        LeftWing.ZIndex = 8
+        RightWing.ZIndex = 8
+
+        CenterScroll.Position = UDim2.new(0, 8, 0, 132)
+        CenterScroll.Size = UDim2.new(1, -16, 1, -140)
+        for _, navBtn in ipairs({LeftWing:GetChildren(), RightWing:GetChildren()}) do
+            for _, child in ipairs(navBtn) do
+                if child:IsA("TextButton") then
+                    child.Size = UDim2.new(0, 96, 0, 32)
+                    child.TextSize = 11
+                    child.ZIndex = 9
+                end
+            end
+        end
+        LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
+        RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
+    else
+        responsiveState.mainSize = UDim2.new(0, 560, 0, 360)
+        responsiveState.mainPosition = UDim2.new(0.5, -280, 0.5, -180)
+        MainFrame.Size = responsiveState.mainSize
+        MainFrame.Position = responsiveState.mainPosition
+        CenterBox.Size = UDim2.new(0, 340, 1, 0)
+        CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
+        CenterGlow.Size = UDim2.new(0, 350, 1, 8)
+        CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
+        LeftWing.Size = UDim2.new(0, 105, 1, -48)
+        LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
+        RightWing.Size = UDim2.new(0, 105, 1, -48)
+        RightWing.Position = UDim2.new(0.5, 175, 0, 48)
+        LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
+        RightWing.ScrollingDirection = Enum.ScrollingDirection.Y
+        LeftWing.ScrollBarThickness = 0
+        RightWing.ScrollBarThickness = 0
+        LeftLayout.FillDirection = Enum.FillDirection.Vertical
+        RightLayout.FillDirection = Enum.FillDirection.Vertical
+        LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+        RightLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+        LeftLayout.Padding = UDim.new(0, 7)
+        RightLayout.Padding = UDim.new(0, 7)
+        LeftWing.ZIndex = 1
+        RightWing.ZIndex = 1
+        CenterScroll.Position = UDim2.new(0, 8, 0, 48)
+        CenterScroll.Size = UDim2.new(1, -16, 1, -54)
+        for _, wing in ipairs({LeftWing, RightWing}) do
+            for _, child in ipairs(wing:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.Size = UDim2.new(1, 0, 0, 39)
+                    child.TextSize = 13.5
+                    child.ZIndex = 1
+                end
+            end
+        end
+        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
+        RightWing.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 8)
+    end
+end
+
+LeftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    if responsiveState.narrow then
+        LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
+    else
+        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
+    end
+end)
+RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    if responsiveState.narrow then
+        RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
+    else
+        RightWing.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 8)
+    end
+end)
+CenterLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 24)
+end)
+applyResponsiveMain()
 
 ---------------------------------------------------------
 -- دليل سريع بتصميم PS5
@@ -1152,7 +1305,7 @@ local HelpFoot = Instance.new("TextLabel")
 HelpFoot.Size = UDim2.new(1, -28, 0, 18)
 HelpFoot.Position = UDim2.new(0, 14, 1, -58)
 HelpFoot.BackgroundTransparency = 1
-HelpFoot.Text = "CLEAN UI  •  ELECTRIC BLUE  •  NO WALLPAPER IMAGES"
+HelpFoot.Text = "NEON UI  •  MUSIC  •  CHAT  •  WALLPAPERS"
 HelpFoot.TextColor3 = Color3.fromRGB(73, 173, 235)
 HelpFoot.Font = Enum.Font.GothamBold
 HelpFoot.TextSize = 9
@@ -1171,6 +1324,23 @@ HelpDoneBtn.ZIndex = 53
 HelpDoneBtn.Parent = HelpPanel
 Instance.new("UICorner", HelpDoneBtn).CornerRadius = UDim.new(0, 9)
 
+local function getHelpPanelSize()
+    local viewport = getViewportSize()
+    local width = math.max(260, math.min(420, math.floor(viewport.X - 32)))
+    local height = math.max(250, math.min(286, math.floor(viewport.Y - 80)))
+    return width, height
+end
+
+local applyResponsiveHelp
+applyResponsiveHelp = function()
+    local width, height = getHelpPanelSize()
+    HelpPanel.Position = UDim2.new(0.5, -math.floor(width / 2), 0.5, -math.floor(height / 2))
+    HelpPanel.Size = UDim2.new(0, width, 0, height)
+    HelpBody.Size = UDim2.new(1, -32, 0, math.max(120, height - 136))
+    HelpBody.TextSize = width < 350 and 11 or 12
+    HelpFoot.TextSize = width < 350 and 8 or 9
+end
+
 local function closeHelpPanel()
     TweenService:Create(HelpPanel, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
         Size = UDim2.new(0, 0, 0, 0)
@@ -1178,16 +1348,18 @@ local function closeHelpPanel()
     task.delay(0.19, function()
         if HelpOverlay and HelpOverlay.Parent then
             HelpOverlay.Visible = false
-            HelpPanel.Size = UDim2.new(0, 420, 0, 286)
+            applyResponsiveHelp()
         end
     end)
 end
 
 local function openHelpPanel()
+    applyResponsiveHelp()
     HelpOverlay.Visible = true
     HelpPanel.Size = UDim2.new(0, 0, 0, 0)
+    local width, height = getHelpPanelSize()
     TweenService:Create(HelpPanel, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 420, 0, 286)
+        Size = UDim2.new(0, width, 0, height)
     }):Play()
 end
 
@@ -1203,6 +1375,7 @@ HelpDoneBtn.MouseButton1Click:Connect(closeHelpPanel)
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
 ChatScreenGui.Name = "KEONTopChatGui"
+ChatScreenGui.DisplayOrder = 30
 ChatScreenGui.ResetOnSpawn = false
 ChatScreenGui.Parent = parent
 
@@ -1234,7 +1407,7 @@ Instance.new("UICorner", ChatWin).CornerRadius = UDim.new(0, 16)
 
 local ChatBgImage = Instance.new("ImageLabel")
 ChatBgImage.Size = UDim2.new(1, 0, 1, 0)
-ChatBgImage.BackgroundTransparency = 0
+ChatBgImage.BackgroundTransparency = 1
 ChatBgImage.ImageTransparency = 0
 ChatBgImage.Visible = false
 ChatBgImage.ScaleType = Enum.ScaleType.Crop
@@ -1590,7 +1763,10 @@ for i, wallUrl in ipairs(wallUrls) do
     end)
 end
 
-ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, 230 + (#wallUrls * 64) + 35)
+ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, 260 + (#wallUrls * 66) + 35)
+featLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, featLayout.AbsoluteContentSize.Y + 16)
+end)
 
 local StickerModal = Instance.new("Frame")
 StickerModal.Name = "StickerModal"
@@ -1621,6 +1797,71 @@ stickerPadding.PaddingLeft = UDim.new(0, 10)
 stickerPadding.PaddingRight = UDim.new(0, 10)
 stickerPadding.PaddingBottom = UDim.new(0, 10)
 stickerPadding.Parent = StickerModal
+
+applyResponsiveChat = function()
+    local viewport = getViewportSize()
+    local narrow = viewport.X < 650 or viewport.Y < 430
+    if narrow then
+        local w = math.max(300, math.floor(viewport.X - 20))
+        local h = math.max(280, math.min(440, math.floor(viewport.Y - 28)))
+        ChatWin.Size = UDim2.new(0, w, 0, h)
+        ChatWin.Position = UDim2.new(0, math.max(0, math.floor((viewport.X - w) / 2)), 0, math.max(8, math.floor((viewport.Y - h) / 2)))
+        FloatingChatBtn.Position = UDim2.new(1, -54, 0, 58)
+        ChatHeaderBtn1.Size = UDim2.new(0.31, 0, 0, 26)
+        ChatHeaderBtn1.Position = UDim2.new(0.02, 0, 0, 25)
+        ChatHeaderBtn2.Size = UDim2.new(0.31, 0, 0, 26)
+        ChatHeaderBtn2.Position = UDim2.new(0.345, 0, 0, 25)
+        ChatHeaderBtn3.Size = UDim2.new(0.31, 0, 0, 26)
+        ChatHeaderBtn3.Position = UDim2.new(0.67, 0, 0, 25)
+        ChatHeaderBtn1.TextSize = 9
+        ChatHeaderBtn2.TextSize = 9
+        ChatHeaderBtn3.TextSize = 9
+        ResetTimerLbl.TextSize = 10
+        StickerModal.Position = UDim2.new(1, -238, 1, -212)
+    else
+        ChatWin.Size = UDim2.new(0, 370, 0, 300)
+        ChatWin.Position = UDim2.new(0, 160, 0, 10)
+        FloatingChatBtn.Position = UDim2.new(0, 115, 0, 10)
+        ChatHeaderBtn1.Size = UDim2.new(0, 110, 0, 26)
+        ChatHeaderBtn1.Position = UDim2.new(0, 6, 0, 25)
+        ChatHeaderBtn2.Size = UDim2.new(0, 110, 0, 26)
+        ChatHeaderBtn2.Position = UDim2.new(0, 122, 0, 25)
+        ChatHeaderBtn3.Size = UDim2.new(0, 122, 0, 26)
+        ChatHeaderBtn3.Position = UDim2.new(0, 238, 0, 25)
+        ChatHeaderBtn1.TextSize = 11
+        ChatHeaderBtn2.TextSize = 11
+        ChatHeaderBtn3.TextSize = 11
+        ResetTimerLbl.TextSize = 11
+    end
+end
+applyResponsiveChat()
+local currentCameraForLayout = workspace.CurrentCamera
+if currentCameraForLayout then
+    currentCameraForLayout:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        task.defer(function()
+            applyResponsiveMain()
+            applyResponsiveChat()
+            if applyResponsiveHelp then applyResponsiveHelp() end
+        end)
+    end)
+end
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    local camera = workspace.CurrentCamera
+    if camera then
+        camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+            task.defer(function()
+                applyResponsiveMain()
+                applyResponsiveChat()
+                if applyResponsiveHelp then applyResponsiveHelp() end
+            end)
+        end)
+        task.defer(function()
+            applyResponsiveMain()
+            applyResponsiveChat()
+            if applyResponsiveHelp then applyResponsiveHelp() end
+        end)
+    end
+end)
 
 for _, sUrl in ipairs(stickerUrls) do
     local stBtn = Instance.new("ImageButton")
@@ -1762,11 +2003,12 @@ end)
 
 local renderedMsgs = {}
 local function addChatMessage(sender, text, userId, msgKey, isSticker)
-    local frameHeight = isSticker and 110 or 44
+    local frameHeight = isSticker and 110 or 58
     local msgFrame = Instance.new("Frame")
     msgFrame.Name = msgKey or "MsgItem"
     msgFrame.Size = UDim2.new(1, 0, 0, frameHeight)
-    msgFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+    msgFrame.BackgroundColor3 = Color3.fromRGB(15, 29, 51)
+    msgFrame.BackgroundTransparency = 0.08
     msgFrame.ZIndex = 2
     msgFrame.Parent = ChatScroll
     Instance.new("UICorner", msgFrame).CornerRadius = UDim.new(0, 9)
@@ -1799,6 +2041,7 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
     nameLbl.Position = UDim2.new(0, 0, 0, 0)
     nameLbl.BackgroundTransparency = 1
     nameLbl.Text = sender .. "  •"
+    nameLbl.TextTruncate = Enum.TextTruncate.AtEnd
     nameLbl.TextColor3 = currentAccentColor
     nameLbl.Font = Enum.Font.GothamBold
     nameLbl.TextSize = 13
@@ -1820,21 +2063,26 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
         Instance.new("UICorner", stickerContent).CornerRadius = UDim.new(0, 11)
     else
         local msgTextLbl = Instance.new("TextLabel")
-        msgTextLbl.Size = UDim2.new(1, -120, 1, 0)
-        msgTextLbl.Position = UDim2.new(0, 8, 0, 0)
+        msgTextLbl.Size = UDim2.new(1, -120, 1, -8)
+        msgTextLbl.Position = UDim2.new(0, 8, 0, 4)
         msgTextLbl.BackgroundTransparency = 1
         msgTextLbl.Text = text
         msgTextLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
         msgTextLbl.Font = Enum.Font.GothamBold
-        msgTextLbl.TextSize = 13
+        msgTextLbl.TextSize = 12
+        msgTextLbl.TextYAlignment = Enum.TextYAlignment.Center
         msgTextLbl.TextXAlignment = Enum.TextXAlignment.Left
         msgTextLbl.TextWrapped = true
         msgTextLbl.ZIndex = 4
         msgTextLbl.Parent = msgFrame
     end
 
-    ChatScroll.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y + 10)
-    ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.AbsoluteCanvasSize.Y)
+    task.defer(function()
+        if ChatScroll and ChatScroll.Parent then
+            ChatScroll.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y + 10)
+            ChatScroll.CanvasPosition = Vector2.new(0, math.max(0, ChatScroll.AbsoluteCanvasSize.Y))
+        end
+    end)
 
     if userId and not isSticker then
         showPrivateScriptUserBubble(userId, text)
@@ -2009,13 +2257,14 @@ end)
 ---------------------------------------------------------
 local function createProStyleBtn(text, side)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 39)
+    btn.Size = responsiveState.narrow and UDim2.new(0, 96, 0, 32) or UDim2.new(1, 0, 0, 39)
     btn.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 13.5
+    btn.TextSize = responsiveState.narrow and 11 or 13.5
     btn.AutoButtonColor = false
+    btn.ZIndex = responsiveState.narrow and 9 or 1
     btn.Parent = (side == "left") and LeftWing or RightWing
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
 
@@ -2194,13 +2443,19 @@ local function clearCenter()
             child:Destroy()
         end
     end
+    CenterScroll.CanvasPosition = Vector2.new(0, 0)
+    task.defer(function()
+        if CenterScroll and CenterScroll.Parent then
+            CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 24)
+        end
+    end)
 end
 
 ---------------------------------------------------------
 -- التبويبات الرئيسية
 ---------------------------------------------------------
 local BtnMainHome = createProStyleBtn("الرئيسية", "left")
-BtnMainHome.MouseButton1Click:Connect(function()
+local function showHomePage()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -2246,7 +2501,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر التحديثات • KEON v59"
+    updatesTitle.Text = "✨ آخر التحديثات • KEON v61"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.GothamBold
     updatesTitle.TextSize = 14
@@ -2310,7 +2565,8 @@ BtnMainHome.MouseButton1Click:Connect(function()
     guideDesc.Parent = guideFrame
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 25)
-end)
+end
+BtnMainHome.MouseButton1Click:Connect(showHomePage)
 
 ---------------------------------------------------------
 -- تبويب "موعد حدث"
@@ -2496,6 +2752,7 @@ end)
 ---------------------------------------------------------
 -- صفحات السكربتات التفصيلية
 ---------------------------------------------------------
+local showScriptsPage
 local function openScriptDetailsPage(mapName, scriptsList)
     clearCenter()
 
@@ -2512,7 +2769,7 @@ local function openScriptDetailsPage(mapName, scriptsList)
 
     backBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
-        BtnScripts.MouseButton1Click:Fire()
+        if showScriptsPage then showScriptsPage() end
     end)
 
     local searchBox = Instance.new("TextBox")
@@ -2552,7 +2809,7 @@ local function openScriptDetailsPage(mapName, scriptsList)
         for _, sData in ipairs(scriptsList) do
             if query == "" or string.find(string.lower(sData.name), string.lower(query)) then
                 local scriptCard = Instance.new("Frame")
-                scriptCard.Size = UDim2.new(1, 0, 0, 95)
+                scriptCard.Size = UDim2.new(1, 0, 0, 112)
                 scriptCard.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
                 scriptCard.ZIndex = 3
                 scriptCard.Parent = cardsContainer
@@ -2565,21 +2822,22 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 table.insert(registeredOptionStrokes, cardStroke)
 
                 local scriptTitle = Instance.new("TextLabel")
-                scriptTitle.Size = UDim2.new(1, -120, 0, 26)
-                scriptTitle.Position = UDim2.new(0, 10, 0, 8)
+                scriptTitle.Size = UDim2.new(1, -20, 0, 24)
+                scriptTitle.Position = UDim2.new(0, 10, 0, 7)
                 scriptTitle.BackgroundTransparency = 1
                 scriptTitle.Text = sData.name
                 scriptTitle.TextColor3 = currentAccentColor
                 scriptTitle.Font = Enum.Font.GothamBold
-                scriptTitle.TextSize = 14
+                scriptTitle.TextSize = 13
+                scriptTitle.TextTruncate = Enum.TextTruncate.AtEnd
                 scriptTitle.TextXAlignment = Enum.TextXAlignment.Right
                 scriptTitle.ZIndex = 4
                 scriptTitle.Parent = scriptCard
                 table.insert(activeNameLabels, scriptTitle)
 
                 local keyTag = Instance.new("TextLabel")
-                keyTag.Size = UDim2.new(1, -120, 0, 20)
-                keyTag.Position = UDim2.new(0, 10, 0, 34)
+                keyTag.Size = UDim2.new(1, -20, 0, 20)
+                keyTag.Position = UDim2.new(0, 10, 0, 33)
                 keyTag.BackgroundTransparency = 1
                 keyTag.Text = "🔑 حالة المفتاح: " .. sData.keyState
                 keyTag.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -2590,10 +2848,10 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 keyTag.Parent = scriptCard
 
                 local runBtn = Instance.new("TextButton")
-                runBtn.Size = UDim2.new(0, 100, 0, 34)
-                runBtn.Position = UDim2.new(0, 10, 0.5, -17)
+                runBtn.Size = UDim2.new(1, -20, 0, 31)
+                runBtn.Position = UDim2.new(0, 10, 0, 70)
                 runBtn.BackgroundColor3 = currentAccentColor
-                runBtn.Text = "تشغيل ➤"
+                runBtn.Text = "تشغيل السكربت  ➤"
                 runBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
                 runBtn.Font = Enum.Font.GothamBold
                 runBtn.TextSize = 13.5
@@ -2604,19 +2862,23 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 runBtn.MouseButton1Click:Connect(function()
                     playUiSound(SOUND_CLICK, 1, 0.35)
                     runBtn.Text = "جارٍ التحضير…"
-                    pcall(function()
+                    local ok = pcall(function()
                         loadstring(game:HttpGet(sData.url))()
                     end)
-                    task.wait(1)
-                    runBtn.Text = "تم التشغيل بنجاح ✓"
+                    task.wait(0.6)
+                    runBtn.Text = ok and "تم إرسال أمر التشغيل ✓" or "تعذر التشغيل — جرّب لاحقاً"
                     task.wait(2)
-                    runBtn.Text = "تشغيل ➤"
+                    if runBtn and runBtn.Parent then runBtn.Text = "تشغيل السكربت  ➤" end
                 end)
             end
         end
 
-        cardsContainer.Size = UDim2.new(1, 0, 0, cardsLayout.AbsoluteContentSize.Y + 10)
-        CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 30)
+        task.defer(function()
+            if cardsContainer and cardsContainer.Parent then
+                cardsContainer.Size = UDim2.new(1, 0, 0, cardsLayout.AbsoluteContentSize.Y + 10)
+                CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 30)
+            end
+        end)
     end
 
     renderFilteredCards("")
@@ -2632,13 +2894,13 @@ end
 -- تبويب "سكربتات" الرئيسي
 ---------------------------------------------------------
 local BtnScripts = createProStyleBtn("سكربتات", "left")
-BtnScripts.MouseButton1Click:Connect(function()
+showScriptsPage = function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
     local function addMapCard(mapTitle, mapImgUrl, scriptsList)
         local mapCard = Instance.new("Frame")
-        mapCard.Size = UDim2.new(1, 0, 0, 170)
+        mapCard.Size = UDim2.new(1, 0, 0, 174)
         mapCard.BackgroundColor3 = Color3.fromRGB(10, 20, 42)
         mapCard.BackgroundTransparency = 0
         mapCard.ZIndex = 3
@@ -2652,7 +2914,7 @@ BtnScripts.MouseButton1Click:Connect(function()
         table.insert(registeredOptionStrokes, mapCardStroke)
 
         local mapImg = Instance.new("ImageLabel")
-        mapImg.Size = UDim2.new(1, -16, 0, 100)
+        mapImg.Size = UDim2.new(1, -16, 0, 88)
         mapImg.Position = UDim2.new(0, 8, 0, 8)
         mapImg.ImageTransparency = 0
         mapImg.BackgroundColor3 = Color3.fromRGB(31, 44, 73)
@@ -2663,25 +2925,26 @@ BtnScripts.MouseButton1Click:Connect(function()
         Instance.new("UICorner", mapImg).CornerRadius = UDim.new(0, 11)
 
         local mapNameLbl = Instance.new("TextLabel")
-        mapNameLbl.Size = UDim2.new(1, -110, 0, 36)
-        mapNameLbl.Position = UDim2.new(0, 100, 0, 117)
+        mapNameLbl.Size = UDim2.new(1, -20, 0, 24)
+        mapNameLbl.Position = UDim2.new(0, 10, 0, 101)
         mapNameLbl.BackgroundTransparency = 1
         mapNameLbl.Text = mapTitle
         mapNameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
         mapNameLbl.Font = Enum.Font.GothamBold
-        mapNameLbl.TextSize = 14.5
+        mapNameLbl.TextSize = 13
+        mapNameLbl.TextTruncate = Enum.TextTruncate.AtEnd
         mapNameLbl.TextXAlignment = Enum.TextXAlignment.Right
         mapNameLbl.ZIndex = 4
         mapNameLbl.Parent = mapCard
 
         local showBtn = Instance.new("TextButton")
-        showBtn.Size = UDim2.new(0, 85, 0, 30)
-        showBtn.Position = UDim2.new(0, 10, 0, 120)
+        showBtn.Size = UDim2.new(1, -20, 0, 31)
+        showBtn.Position = UDim2.new(0, 10, 0, 134)
         showBtn.BackgroundColor3 = currentAccentColor
         showBtn.Text = "فتح التفاصيل ↗"
         showBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         showBtn.Font = Enum.Font.GothamBold
-        showBtn.TextSize = 13
+        showBtn.TextSize = 12
         showBtn.ZIndex = 4
         showBtn.Parent = mapCard
         Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 9)
@@ -2705,7 +2968,8 @@ BtnScripts.MouseButton1Click:Connect(function()
     })
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
-end)
+end
+BtnScripts.MouseButton1Click:Connect(showScriptsPage)
 
 ---------------------------------------------------------
 -- تبويب "الميديا والصوتيات"
@@ -2731,7 +2995,7 @@ BtnMedia.MouseButton1Click:Connect(function()
     end
 
     local volumeContainer = Instance.new("Frame")
-    volumeContainer.Size = UDim2.new(1, 0, 0, 45)
+    volumeContainer.Size = UDim2.new(1, 0, 0, 52)
     volumeContainer.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
     volumeContainer.ZIndex = 3
     volumeContainer.Parent = CenterScroll
@@ -2755,25 +3019,25 @@ BtnMedia.MouseButton1Click:Connect(function()
     volLabel.Parent = volumeContainer
 
     local volDownBtn = Instance.new("TextButton")
-    volDownBtn.Size = UDim2.new(0, 50, 0, 20)
-    volDownBtn.Position = UDim2.new(0, 10, 0, 22)
+    volDownBtn.Size = UDim2.new(0, 90, 0, 22)
+    volDownBtn.Position = UDim2.new(0, 10, 0, 25)
     volDownBtn.BackgroundColor3 = Color3.fromRGB(61, 112, 184)
-    volDownBtn.Text = "خفض الصوت −"
+    volDownBtn.Text = "− خفض الصوت"
     volDownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     volDownBtn.Font = Enum.Font.GothamBold
-    volDownBtn.TextSize = 11
+    volDownBtn.TextSize = 10
     volDownBtn.ZIndex = 4
     volDownBtn.Parent = volumeContainer
     Instance.new("UICorner", volDownBtn).CornerRadius = UDim.new(0, 7)
 
     local volUpBtn = Instance.new("TextButton")
-    volUpBtn.Size = UDim2.new(0, 50, 0, 20)
-    volUpBtn.Position = UDim2.new(0, 68, 0, 22)
+    volUpBtn.Size = UDim2.new(0, 90, 0, 22)
+    volUpBtn.Position = UDim2.new(0, 108, 0, 25)
     volUpBtn.BackgroundColor3 = currentAccentColor
-    volUpBtn.Text = "رفع الصوت +"
+    volUpBtn.Text = "+ رفع الصوت"
     volUpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     volUpBtn.Font = Enum.Font.GothamBold
-    volUpBtn.TextSize = 11
+    volUpBtn.TextSize = 10
     volUpBtn.ZIndex = 4
     volUpBtn.Parent = volumeContainer
     Instance.new("UICorner", volUpBtn).CornerRadius = UDim.new(0, 7)
@@ -2782,7 +3046,7 @@ BtnMedia.MouseButton1Click:Connect(function()
         globalMediaVolume = math.max(1.0, globalMediaVolume - 1.0)
         volLabel.Text = "الصوت: " .. string.format("%.1f", globalMediaVolume)
         if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
-            _G.KEONActiveMediaSound.Volume = globalMediaVolume
+            _G.KEONActiveMediaSound.Volume = globalMediaVolume / 10
         end
     end)
 
@@ -2790,14 +3054,14 @@ BtnMedia.MouseButton1Click:Connect(function()
         globalMediaVolume = math.min(10.0, globalMediaVolume + 1.0)
         volLabel.Text = "الصوت: " .. string.format("%.1f", globalMediaVolume)
         if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
-            _G.KEONActiveMediaSound.Volume = globalMediaVolume
+            _G.KEONActiveMediaSound.Volume = globalMediaVolume / 10
         end
     end)
 
     local stopAllMediaBtn = Instance.new("TextButton")
     stopAllMediaBtn.Size = UDim2.new(1, 0, 0, 36)
     stopAllMediaBtn.BackgroundColor3 = Color3.fromRGB(61, 112, 184)
-    stopAllMediaBtn.Text = "إيقاف كل المقاطع ■"
+    stopAllMediaBtn.Text = "إيقاف الموسيقى ■"
     stopAllMediaBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     stopAllMediaBtn.Font = Enum.Font.GothamBold
     stopAllMediaBtn.TextSize = 14
@@ -2811,6 +3075,10 @@ BtnMedia.MouseButton1Click:Connect(function()
             pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
             _G.KEONActiveMediaSound = nil
         end
+        local statusLabel = CenterScroll:FindFirstChild("KEONMusicStatus")
+        if statusLabel and statusLabel:IsA("TextLabel") then statusLabel.Text = "تم إيقاف الموسيقى." end
+        stopAllMediaBtn.Text = "تم الإيقاف ✓"
+        task.delay(1.2, function() if stopAllMediaBtn and stopAllMediaBtn.Parent then stopAllMediaBtn.Text = "إيقاف الموسيقى ■" end end)
     end)
 
     local musicHero = Instance.new("Frame")
@@ -2859,11 +3127,55 @@ BtnMedia.MouseButton1Click:Connect(function()
     heroSub.ZIndex = 4
     heroSub.Parent = musicHero
 
+    local musicStatus = Instance.new("TextLabel")
+    musicStatus.Name = "KEONMusicStatus"
+    musicStatus.Size = UDim2.new(1, 0, 0, 30)
+    musicStatus.BackgroundColor3 = Color3.fromRGB(10, 25, 46)
+    musicStatus.BackgroundTransparency = 0.05
+    musicStatus.Text = "جاهز • اضغط تشغيل لتحميل ملف الأغنية"
+    musicStatus.TextColor3 = Color3.fromRGB(170, 220, 255)
+    musicStatus.Font = Enum.Font.GothamBold
+    musicStatus.TextSize = 10
+    musicStatus.TextWrapped = true
+    musicStatus.ZIndex = 3
+    musicStatus.Parent = CenterScroll
+    Instance.new("UICorner", musicStatus).CornerRadius = UDim.new(0, 8)
+
+    local function prepareRemoteMp3(url, index)
+        local assetGetter = getcustomasset or getsynasset
+        if type(writefile) ~= "function" or type(assetGetter) ~= "function" then
+            return nil, "Delta لا يوفّر تحويل رابط MP3 إلى ملف محلي في هذه البيئة."
+        end
+        local localFile = string.format("KEON_Music_Cache_%02d.mp3", index)
+        local hasFile = false
+        if type(isfile) == "function" then
+            pcall(function() hasFile = isfile(localFile) end)
+        end
+        if not hasFile then
+            local response = customRequest({Url = url, Method = "GET"})
+            local body = response and response.Body
+            if not body or type(body) ~= "string" or #body < 1024 then
+                return nil, "تعذّر تنزيل الأغنية من رابط الاستضافة."
+            end
+            local sample = string.lower(body:sub(1, 256))
+            if sample:find("<html", 1, true) or sample:find("access denied", 1, true) then
+                return nil, "رابط الأغنية أعاد صفحة ويب بدل ملف MP3."
+            end
+            local writeOk = pcall(function() writefile(localFile, body) end)
+            if not writeOk then return nil, "فشل حفظ ملف الأغنية داخل Delta." end
+        end
+        local assetOk, assetPath = pcall(function() return assetGetter(localFile) end)
+        if assetOk and type(assetPath) == "string" and assetPath ~= "" then
+            return assetPath
+        end
+        return nil, "تعذّر تجهيز ملف الصوت محلياً."
+    end
+
     local totalLocalLikes = 0
     for idx, track in ipairs(mediaTracks) do
         local mCard = Instance.new("Frame")
         mCard.Name = "KEONMusicCard" .. tostring(idx)
-        mCard.Size = UDim2.new(1, 0, 0, 78)
+        mCard.Size = UDim2.new(1, 0, 0, 104)
         mCard.BackgroundColor3 = Color3.fromRGB(12, 22, 43)
         mCard.BackgroundTransparency = 0
         mCard.ZIndex = 3
@@ -2874,9 +3186,10 @@ BtnMedia.MouseButton1Click:Connect(function()
         mStroke.Thickness = 1.35
         mStroke.Parent = mCard
         table.insert(registeredOptionStrokes, mStroke)
+
         local cover = Instance.new("Frame")
-        cover.Size = UDim2.new(0, 52, 0, 52)
-        cover.Position = UDim2.new(1, -62, 0.5, -26)
+        cover.Size = UDim2.new(0, 54, 0, 54)
+        cover.Position = UDim2.new(1, -64, 0, 10)
         cover.BackgroundColor3 = Color3.fromRGB(16, 75, 125)
         cover.ZIndex = 4
         cover.Parent = mCard
@@ -2894,31 +3207,36 @@ BtnMedia.MouseButton1Click:Connect(function()
         musicGlyph.TextSize = 28
         musicGlyph.ZIndex = 5
         musicGlyph.Parent = cover
+
         local mTitle = Instance.new("TextLabel")
-        mTitle.Size = UDim2.new(1, -190, 0, 25)
-        mTitle.Position = UDim2.new(0, 12, 0, 10)
+        mTitle.Size = UDim2.new(1, -84, 0, 24)
+        mTitle.Position = UDim2.new(0, 10, 0, 8)
         mTitle.BackgroundTransparency = 1
         mTitle.Text = "الأغنية " .. string.format("%02d", idx)
         mTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
         mTitle.Font = Enum.Font.GothamBold
-        mTitle.TextSize = 14
+        mTitle.TextSize = 13
+        mTitle.TextTruncate = Enum.TextTruncate.AtEnd
         mTitle.TextXAlignment = Enum.TextXAlignment.Right
         mTitle.ZIndex = 4
         mTitle.Parent = mCard
+
         local fansLabel = Instance.new("TextLabel")
-        fansLabel.Size = UDim2.new(1, -190, 0, 20)
-        fansLabel.Position = UDim2.new(0, 12, 0, 37)
+        fansLabel.Size = UDim2.new(1, -84, 0, 20)
+        fansLabel.Position = UDim2.new(0, 10, 0, 31)
         fansLabel.BackgroundTransparency = 1
-        fansLabel.Text = "♥ محبين: 0  •  اضغط لايك لدعم الأغنية"
+        fansLabel.Text = "♥ محبين محليين: 0"
         fansLabel.TextColor3 = Color3.fromRGB(170, 200, 230)
         fansLabel.Font = Enum.Font.Gotham
         fansLabel.TextSize = 10
         fansLabel.TextXAlignment = Enum.TextXAlignment.Right
         fansLabel.ZIndex = 4
         fansLabel.Parent = mCard
+
         local playBtn = Instance.new("TextButton")
-        playBtn.Size = UDim2.new(0, 82, 0, 32)
-        playBtn.Position = UDim2.new(0, 10, 0.5, -16)
+        playBtn.Name = "PlayTrackButton"
+        playBtn.Size = UDim2.new(0, 112, 0, 30)
+        playBtn.Position = UDim2.new(0, 10, 1, -38)
         playBtn.BackgroundColor3 = currentAccentColor
         playBtn.Text = "▶ تشغيل"
         playBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -2927,72 +3245,97 @@ BtnMedia.MouseButton1Click:Connect(function()
         playBtn.ZIndex = 4
         playBtn.Parent = mCard
         Instance.new("UICorner", playBtn).CornerRadius = UDim.new(0, 9)
+
         local likeBtn = Instance.new("TextButton")
-        likeBtn.Size = UDim2.new(0, 46, 0, 32)
-        likeBtn.Position = UDim2.new(0, 98, 0.5, -16)
+        likeBtn.Size = UDim2.new(0, 78, 0, 30)
+        likeBtn.Position = UDim2.new(0, 130, 1, -38)
         likeBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 65)
-        likeBtn.Text = "♡ 0"
+        likeBtn.Text = "♡ إعجاب"
         likeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         likeBtn.Font = Enum.Font.GothamBold
-        likeBtn.TextSize = 12
+        likeBtn.TextSize = 10
         likeBtn.ZIndex = 4
         likeBtn.Parent = mCard
         Instance.new("UICorner", likeBtn).CornerRadius = UDim.new(0, 9)
+
         local isLiked = false
-        local likes = 0
         likeBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
-            if not isLiked then
-                isLiked = true
-                likes = likes + 1
-                totalLocalLikes = totalLocalLikes + 1
-                likeBtn.Text = "♥ " .. tostring(likes)
-                likeBtn.BackgroundColor3 = Color3.fromRGB(190, 45, 90)
-                fansLabel.Text = "♥ محبين: " .. tostring(likes) .. "  •  أعجبتك الأغنية"
-                TweenService:Create(mCard, TweenInfo.new(0.12, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 82)}):Play()
-                task.delay(0.13, function() if mCard.Parent then TweenService:Create(mCard, TweenInfo.new(0.12), {Size = UDim2.new(1, 0, 0, 78)}):Play() end end)
-            else
-                isLiked = false
-                likes = math.max(0, likes - 1)
-                totalLocalLikes = math.max(0, totalLocalLikes - 1)
-                likeBtn.Text = "♡ " .. tostring(likes)
-                likeBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 65)
-                fansLabel.Text = "♥ محبين: " .. tostring(likes) .. "  •  اضغط لايك لدعم الأغنية"
-            end
+            isLiked = not isLiked
+            totalLocalLikes = math.max(0, totalLocalLikes + (isLiked and 1 or -1))
+            heroSub.Text = "٨ أغنيات • مجموع إعجاباتك المحلية: " .. tostring(totalLocalLikes)
+            likeBtn.Text = isLiked and "♥ أعجبني" or "♡ إعجاب"
+            likeBtn.BackgroundColor3 = isLiked and Color3.fromRGB(190, 45, 90) or Color3.fromRGB(35, 35, 65)
+            fansLabel.Text = isLiked and "♥ محبين محليين: 1 • أعجبتك" or "♥ محبين محليين: 0"
+            TweenService:Create(mStroke, TweenInfo.new(0.18, Enum.EasingStyle.Quad), {
+                Thickness = isLiked and 2.6 or 1.35,
+                Color = isLiked and Color3.fromRGB(255, 88, 140) or currentAccentColor
+            }):Play()
         end)
+
         playBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
-            if _G.KEONActiveMediaSound then pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end) end
-            playBtn.Text = "تحميل…"
+            if _G.KEONActiveMediaSound then
+                pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
+                _G.KEONActiveMediaSound = nil
+            end
+            for _, sibling in ipairs(CenterScroll:GetChildren()) do
+                if sibling:IsA("Frame") and sibling.Name:match("^KEONMusicCard") then
+                    local oldPlay = sibling:FindFirstChild("PlayTrackButton")
+                    if oldPlay and oldPlay:IsA("TextButton") then oldPlay.Text = "▶ تشغيل" end
+                end
+            end
+            playBtn.Text = "تحميل الملف…"
+            musicStatus.Text = "جاري تنزيل وتجهيز الأغنية " .. string.format("%02d", idx) .. "…"
             task.spawn(function()
+                local assetPath, assetError = prepareRemoteMp3(track.url, idx)
+                if not assetPath then
+                    if playBtn and playBtn.Parent then playBtn.Text = "تعذّر التشغيل" end
+                    if musicStatus and musicStatus.Parent then musicStatus.Text = assetError or "تعذّر تشغيل هذه الأغنية." end
+                    return
+                end
+
                 local snd = Instance.new("Sound")
                 snd.Name = "KEONMusicTrack"
-                snd.SoundId = track.url
+                snd.SoundId = assetPath
                 snd.Volume = math.clamp(globalMediaVolume / 10, 0, 1)
                 snd.Looped = false
                 snd.Parent = SoundService
-                local loaded = false
-                local ok = pcall(function()
-                    if not snd.IsLoaded then snd.Loaded:Wait() end
-                    snd:Play()
-                    loaded = true
-                end)
-                if loaded then
-                    _G.KEONActiveMediaSound = snd
-                    playBtn.Text = "♫ يعمل الآن"
-                    local pulse = TweenService:Create(cover, TweenInfo.new(0.55, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation = 8})
-                    pulse:Play()
-                    snd.Ended:Connect(function()
-                        if pulse then pulse:Cancel() end
-                        if cover and cover.Parent then cover.Rotation = 0 end
-                        if playBtn and playBtn.Parent then playBtn.Text = "▶ تشغيل" end
-                    end)
-                else
-                    snd:Destroy()
-                    playBtn.Text = "الرابط غير متاح"
+
+                local playRequestOk = pcall(function() snd:Play() end)
+                local deadline = os.clock() + 12
+                while snd.Parent and not snd.IsLoaded and os.clock() < deadline do
+                    task.wait(0.12)
                 end
-                task.wait(2.2)
-                if playBtn.Parent and playBtn.Text == "تحميل…" then playBtn.Text = "▶ تشغيل" end
+
+                if snd.Parent and snd.IsLoaded then
+                    local playOk = playRequestOk and pcall(function()
+                        if not snd.IsPlaying then snd:Play() end
+                    end)
+                    if playOk then
+                        _G.KEONActiveMediaSound = snd
+                        if playBtn and playBtn.Parent then playBtn.Text = "♫ يعمل الآن" end
+                        if musicStatus and musicStatus.Parent then musicStatus.Text = "يعمل الآن • الأغنية " .. string.format("%02d", idx) end
+                        local pulse = TweenService:Create(cover, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation = 7})
+                        pulse:Play()
+                        snd.Ended:Connect(function()
+                            pcall(function() pulse:Cancel() end)
+                            if cover and cover.Parent then cover.Rotation = 0 end
+                            if playBtn and playBtn.Parent then playBtn.Text = "▶ تشغيل" end
+                            if musicStatus and musicStatus.Parent then musicStatus.Text = "انتهت الأغنية " .. string.format("%02d", idx) end
+                            if snd and snd.Parent then snd:Destroy() end
+                            if _G.KEONActiveMediaSound == snd then _G.KEONActiveMediaSound = nil end
+                        end)
+                    else
+                        snd:Destroy()
+                        if playBtn and playBtn.Parent then playBtn.Text = "تعذّر التشغيل" end
+                        if musicStatus and musicStatus.Parent then musicStatus.Text = "الملف المحلي موجود لكن Roblox/Delta رفض تشغيله." end
+                    end
+                else
+                    pcall(function() snd:Destroy() end)
+                    if playBtn and playBtn.Parent then playBtn.Text = "لم يتم التحميل" end
+                    if musicStatus and musicStatus.Parent then musicStatus.Text = "انتهت مهلة تحميل الصوت. قد لا يدعم Delta ملفات MP3 المحلية." end
+                end
             end)
         end)
     end
@@ -3178,8 +3521,14 @@ BtnSuggestions.MouseButton1Click:Connect(function()
         if sugBox.Text ~= "" then
             local textToSend = sugBox.Text
             sugBox.Text = ""
+            if DISCORD_WEBHOOK_URL == "" then
+                sendSugBtn.Text = "تعذّر الإرسال: أضف Webhook جديداً"
+                task.wait(2)
+                sendSugBtn.Text = "إرسال الملاحظات ↗"
+                return
+            end
             sendSugBtn.Text = "جارٍ الإرسال…"
-            pcall(function()
+            local sentOk = pcall(function()
                 customRequest({
                     Url = DISCORD_WEBHOOK_URL,
                     Method = "POST",
@@ -3197,7 +3546,7 @@ BtnSuggestions.MouseButton1Click:Connect(function()
                     })
                 })
             end)
-            sendSugBtn.Text = "تم الإرسال ✓"
+            sendSugBtn.Text = sentOk and "تم الإرسال ✓" or "فشل الإرسال"
             task.wait(2)
             sendSugBtn.Text = "إرسال الملاحظات ↗"
         end
@@ -3908,8 +4257,8 @@ task.spawn(function()
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     MainFrame.Rotation = -2.5
     TweenService:Create(MainFrame, TweenInfo.new(0.68, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 560, 0, 360),
-        Position = UDim2.new(0.5, -280, 0.5, -180),
+        Size = responsiveState.mainSize,
+        Position = responsiveState.mainPosition,
         Rotation = 0
     }):Play()
     task.spawn(function()
@@ -3936,7 +4285,8 @@ CloseBtn.MouseButton1Click:Connect(function()
     }):Play()
     task.wait(0.3)
     MainFrame.Visible = false
-    MainFrame.Size = UDim2.new(0, 560, 0, 360)
+    MainFrame.Size = responsiveState.mainSize
+    MainFrame.Position = responsiveState.mainPosition
 end)
 
-BtnMainHome.MouseButton1Click:Fire()
+showHomePage()
