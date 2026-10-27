@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Auto-Save, Quick Scripts & Voice Info (v59.0.0)
+-- KEON Hub - مطور كيون Neon Auto-Save, Quick Scripts & Voice Info (v59.1.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -977,8 +977,7 @@ FloatingChatBtn.Name = "FloatingChatBtn"
 FloatingChatBtn.Size = UDim2.new(0, 46, 0, 46)
 FloatingChatBtn.Position = UDim2.new(0, 115, 0, 10)
 FloatingChatBtn.BackgroundColor3 = Color3.fromRGB(15, 12, 18)
-FloatingChatBtn.Text = "💬
-CHAT"
+FloatingChatBtn.Text = "💬\nCHAT"
 FloatingChatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 FloatingChatBtn.Font = Enum.Font.FredokaOne
 FloatingChatBtn.TextSize = 13
