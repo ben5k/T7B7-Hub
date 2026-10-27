@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Separate Leaderboards + Safe Reload (v63.0.0)
+-- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -36,7 +36,7 @@ local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
 KEONProfile.FIREBASE_USAGE_URL = FIREBASE_BASE_URL .. "/usage_stats.json"
 
-local KEON_RESTART_SCRIPT_URL = "" -- ضع رابط RAW الصحيح لنسخة KEON المنشورة هنا لتفعيل إعادة التشغيل للجميع بأمان
+local KEON_RESTART_SCRIPT_URL = "https://raw.githubusercontent.com/ben5k/Ben-Hub/refs/heads/main/Ben%20Hub" -- رابط النسخة المعتمدة لإعادة التشغيل للجميع
 
 local function customRequest(options)
     local req = request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request)
@@ -262,6 +262,25 @@ function KEONProfile.formatPlayTime(seconds)
     if hours > 0 then return string.format("%dس %02dد", hours, minutes) end
     if minutes > 0 then return string.format("%dد %02dث", minutes, secs) end
     return string.format("%dث", secs)
+end
+
+-- اختصار الأرقام الكبيرة في التوب: 950، 1K، 1.2M، 3B، 1T
+function KEONProfile.formatCompactNumber(value)
+    value = tonumber(value) or 0
+    local absValue = math.abs(value)
+    local function compact(divisor, suffix)
+        local n = value / divisor
+        local formatted = string.format(absValue / divisor >= 100 and "%.0f" or (absValue / divisor >= 10 and "%.1f" or "%.2f"), n)
+        if formatted:find("%.") then
+            formatted = formatted:gsub("0+$", ""):gsub("%.$", "")
+        end
+        return formatted .. suffix
+    end
+    if absValue >= 1e12 then return compact(1e12, "T") end
+    if absValue >= 1e9 then return compact(1e9, "B") end
+    if absValue >= 1e6 then return compact(1e6, "M") end
+    if absValue >= 1e3 then return compact(1e3, "K") end
+    return tostring(math.floor(value))
 end
 
 KEONProfile.profileByUserId[tostring(LocalPlayer.UserId)] = {
@@ -770,9 +789,25 @@ local function checkAdminActions()
 end
 task.spawn(checkAdminActions)
 
+local function readLocalEggStats()
+    local speed, money = nil, nil
+    local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+    if leaderstats then
+        for _, child in ipairs(leaderstats:GetChildren()) do
+            if child:IsA("IntValue") or child:IsA("NumberValue") then
+                local low = string.lower(child.Name)
+                if speed == nil and (low:find("speed", 1, true) or low:find("velocity", 1, true) or low:find("سرعة", 1, true)) then speed = tonumber(child.Value) end
+                if money == nil and (low:find("money", 1, true) or low:find("cash", 1, true) or low:find("coin", 1, true) or low:find("currency", 1, true) or low:find("dollar", 1, true) or low:find("فلوس", 1, true) or low:find("مال", 1, true)) then money = tonumber(child.Value) end
+            end
+        end
+    end
+    return speed, money
+end
+
 task.spawn(function()
     while true do
         pcall(function()
+            local eggSpeed, eggMoney = readLocalEggStats()
             customRequest({
                 Url = FIREBASE_BASE_URL .. "/active_users/" .. tostring(LocalPlayer.UserId) .. ".json",
                 Method = "PUT",
@@ -787,7 +822,10 @@ task.spawn(function()
                     countryFlag = KEONProfile.selectedCountryFlag,
                     countryName = KEONProfile.selectedCountryName,
                     countryCode = KEONProfile.selectedCountryCode,
-                    totalSeconds = KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock)
+                    totalSeconds = KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock),
+                    eggSpeed = eggSpeed,
+                    eggMoney = eggMoney,
+                    eggUpdatedAt = os.time()
                 })
             })
         end)
@@ -832,6 +870,7 @@ task.spawn(function()
             end)
             if KEONProfile.usageStoreWritable then
                 pcall(function()
+                    local eggSpeed, eggMoney = readLocalEggStats()
                     customRequest({
                         Url = FIREBASE_BASE_URL .. "/usage_stats/" .. tostring(LocalPlayer.UserId) .. ".json",
                         Method = "PUT",
@@ -844,6 +883,9 @@ task.spawn(function()
                             countryFlag = KEONProfile.selectedCountryFlag,
                             countryName = KEONProfile.selectedCountryName,
                             countryCode = KEONProfile.selectedCountryCode,
+                            eggSpeed = eggSpeed,
+                            eggMoney = eggMoney,
+                            eggUpdatedAt = os.time(),
                             updatedAt = os.time()
                         })
                     })
@@ -3446,7 +3488,7 @@ local function addTopLeaderboardSwitch(activeMode)
         b.MouseButton1Click:Connect(function() KEONProfile.showProfilePage(mode) end)
     end
     makeSwitchButton("⏱️ توب وقت السكربت", 0, "top", activeMode == "top")
-    makeSwitchButton("🥚 توب سرقة البيض", 0.5, "egg_top", activeMode == "egg_top")
+    makeSwitchButton("🥚 توب سرقة البيض العالمي", 0.5, "egg_top", activeMode == "egg_top")
 end
 
 KEONProfile.showProfilePage = function(mode)
@@ -3522,12 +3564,12 @@ KEONProfile.showProfilePage = function(mode)
         note.ZIndex = 3
         note.Parent = CenterScroll
     elseif mode == "egg_top" then
-        intro.Text = "🥚 ترتيب لاعبي سرقة البيض حسب السرعة والفلوس الظاهرة داخل السيرفر"
+        intro.Text = "🥚 توب سرقة البيض — مستخدمو KEON من كل الجلسات المحفوظة"
         addTopLeaderboardSwitch("egg_top")
         local refreshBtn = Instance.new("TextButton")
         refreshBtn.Size = UDim2.new(1, -4, 0, 30)
         refreshBtn.BackgroundColor3 = Color3.fromRGB(12, 42, 68)
-        refreshBtn.Text = "↻ تحديث توب سرقة البيض"
+        refreshBtn.Text = "↻ تحديث توب سرقة البيض العالمي"
         refreshBtn.TextColor3 = Color3.fromRGB(255,255,255)
         refreshBtn.Font = Enum.Font.GothamBold
         refreshBtn.TextSize = 11
@@ -3536,43 +3578,63 @@ KEONProfile.showProfilePage = function(mode)
         Instance.new("UICorner", refreshBtn).CornerRadius = UDim.new(0, 9)
         refreshBtn.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("egg_top") end)
 
-        local statRecords = {}
-        local function findStat(plr, patterns)
-            local leaderstats = plr:FindFirstChild("leaderstats")
-            if not leaderstats then return nil end
-            for _, child in ipairs(leaderstats:GetChildren()) do
-                if child:IsA("IntValue") or child:IsA("NumberValue") then
-                    local low = string.lower(child.Name)
-                    for _, pat in ipairs(patterns) do
-                        if low:find(pat, 1, true) then return tonumber(child.Value) end
+        local loadingEgg = Instance.new("TextLabel")
+        loadingEgg.Size = UDim2.new(1, -4, 0, 44)
+        loadingEgg.BackgroundTransparency = 1
+        loadingEgg.Text = "⏳ جارٍ تحميل بيانات مستخدمي السكربت..."
+        loadingEgg.TextColor3 = Color3.fromRGB(180, 215, 245)
+        loadingEgg.Font = Enum.Font.GothamBold
+        loadingEgg.TextSize = 11
+        loadingEgg.TextWrapped = true
+        loadingEgg.ZIndex = 3
+        loadingEgg.Parent = CenterScroll
+
+        task.spawn(function()
+            local statRecords = {}
+            local ok = pcall(function()
+                local res = customRequest({Url = KEONProfile.FIREBASE_USAGE_URL, Method = "GET"})
+                if res and res.StatusCode == 200 then
+                    local decoded = safeDecode(res.Body)
+                    if type(decoded) == "table" then
+                        for uid, record in pairs(decoded) do
+                            if type(record) == "table" and tonumber(record.userId or uid) then
+                                local speed = tonumber(record.eggSpeed)
+                                local money = tonumber(record.eggMoney)
+                                if speed ~= nil or money ~= nil then
+                                    table.insert(statRecords, {
+                                        userId = tonumber(record.userId or uid),
+                                        name = record.name,
+                                        displayName = record.displayName,
+                                        countryFlag = record.countryFlag or "🌐",
+                                        speed = speed or -1,
+                                        money = money or 0,
+                                        eggUpdatedAt = tonumber(record.eggUpdatedAt) or 0
+                                    })
+                                end
+                            end
+                        end
                     end
                 end
+            end)
+            table.sort(statRecords, function(a,b)
+                if a.speed ~= b.speed then return a.speed > b.speed end
+                return a.money > b.money
+            end)
+            if not CenterScroll or not CenterScroll.Parent or not loadingEgg.Parent then return end
+            loadingEgg:Destroy()
+            if #statRecords == 0 then
+                local empty = Instance.new("TextLabel")
+                empty.Size = UDim2.new(1, -4, 0, 76)
+                empty.BackgroundTransparency = 1
+                empty.Text = ok and "ماكو بيانات سرقة البيض محفوظة بعد. لازم مستخدمو KEON يدخلون للماب وتكون قيم السرعة والفلوس ظاهرة في leaderstats حتى تنحفظ بالتوب." or "تعذّر تحميل التوب العالمي. تحقق من اتصال قاعدة البيانات."
+                empty.TextColor3 = Color3.fromRGB(186, 206, 226)
+                empty.Font = Enum.Font.GothamBold
+                empty.TextSize = 11
+                empty.TextWrapped = true
+                empty.ZIndex = 3
+                empty.Parent = CenterScroll
+                return
             end
-            return nil
-        end
-        for _, plr in ipairs(Players:GetPlayers()) do
-            local speed = findStat(plr, {"speed", "velocity", "سرعة"})
-            local money = findStat(plr, {"money", "cash", "coin", "currency", "dollar", "فلوس", "مال"})
-            if speed ~= nil or money ~= nil then
-                table.insert(statRecords, {userId = plr.UserId, name = plr.Name, displayName = plr.DisplayName, speed = speed or -1, money = money or 0})
-            end
-        end
-        table.sort(statRecords, function(a,b)
-            if a.speed ~= b.speed then return a.speed > b.speed end
-            return a.money > b.money
-        end)
-        if #statRecords == 0 then
-            local empty = Instance.new("TextLabel")
-            empty.Size = UDim2.new(1, -4, 0, 76)
-            empty.BackgroundTransparency = 1
-            empty.Text = "ما لقيت قيم سرعة أو فلوس داخل leaderstats. هذا التوب يقرأ بيانات اللعبة الظاهرة في السيرفر الحالي فقط، وما يخترع أرقام غير موجودة."
-            empty.TextColor3 = Color3.fromRGB(186, 206, 226)
-            empty.Font = Enum.Font.GothamBold
-            empty.TextSize = 11
-            empty.TextWrapped = true
-            empty.ZIndex = 3
-            empty.Parent = CenterScroll
-        else
             for rank, record in ipairs(statRecords) do
                 if rank > 100 then break end
                 local row = Instance.new("Frame")
@@ -3599,7 +3661,7 @@ KEONProfile.showProfilePage = function(mode)
                 label.Size = UDim2.new(1, -70, 0, 24)
                 label.Position = UDim2.new(0, 60, 0, 5)
                 label.BackgroundTransparency = 1
-                label.Text = string.format("%02d  %s", rank, record.displayName or record.name)
+                label.Text = string.format("%02d  %s %s", rank, tostring(record.countryFlag), tostring(record.displayName or record.name or record.userId))
                 label.TextColor3 = Color3.fromRGB(245,250,255)
                 label.Font = Enum.Font.GothamBold
                 label.TextSize = 11
@@ -3611,7 +3673,7 @@ KEONProfile.showProfilePage = function(mode)
                 stats.Size = UDim2.new(1, -70, 0, 23)
                 stats.Position = UDim2.new(0, 60, 0, 31)
                 stats.BackgroundTransparency = 1
-                stats.Text = "⚡ سرعة: " .. (record.speed >= 0 and tostring(record.speed) or "غير متاحة") .. "   •   💰 " .. tostring(record.money)
+                stats.Text = "⚡ " .. (record.speed >= 0 and KEONProfile.formatCompactNumber(record.speed) or "—") .. "  •  💰 " .. KEONProfile.formatCompactNumber(record.money)
                 stats.TextColor3 = Color3.fromRGB(104,207,255)
                 stats.Font = Enum.Font.GothamBold
                 stats.TextSize = 10
@@ -3619,7 +3681,7 @@ KEONProfile.showProfilePage = function(mode)
                 stats.ZIndex = 4
                 stats.Parent = row
             end
-        end
+        end)
     else
         intro.Text = "أفضل 100 لاعب حسب وقت استخدام KEON المحفوظ"
         addTopLeaderboardSwitch("top")
