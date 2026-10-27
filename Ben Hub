@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v51.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v58.1.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v51.json"
+local CONFIG_FILE = "KEON_Config_v581.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -33,6 +33,8 @@ local FIREBASE_ADMIN_ACTIONS_URL = FIREBASE_BASE_URL .. "/admin_actions.json"
 local FIREBASE_VOTE_BASE = FIREBASE_BASE_URL .. "/global_vote"
 local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
+
+local CURRENT_SCRIPT_URL = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"
 
 local function customRequest(options)
     local req = request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request)
@@ -54,9 +56,10 @@ local function safeDecode(jsonStr)
     return nil
 end
 
-local function fetchAsset(url, fileName)
+local function fetchAsset(url, fileName, isAudio)
     if writefile and getcustomasset and readfile then
-        local file = "KEONHub_" .. fileName .. ".png"
+        local ext = isAudio and ".mp3" or ".png"
+        local file = "KEONHub_" .. fileName .. ext
         local success = pcall(function()
             if not isfile(file) then
                 writefile(file, game:HttpGet(url))
@@ -70,48 +73,32 @@ local function fetchAsset(url, fileName)
     return url
 end
 
-local function fetchAudioFile(url, fileName)
-    if writefile and getcustomasset and readfile then
-        local file = "KEONMusic_" .. fileName .. ".mp3"
-        local success = pcall(function()
-            if not isfile(file) then
-                local data = game:HttpGet(url)
-                writefile(file, data)
-            end
-        end)
-        if success and isfile(file) then
-            local assetPath = getcustomasset(file)
-            if assetPath then return assetPath end
-        end
-    end
-    return url
-end
-
 local wallUrls = {
-    fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
-    fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
-    fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2"),
-    fetchAsset("https://l.top4top.io/p_3947ds5ic0.jpg", "bg_3"),
-    fetchAsset("https://a.top4top.io/p_3947hoh3p1.jpg", "bg_4"),
-    fetchAsset("https://b.top4top.io/p_3947wn78l2.jpg", "bg_5"),
-    fetchAsset("https://c.top4top.io/p_3947n55o83.jpg", "bg_6"),
-    fetchAsset("https://d.top4top.io/p_394754mmu4.jpg", "bg_7"),
-    fetchAsset("https://e.top4top.io/p_39475mm3q5.jpg", "bg_8"),
+    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v58", false),
+    fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new", false),
+    fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1", false),
+    fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2", false),
+    fetchAsset("https://l.top4top.io/p_3947ds5ic0.jpg", "bg_3", false),
+    fetchAsset("https://a.top4top.io/p_3947hoh3p1.jpg", "bg_4", false),
+    fetchAsset("https://b.top4top.io/p_3947wn78l2.jpg", "bg_5", false),
+    fetchAsset("https://c.top4top.io/p_3947n55o83.jpg", "bg_6", false),
+    fetchAsset("https://d.top4top.io/p_394754mmu4.jpg", "bg_7", false),
+    fetchAsset("https://e.top4top.io/p_39475mm3q5.jpg", "bg_8", false),
 }
 
 local stickerUrls = {
-    fetchAsset("https://up6.cc/2026/10/179301030915811.jpg", "stk_1"),
-    fetchAsset("https://up6.cc/2026/10/179301030920862.jpg", "stk_2"),
-    fetchAsset("https://up6.cc/2026/10/179301030923343.jpg", "stk_3"),
-    fetchAsset("https://up6.cc/2026/10/179301030928524.jpg", "stk_4"),
-    fetchAsset("https://up6.cc/2026/10/179301041828331.jpg", "stk_5"),
-    fetchAsset("https://up6.cc/2026/10/179301041832562.jpg", "stk_6")
+    fetchAsset("https://up6.cc/2026/10/179301030915811.jpg", "stk_1", false),
+    fetchAsset("https://up6.cc/2026/10/179301030920862.jpg", "stk_2", false),
+    fetchAsset("https://up6.cc/2026/10/179301030923343.jpg", "stk_3", false),
+    fetchAsset("https://up6.cc/2026/10/179301030928524.jpg", "stk_4", false),
+    fetchAsset("https://up6.cc/2026/10/179301041828331.jpg", "stk_5", false),
+    fetchAsset("https://up6.cc/2026/10/179301041832562.jpg", "stk_6", false)
 }
 
-local EGG_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_3948flo0t0.jpg", "egg_map")
-local BREAK_EGG_MAP_IMAGE = fetchAsset("https://e.top4top.io/p_3948fd0c20.jpg", "break_egg_map")
-local EVENT_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_39498vdws0.jpg", "event_map")
-local MINIMIZE_ICON_IMAGE = fetchAsset("https://k.top4top.io/p_3948z05tb0.png", "min_icon")
+local EGG_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_3948flo0t0.jpg", "egg_map", false)
+local BREAK_EGG_MAP_IMAGE = fetchAsset("https://e.top4top.io/p_3948fd0c20.jpg", "break_egg_map", false)
+local EVENT_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_39498vdws0.jpg", "event_map", false)
+local MINIMIZE_ICON_IMAGE = fetchAsset("https://k.top4top.io/p_3948z05tb0.png", "min_icon", false)
 
 local SOUND_OPEN = "rbxassetid://98797174600699"
 local SOUND_CLICK = "rbxassetid://6895079853"
@@ -121,7 +108,7 @@ local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 local neonSpeed = 8
 local currentAccentColor = Color3.fromRGB(200, 20, 60)
 local currentHeaderColor = Color3.fromRGB(140, 10, 40)
-local globalMusicVolume = 4.0
+local globalMediaVolume = 5.0
 
 local selectedScriptBgIndex = 0
 local selectedChatBgIndex = 0
@@ -314,7 +301,7 @@ task.spawn(function()
                         if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
                         
                         task.spawn(function()
-                            loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()
+                            loadstring(game:HttpGet(CURRENT_SCRIPT_URL))()
                         end)
                     end
                 end
@@ -808,6 +795,21 @@ BgImage.ZIndex = 0
 BgImage.Parent = CenterBox
 Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 10)
 
+local function applyScriptBackground(idx)
+    selectedScriptBgIndex = idx
+    saveUserSettings()
+    if idx > 0 and wallUrls[idx] then
+        BgImage.Image = wallUrls[idx]
+        BgImage.Visible = true
+        CenterBox.BackgroundTransparency = 0.35
+    else
+        BgImage.Visible = false
+        CenterBox.BackgroundTransparency = 0
+    end
+end
+
+applyScriptBackground(selectedScriptBgIndex)
+
 local centerStroke = Instance.new("UIStroke")
 centerStroke.Color = currentAccentColor
 centerStroke.Thickness = 3.5
@@ -963,7 +965,7 @@ CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
 
 ---------------------------------------------------------
--- نافذة الشات المباشرة (مع قائمة خلفيات قابلة للتمرير وملصقات واضحة)
+-- نافذة الشات المباشرة
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
 ChatScreenGui.Name = "KEONTopChatGui"
@@ -1083,7 +1085,6 @@ ChatMainContainer.BackgroundTransparency = 1
 ChatMainContainer.ZIndex = 2
 ChatMainContainer.Parent = ChatWin
 
--- قسم الخلفيات المحدث (ScrollingFrame قابل للتمرير بالكامل لتفادي أي اختفاء للخلفيات)
 local ChatFeaturesContainer = Instance.new("ScrollingFrame")
 ChatFeaturesContainer.Size = UDim2.new(1, -20, 1, -65)
 ChatFeaturesContainer.Position = UDim2.new(0, 10, 0, 55)
@@ -1243,7 +1244,7 @@ local function applyChatBackground(idx)
     if idx > 0 and wallUrls[idx] then
         ChatBgImage.Image = wallUrls[idx]
         ChatBgImage.Visible = true
-        ChatWin.BackgroundTransparency = 0.85
+        ChatWin.BackgroundTransparency = 0.45
     else
         ChatBgImage.Visible = false
         ChatWin.BackgroundTransparency = 0
@@ -1274,26 +1275,25 @@ removeChatBgBtn.ZIndex = 3
 removeChatBgBtn.Parent = ChatFeaturesContainer
 Instance.new("UICorner", removeChatBgBtn).CornerRadius = UDim.new(0, 6)
 
-local chatGridHolder = Instance.new("Frame")
-chatGridHolder.Size = UDim2.new(1, 0, 0, 340)
-chatGridHolder.BackgroundTransparency = 1
-chatGridHolder.ZIndex = 3
-chatGridHolder.Parent = ChatFeaturesContainer
+local chatColHolder = Instance.new("Frame")
+chatColHolder.Size = UDim2.new(1, 0, 0, (#wallUrls * 75) + 20)
+chatColHolder.BackgroundTransparency = 1
+chatColHolder.ZIndex = 3
+chatColHolder.Parent = ChatFeaturesContainer
 
-local chatGridLayout = Instance.new("UIGridLayout")
-chatGridLayout.CellSize = UDim2.new(0, 155, 0, 85)
-chatGridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
-chatGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-chatGridLayout.Parent = chatGridHolder
+local chatColLayout = Instance.new("UIListLayout")
+chatColLayout.Padding = UDim.new(0, 10)
+chatColLayout.SortOrder = Enum.SortOrder.LayoutOrder
+chatColLayout.Parent = chatColHolder
 
 for i, url in ipairs(wallUrls) do
     local cBtn = Instance.new("ImageButton")
-    cBtn.Size = UDim2.new(0, 155, 0, 85)
+    cBtn.Size = UDim2.new(1, 0, 0, 65)
     cBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
     cBtn.Image = url
     cBtn.ScaleType = Enum.ScaleType.Crop
     cBtn.ZIndex = 4
-    cBtn.Parent = chatGridHolder
+    cBtn.Parent = chatColHolder
     Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 8)
 
     local cStroke = Instance.new("UIStroke")
@@ -1308,14 +1308,13 @@ for i, url in ipairs(wallUrls) do
     end)
 end
 
-ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, featLayout.AbsoluteContentSize.Y + 40)
+ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, chatColHolder.AbsolutePosition.Y + chatColHolder.AbsoluteSize.Y + 50)
 
 removeChatBgBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     applyChatBackground(0)
 end)
 
--- نافذة منبثقة للملصقات (بتصميم الإيموجي وتأكيد ظهور صور الملصقات بوضوح)
 local StickerModal = Instance.new("Frame")
 StickerModal.Name = "StickerModal"
 StickerModal.Size = UDim2.new(0, 220, 0, 160)
@@ -1356,19 +1355,21 @@ for _, sUrl in ipairs(stickerUrls) do
         playUiSound(SOUND_CLICK, 1, 0.35)
         StickerModal.Visible = false
 
-        pcall(function()
-            customRequest({
-                Url = FIREBASE_CHAT_URL,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = HttpService:JSONEncode({
-                    sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
-                    userId = LocalPlayer.UserId,
-                    text = sUrl,
-                    isSticker = true,
-                    time = os.time()
+        task.spawn(function()
+            pcall(function()
+                customRequest({
+                    Url = FIREBASE_CHAT_URL,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({
+                        sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
+                        userId = LocalPlayer.UserId,
+                        text = sUrl,
+                        isSticker = true,
+                        time = os.time()
+                    })
                 })
-            })
+            end)
         end)
     end)
 end
@@ -1562,40 +1563,42 @@ local function sendMessageNow()
         local msg = ChatInput.Text
         ChatInput.Text = ""
         
-        local isMuted = false
-        local muteReason = ""
-        pcall(function()
-            local res = customRequest({Url = FIREBASE_ADMIN_ACTIONS_URL, Method = "GET"})
-            if res and res.StatusCode == 200 then
-                local data = safeDecode(res.Body)
-                if data and data.mutes and data.mutes[tostring(LocalPlayer.UserId)] then
-                    local mInfo = data.mutes[tostring(LocalPlayer.UserId)]
-                    if mInfo.muted then
-                        isMuted = true
-                        muteReason = mInfo.reason or "مخالفة القوانين"
+        task.spawn(function()
+            local isMuted = false
+            local muteReason = ""
+            pcall(function()
+                local res = customRequest({Url = FIREBASE_ADMIN_ACTIONS_URL, Method = "GET"})
+                if res and res.StatusCode == 200 then
+                    local data = safeDecode(res.Body)
+                    if data and data.mutes and data.mutes[tostring(LocalPlayer.UserId)] then
+                        local mInfo = data.mutes[tostring(LocalPlayer.UserId)]
+                        if mInfo.muted then
+                            isMuted = true
+                            muteReason = mInfo.reason or "مخالفة القوانين"
+                        end
                     end
                 end
+            end)
+
+            if isMuted then
+                addChatMessage("كـيـون 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم.\nالسبب: " .. muteReason, LocalPlayer.UserId, "muted_notice", false)
+                return
             end
-        end)
 
-        if isMuted then
-            addChatMessage("كـيـون 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم.\nالسبب: " .. muteReason, LocalPlayer.UserId, "muted_notice", false)
-            return
-        end
-
-        pcall(function()
-            customRequest({
-                Url = FIREBASE_CHAT_URL,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = HttpService:JSONEncode({
-                    sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
-                    userId = LocalPlayer.UserId,
-                    text = msg,
-                    isSticker = false,
-                    time = os.time()
+            pcall(function()
+                customRequest({
+                    Url = FIREBASE_CHAT_URL,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({
+                        sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
+                        userId = LocalPlayer.UserId,
+                        text = msg,
+                        isSticker = false,
+                        time = os.time()
+                    })
                 })
-            })
+            end)
         end)
     end
 end
@@ -1914,7 +1917,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v51.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v58.1):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1927,7 +1930,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• جعل قائمة خلفيات الشات قابلة للتمرير بالكامل لكي تظهر جميع الخلفيات بوضوح ودون أي اختفاء.\n• تحويل روابط صور الملصقات إلى أصول محلية مضمونة الظهور بوضوح تام.\n• تحديث السيرفر هوب ليقبل 1 أو 2 لاعبين بكل سلاسة."
+    updatesDesc.Text = "• حل مشكلة عدم اشتغال روابط الـ MP3 عبر نظام جلب Caching وتخزين مؤقت مباشر للصوتيات.\n• ضمان تشغيل الأغاني بسلاسة تامة على الجوال والكمبيوتر.\n• استقرار تام في مشغل الصوت والتنقل."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -2019,7 +2022,7 @@ task.spawn(function()
     while true do
         pcall(function()
             local now = os.time()
-            local dateTable = os.date("!*t", now + 10800) -- UTC+3
+            local dateTable = os.date("!*t", now + 10800)
             local wday = dateTable.wday
             local daysUntilSaturday = (7 - wday) % 7
             if daysUntilSaturday == 0 then
@@ -2333,24 +2336,26 @@ BtnScripts.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- تبويب "موسيقى"
+-- تبويب "الميديا والصوتيات" (محدث بروابط MP3 المباشرة)
 ---------------------------------------------------------
-local BtnMusic = createProStyleBtn("موسيقى", "left")
-BtnMusic.MouseButton1Click:Connect(function()
+local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
+BtnMedia.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    local musicTracks = {
-        {name = "🎵 1 - الأيدي المخصص", id = "rbxassetid://118507373399694", isUrl = false},
-        {name = "🎶 2 - الأغنية الأولى", url = "https://mp3tourl.com/audio/1792780112768-901dee91-778d-4268-a0e5-a172df4368a3.mp3", isUrl = true},
-        {name = "🎶 3 - الأغنية الثانية", url = "https://mp3tourl.com/audio/1792780265689-b8732859-419f-4820-8867-ad22abc1ced4.mp3", isUrl = true},
-        {name = "🎶 4 - الأغنية الثالثة", url = "https://mp3tourl.com/audio/1792780298987-4e0c816b-71a9-4ce5-aa88-7cd3f01b41c4.mp3", isUrl = true},
-        {name = "🎶 5 - الأغنية الرابعة", url = "https://mp3tourl.com/audio/1792780337922-c513da7f-8c32-499c-9346-dfb1f7400d8f.mp3", isUrl = true},
-        {name = "🎶 6 - الأغنية الخامسة", url = "https://mp3tourl.com/audio/1792780363205-f33c29d1-2233-40f2-96cd-16c263ada79a.mp3", isUrl = true}
+    local mediaTracks = {
+        {name = "🎵 الأغنية الخاصة 1", url = fetchAsset("https://mp3tourl.com/audio/1793032510554-b02ecb64-2fdf-47af-b6ad-bdbefea3d145.mp3", "track_1", true)},
+        {name = "🎵 الأغنية الخاصة 2", url = fetchAsset("https://mp3tourl.com/audio/1793032488141-ece44ee5-915c-4707-a9db-8ba6263ed1a0.mp3", "track_2", true)},
+        {name = "🎵 الأغنية الخاصة 3", url = fetchAsset("https://mp3tourl.com/audio/1793032443036-1fe0f529-7470-4c4b-a58d-e0e6d96c156d.mp3", "track_3", true)},
+        {name = "🎵 الأغنية الخاصة 4", url = fetchAsset("https://mp3tourl.com/audio/1793032387774-e053f4e5-992e-4d1a-a016-2759c5e10e79.mp3", "track_4", true)},
+        {name = "🎵 الأغنية الخاصة 5", url = fetchAsset("https://mp3tourl.com/audio/1793032221389-d6cf2416-9ef0-4104-839a-09008976cf05.mp3", "track_5", true)},
+        {name = "🎵 الأغنية الخاصة 6", url = fetchAsset("https://mp3tourl.com/audio/1793032196410-636d1b4e-60ed-40ee-8cc7-0c1e91cf54e2.mp3", "track_6", true)},
+        {name = "🎵 الأغنية الخاصة 7", url = fetchAsset("https://mp3tourl.com/audio/1793032171399-2c8d35f6-7f4e-49f6-845d-52a7f357df09.mp3", "track_7", true)},
+        {name = "🎵 الأغنية الخاصة 8", url = fetchAsset("https://mp3tourl.com/audio/1793031943899-e9d05e63-2c93-4d6a-bce2-8ed239dbad88.mp3", "track_8", true)}
     }
 
-    if not _G.KEONActiveMusicSound then
-        _G.KEONActiveMusicSound = nil
+    if not _G.KEONActiveMediaSound then
+        _G.KEONActiveMediaSound = nil
     end
 
     local volumeContainer = Instance.new("Frame")
@@ -2369,7 +2374,7 @@ BtnMusic.MouseButton1Click:Connect(function()
     volLabel.Size = UDim2.new(1, -20, 0, 20)
     volLabel.Position = UDim2.new(0, 10, 0, 2)
     volLabel.BackgroundTransparency = 1
-    volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMusicVolume)
+    volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMediaVolume)
     volLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     volLabel.Font = Enum.Font.FredokaOne
     volLabel.TextSize = 12
@@ -2402,41 +2407,41 @@ BtnMusic.MouseButton1Click:Connect(function()
     Instance.new("UICorner", volUpBtn).CornerRadius = UDim.new(0, 4)
 
     volDownBtn.MouseButton1Click:Connect(function()
-        globalMusicVolume = math.max(1.0, globalMusicVolume - 1.0)
-        volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMusicVolume)
-        if _G.KEONActiveMusicSound and _G.KEONActiveMusicSound.Parent then
-            _G.KEONActiveMusicSound.Volume = globalMusicVolume
+        globalMediaVolume = math.max(1.0, globalMediaVolume - 1.0)
+        volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMediaVolume)
+        if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
+            _G.KEONActiveMediaSound.Volume = globalMediaVolume
         end
     end)
 
     volUpBtn.MouseButton1Click:Connect(function()
-        globalMusicVolume = math.min(10.0, globalMusicVolume + 1.0)
-        volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMusicVolume)
-        if _G.KEONActiveMusicSound and _G.KEONActiveMusicSound.Parent then
-            _G.KEONActiveMusicSound.Volume = globalMusicVolume
+        globalMediaVolume = math.min(10.0, globalMediaVolume + 1.0)
+        volLabel.Text = "🔊 مستوى الصوت: " .. string.format("%.1f", globalMediaVolume)
+        if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
+            _G.KEONActiveMediaSound.Volume = globalMediaVolume
         end
     end)
 
-    local stopAllMusicBtn = Instance.new("TextButton")
-    stopAllMusicBtn.Size = UDim2.new(1, 0, 0, 36)
-    stopAllMusicBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
-    stopAllMusicBtn.Text = "⏹️ إيقاف جميع الأغاني والموسيقى"
-    stopAllMusicBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    stopAllMusicBtn.Font = Enum.Font.FredokaOne
-    stopAllMusicBtn.TextSize = 14
-    stopAllMusicBtn.ZIndex = 3
-    stopAllMusicBtn.Parent = CenterScroll
-    Instance.new("UICorner", stopAllMusicBtn).CornerRadius = UDim.new(0, 8)
+    local stopAllMediaBtn = Instance.new("TextButton")
+    stopAllMediaBtn.Size = UDim2.new(1, 0, 0, 36)
+    stopAllMediaBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 60)
+    stopAllMediaBtn.Text = "⏹️ إيقاف جميع المقاطع"
+    stopAllMediaBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    stopAllMediaBtn.Font = Enum.Font.FredokaOne
+    stopAllMediaBtn.TextSize = 14
+    stopAllMediaBtn.ZIndex = 3
+    stopAllMediaBtn.Parent = CenterScroll
+    Instance.new("UICorner", stopAllMediaBtn).CornerRadius = UDim.new(0, 8)
 
-    stopAllMusicBtn.MouseButton1Click:Connect(function()
+    stopAllMediaBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
-        if _G.KEONActiveMusicSound then
-            pcall(function() _G.KEONActiveMusicSound:Stop(); _G.KEONActiveMusicSound:Destroy() end)
-            _G.KEONActiveMusicSound = nil
+        if _G.KEONActiveMediaSound then
+            pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
+            _G.KEONActiveMediaSound = nil
         end
     end)
 
-    for idx, track in ipairs(musicTracks) do
+    for idx, track in ipairs(mediaTracks) do
         local mCard = Instance.new("Frame")
         mCard.Size = UDim2.new(1, 0, 0, 50)
         mCard.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
@@ -2451,7 +2456,7 @@ BtnMusic.MouseButton1Click:Connect(function()
         table.insert(registeredOptionStrokes, mStroke)
 
         local mTitle = Instance.new("TextLabel")
-        mTitle.Size = UDim2.new(1, -120, 1, 0)
+        mTitle.Size = UDim2.new(1, -165, 1, 0)
         mTitle.Position = UDim2.new(0, 10, 0, 0)
         mTitle.BackgroundTransparency = 1
         mTitle.Text = track.name
@@ -2462,48 +2467,67 @@ BtnMusic.MouseButton1Click:Connect(function()
         mTitle.ZIndex = 4
         mTitle.Parent = mCard
 
+        local likeBtn = Instance.new("TextButton")
+        likeBtn.Size = UDim2.new(0, 45, 0, 34)
+        likeBtn.Position = UDim2.new(0, 10, 0.5, -17)
+        likeBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 35)
+        likeBtn.Text = "🤍"
+        likeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        likeBtn.Font = Enum.Font.FredokaOne
+        likeBtn.TextSize = 15
+        likeBtn.ZIndex = 4
+        likeBtn.Parent = mCard
+        Instance.new("UICorner", likeBtn).CornerRadius = UDim.new(0, 6)
+
+        local isLiked = false
+        likeBtn.MouseButton1Click:Connect(function()
+            playUiSound(SOUND_CLICK, 1, 0.35)
+            isLiked = not isLiked
+            likeBtn.Text = isLiked and "❤️" or "🤍"
+            likeBtn.BackgroundColor3 = isLiked and Color3.fromRGB(200, 20, 60) or Color3.fromRGB(30, 20, 35)
+        end)
+
         local playBtn = Instance.new("TextButton")
-        playBtn.Size = UDim2.new(0, 100, 0, 34)
-        playBtn.Position = UDim2.new(0, 10, 0.5, -17)
+        playBtn.Size = UDim2.new(0, 95, 0, 34)
+        playBtn.Position = UDim2.new(0, 60, 0.5, -17)
         playBtn.BackgroundColor3 = currentAccentColor
         playBtn.Text = "تشغيل 🎶"
         playBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         playBtn.Font = Enum.Font.FredokaOne
-        playBtn.TextSize = 13
+        playBtn.TextSize = 12
         playBtn.ZIndex = 4
         playBtn.Parent = mCard
         Instance.new("UICorner", playBtn).CornerRadius = UDim.new(0, 6)
 
         playBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
-            if _G.KEONActiveMusicSound then
-                pcall(function() _G.KEONActiveMusicSound:Stop(); _G.KEONActiveMusicSound:Destroy() end)
+            if _G.KEONActiveMediaSound then
+                pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
             end
 
             playBtn.Text = "جاري التحميل..."
 
             task.spawn(function()
-                local soundAsset = track.id
-                if track.isUrl then
-                    soundAsset = fetchAudioFile(track.url, "track_v51_" .. tostring(idx))
-                end
-
                 local snd = Instance.new("Sound")
-                snd.SoundId = soundAsset
-                snd.Volume = globalMusicVolume
+                snd.SoundId = track.url
+                snd.Volume = globalMediaVolume
                 snd.Looped = true
                 snd.Parent = SoundService
                 
-                local loadedSuccess = pcall(function()
-                    if not snd.IsLoaded then snd.Loaded:Wait(5) end
-                end)
-
-                if loadedSuccess then
+                local loaded = false
+                pcall(function()
+                    if not snd.IsLoaded then
+                        snd.Loaded:Wait()
+                    end
                     snd:Play()
-                    _G.KEONActiveMusicSound = snd
+                    loaded = true
+                end)
+                
+                if loaded then
+                    _G.KEONActiveMediaSound = snd
                     playBtn.Text = "يعمل الآن ▶️"
                 else
-                    playBtn.Text = "خطأ بالتحميل ❌"
+                    playBtn.Text = "خطأ بالتشغيل ❌"
                 end
 
                 task.wait(2)
@@ -2719,6 +2743,181 @@ BtnSuggestions.MouseButton1Click:Connect(function()
     end)
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
+end)
+
+---------------------------------------------------------
+-- زر "اسرق البيض" في الجانب الأيمن (مباشرة جنب الإعدادات)
+---------------------------------------------------------
+local BtnStealEggRight = createProStyleBtn("اسرق البيض 🥚", "right")
+BtnStealEggRight.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    clearCenter()
+
+    local eggBanner = Instance.new("ImageLabel")
+    eggBanner.Size = UDim2.new(1, 0, 0, 110)
+    eggBanner.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    eggBanner.Image = EGG_MAP_IMAGE
+    eggBanner.ScaleType = Enum.ScaleType.Crop
+    eggBanner.ZIndex = 3
+    eggBanner.Parent = CenterScroll
+    Instance.new("UICorner", eggBanner).CornerRadius = UDim.new(0, 10)
+
+    local eggCard = Instance.new("Frame")
+    eggCard.Size = UDim2.new(1, 0, 0, 160)
+    eggCard.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    eggCard.ZIndex = 3
+    eggCard.Parent = CenterScroll
+    Instance.new("UICorner", eggCard).CornerRadius = UDim.new(0, 10)
+
+    local eggStroke = Instance.new("UIStroke")
+    eggStroke.Color = currentAccentColor
+    eggStroke.Thickness = 1.8
+    eggStroke.Parent = eggCard
+
+    local eggTitle = Instance.new("TextLabel")
+    eggTitle.Size = UDim2.new(1, -10, 0, 26)
+    eggTitle.Position = UDim2.new(0, 5, 0, 6)
+    eggTitle.BackgroundTransparency = 1
+    eggTitle.Text = "🥚 قسم اسرق البيض الحصري (KEON)"
+    eggTitle.TextColor3 = currentAccentColor
+    eggTitle.Font = Enum.Font.FredokaOne
+    eggTitle.TextSize = 14
+    eggTitle.TextXAlignment = Enum.TextXAlignment.Right
+    eggTitle.ZIndex = 4
+    eggTitle.Parent = eggCard
+    table.insert(activeNameLabels, eggTitle)
+
+    local eggDesc = Instance.new("TextLabel")
+    eggDesc.Size = UDim2.new(1, -10, 0, 65)
+    eggDesc.Position = UDim2.new(0, 5, 0, 34)
+    eggDesc.BackgroundTransparency = 1
+    eggDesc.Text = "• الوصف: سكربت حقنا من صنع مطورنا فقط يسرق بيض بسرعة خارقة ⚡.\n• ⚠️ ملاحظة هامة جداً: ممنوع تشغيل هذا السكربت مع سكربت فلفل 🌶️ نهائياً لمنع التعارض."
+    eggDesc.TextColor3 = Color3.fromRGB(255, 200, 100)
+    eggDesc.Font = Enum.Font.FredokaOne
+    eggDesc.TextSize = 11.5
+    eggDesc.TextXAlignment = Enum.TextXAlignment.Right
+    eggDesc.TextYAlignment = Enum.TextYAlignment.Top
+    eggDesc.ZIndex = 4
+    eggDesc.Parent = eggCard
+
+    local runEggScriptBtn = Instance.new("TextButton")
+    runEggScriptBtn.Size = UDim2.new(1, -16, 0, 38)
+    runEggScriptBtn.Position = UDim2.new(0, 8, 1, -44)
+    runEggScriptBtn.BackgroundColor3 = currentAccentColor
+    runEggScriptBtn.Text = "تشغيل سكربت اسرق البيض 🚀"
+    runEggScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    runEggScriptBtn.Font = Enum.Font.FredokaOne
+    runEggScriptBtn.TextSize = 13.5
+    runEggScriptBtn.ZIndex = 4
+    runEggScriptBtn.Parent = eggCard
+    Instance.new("UICorner", runEggScriptBtn).CornerRadius = UDim.new(0, 8)
+
+    runEggScriptBtn.MouseButton1Click:Connect(function()
+        playUiSound(SOUND_CLICK, 1, 0.35)
+        runEggScriptBtn.Text = "جاري تفعيل السكربت الخارق..."
+        pcall(function()
+            loadstring(game:HttpGet("https://orrxl4-protector.com/api/raw?id=oa3ryvhr"))()
+        end)
+        task.wait(1)
+        runEggScriptBtn.Text = "تم التشغيل بنجاح! ✅"
+        task.wait(2)
+        runEggScriptBtn.Text = "تشغيل سكربت اسرق البيض 🚀"
+    end)
+
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
+end)
+
+---------------------------------------------------------
+-- زر "الإعدادات" في الجانب الأيمن (بجانب اسرق البيض مباشرة)
+---------------------------------------------------------
+local BtnSettings = createProStyleBtn("الإعدادات", "right")
+BtnSettings.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    clearCenter()
+
+    addChilliAccordion("تخصيص الثيمات والألوان الكثيرة 🎨", function(addToggle, addAction)
+        local function updateTheme(accent, headerCol)
+            currentAccentColor = accent
+            currentHeaderColor = headerCol
+            saveUserSettings()
+
+            centerStroke.Color = accent
+            Header.BackgroundColor3 = headerCol
+            floatStroke.Color = accent
+            chatStroke.Color = accent
+            loadStroke.Color = accent
+            BarFill.BackgroundColor3 = accent
+            minBoxStroke.Color = accent
+            voteStroke.Color = accent
+            eventFloatStroke.Color = Color3.fromRGB(255, 215, 0)
+
+            ChatHeaderBtn1.BackgroundColor3 = accent
+            ChatHeaderBtn2.BackgroundColor3 = accent
+            ChatHeaderBtn3.BackgroundColor3 = accent
+            SendBtn.BackgroundColor3 = accent
+
+            for _, stroke in ipairs(registeredWingStrokes) do
+                if stroke and stroke.Parent then stroke.Color = accent end
+            end
+            for _, stroke in ipairs(registeredOptionStrokes) do
+                if stroke and stroke.Parent then stroke.Color = accent end
+            end
+            for _, lbl in ipairs(activeNameLabels) do
+                if lbl and lbl.Parent then lbl.TextColor3 = accent end
+            end
+        end
+
+        addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
+        addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
+        addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
+        addAction("الثيم الذهبي الفاخر 🟡", function() updateTheme(Color3.fromRGB(255, 200, 50), Color3.fromRGB(180, 130, 10)) end)
+        addAction("الثيم الأزرق نيون 🩵", function() updateTheme(Color3.fromRGB(0, 170, 255), Color3.fromRGB(0, 90, 180)) end)
+        addAction("الثيم الأرجواني الملكي 💜", function() updateTheme(Color3.fromRGB(160, 40, 255), Color3.fromRGB(100, 20, 180)) end)
+        addAction("الثيم الأخضر الزمردي 🟢", function() updateTheme(Color3.fromRGB(40, 230, 100), Color3.fromRGB(20, 130, 50)) end)
+        addAction("الثيم البرتقالي الناري 🟠", function() updateTheme(Color3.fromRGB(255, 120, 20), Color3.fromRGB(180, 70, 10)) end)
+        addAction("الثيم الوردي الساطع 🩷", function() updateTheme(Color3.fromRGB(255, 80, 180), Color3.fromRGB(180, 40, 120)) end)
+        addAction("الثيم السماوي الفاتح 🌐", function() updateTheme(Color3.fromRGB(100, 220, 255), Color3.fromRGB(40, 120, 180)) end)
+        addAction("الثيم الأصفر الليموني 🍋", function() updateTheme(Color3.fromRGB(230, 255, 0), Color3.fromRGB(140, 150, 0)) end)
+        addAction("الثيم البنفسجي الغامق 🔮", function() updateTheme(Color3.fromRGB(120, 0, 255), Color3.fromRGB(60, 0, 140)) end)
+        addAction("الثيم الوردي الباستيل 💕", function() updateTheme(Color3.fromRGB(255, 150, 200), Color3.fromRGB(180, 80, 130)) end)
+        addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
+    end)
+
+    addChilliAccordion("تخصيص خلفيات واجهة السكربت Pro", function(addToggle, addAction, contentHolder)
+        addAction("❌ إغلاق خلفية السكربت", function()
+            applyScriptBackground(0)
+        end)
+
+        local gridHolder = Instance.new("Frame")
+        gridHolder.Size = UDim2.new(1, 0, 0, 240)
+        gridHolder.BackgroundTransparency = 1
+        gridHolder.ZIndex = 3
+        gridHolder.Parent = contentHolder
+
+        local gridLayout = Instance.new("UIGridLayout")
+        gridLayout.CellSize = UDim2.new(0, 150, 0, 85)
+        gridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        gridLayout.Parent = gridHolder
+
+        for i, url in ipairs(wallUrls) do
+            local cardBtn = Instance.new("ImageButton")
+            cardBtn.Size = UDim2.new(0, 150, 0, 85)
+            cardBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+            cardBtn.Image = url
+            cardBtn.ScaleType = Enum.ScaleType.Crop
+            cardBtn.ZIndex = 4
+            cardBtn.Parent = gridHolder
+            Instance.new("UICorner", cardBtn).CornerRadius = UDim.new(0, 6)
+
+            cardBtn.MouseButton1Click:Connect(function()
+                playUiSound(SOUND_CLICK, 1, 0.35)
+                applyScriptBackground(i)
+            end)
+        end
+    end)
+
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 280)
 end)
 
 ---------------------------------------------------------
@@ -3178,96 +3377,6 @@ if LocalPlayer.Name == "Dms921" then
         CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
     end)
 end
-
-local BtnSettings = createProStyleBtn("الإعدادات", "right")
-BtnSettings.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    addChilliAccordion("تخصيص الثيمات والألوان الكثيرة 🎨", function(addToggle, addAction)
-        local function updateTheme(accent, headerCol)
-            currentAccentColor = accent
-            currentHeaderColor = headerCol
-            saveUserSettings()
-
-            centerStroke.Color = accent
-            Header.BackgroundColor3 = headerCol
-            floatStroke.Color = accent
-            chatStroke.Color = accent
-            loadStroke.Color = accent
-            BarFill.BackgroundColor3 = accent
-            minBoxStroke.Color = accent
-            voteStroke.Color = accent
-            eventFloatStroke.Color = Color3.fromRGB(255, 215, 0)
-
-            ChatHeaderBtn1.BackgroundColor3 = accent
-            ChatHeaderBtn2.BackgroundColor3 = accent
-            ChatHeaderBtn3.BackgroundColor3 = accent
-            SendBtn.BackgroundColor3 = accent
-
-            for _, stroke in ipairs(registeredWingStrokes) do
-                if stroke and stroke.Parent then stroke.Color = accent end
-            end
-            for _, stroke in ipairs(registeredOptionStrokes) do
-                if stroke and stroke.Parent then stroke.Color = accent end
-            end
-            for _, lbl in ipairs(activeNameLabels) do
-                if lbl and lbl.Parent then lbl.TextColor3 = accent end
-            end
-        end
-
-        addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
-        addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
-        addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
-        addAction("الثيم الذهبي الفاخر 🟡", function() updateTheme(Color3.fromRGB(255, 200, 50), Color3.fromRGB(180, 130, 10)) end)
-        addAction("الثيم الأزرق نيون 🩵", function() updateTheme(Color3.fromRGB(0, 170, 255), Color3.fromRGB(0, 90, 180)) end)
-        addAction("الثيم الأرجواني الملكي 💜", function() updateTheme(Color3.fromRGB(160, 40, 255), Color3.fromRGB(100, 20, 180)) end)
-        addAction("الثيم الأخضر الزمردي 🟢", function() updateTheme(Color3.fromRGB(40, 230, 100), Color3.fromRGB(20, 130, 50)) end)
-        addAction("الثيم البرتقالي الناري 🟠", function() updateTheme(Color3.fromRGB(255, 120, 20), Color3.fromRGB(180, 70, 10)) end)
-        addAction("الثيم الوردي الساطع 🩷", function() updateTheme(Color3.fromRGB(255, 80, 180), Color3.fromRGB(180, 40, 120)) end)
-        addAction("الثيم السماوي الفاتح 🌐", function() updateTheme(Color3.fromRGB(100, 220, 255), Color3.fromRGB(40, 120, 180)) end)
-        addAction("الثيم الأصفر الليموني 🍋", function() updateTheme(Color3.fromRGB(230, 255, 0), Color3.fromRGB(140, 150, 0)) end)
-        addAction("الثيم البنفسجي الغامق 🔮", function() updateTheme(Color3.fromRGB(120, 0, 255), Color3.fromRGB(60, 0, 140)) end)
-        addAction("الثيم الوردي الباستيل 💕", function() updateTheme(Color3.fromRGB(255, 150, 200), Color3.fromRGB(180, 80, 130)) end)
-        addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
-    end)
-
-    addChilliAccordion("تخصيص خلفيات واجهة السكربت Pro", function(addToggle, addAction, contentHolder)
-        addAction("❌ إغلاق خلفية السكربت", function()
-            applyScriptBackground(0)
-        end)
-
-        local gridHolder = Instance.new("Frame")
-        gridHolder.Size = UDim2.new(1, 0, 0, 240)
-        gridHolder.BackgroundTransparency = 1
-        gridHolder.ZIndex = 3
-        gridHolder.Parent = contentHolder
-
-        local gridLayout = Instance.new("UIGridLayout")
-        gridLayout.CellSize = UDim2.new(0, 150, 0, 85)
-        gridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
-        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        gridLayout.Parent = gridHolder
-
-        for i, url in ipairs(wallUrls) do
-            local cardBtn = Instance.new("ImageButton")
-            cardBtn.Size = UDim2.new(0, 150, 0, 85)
-            cardBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-            cardBtn.Image = url
-            cardBtn.ScaleType = Enum.ScaleType.Crop
-            cardBtn.ZIndex = 4
-            cardBtn.Parent = gridHolder
-            Instance.new("UICorner", cardBtn).CornerRadius = UDim.new(0, 6)
-
-            cardBtn.MouseButton1Click:Connect(function()
-                playUiSound(SOUND_CLICK, 1, 0.35)
-                applyScriptBackground(i)
-            end)
-        end
-    end)
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 280)
-end)
 
 ---------------------------------------------------------
 -- الاستماع للرسائل والبرودكاست المباشر
