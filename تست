@@ -72,7 +72,18 @@ local function fetchAsset(url, fileName)
     return url
 end
 
-local wallUrls = {} -- PS5 clean mode: no large background images
+local wallUrls = {
+    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v58"),
+    fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
+    fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
+    fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2"),
+    fetchAsset("https://l.top4top.io/p_3947ds5ic0.jpg", "bg_3"),
+    fetchAsset("https://a.top4top.io/p_3947hoh3p1.jpg", "bg_4"),
+    fetchAsset("https://b.top4top.io/p_3947wn78l2.jpg", "bg_5"),
+    fetchAsset("https://c.top4top.io/p_3947n55o83.jpg", "bg_6"),
+    fetchAsset("https://d.top4top.io/p_394754mmu4.jpg", "bg_7"),
+    fetchAsset("https://e.top4top.io/p_39475mm3q5.jpg", "bg_8")
+}
 
 local stickerUrls = {
     fetchAsset("https://up6.cc/2026/10/179301030915811.jpg", "stk_1"),
@@ -736,13 +747,15 @@ LoadTitle.TextSize = 18
 LoadTitle.Parent = LoadFrame
 
 local LoadSub = Instance.new("TextLabel")
-LoadSub.Size = UDim2.new(1, 0, 0, 20)
-LoadSub.Position = UDim2.new(0, 0, 0, 98)
+LoadSub.Size = UDim2.new(1, -18, 0, 30)
+LoadSub.Position = UDim2.new(0, 9, 0, 96)
 LoadSub.BackgroundTransparency = 1
-LoadSub.Text = "مرحباً " .. LocalPlayer.DisplayName .. " — جارٍ تجهيز التجربة"
+LoadSub.Text = "تم تطوير وإطلاق هذا السكربت من أيادٍ عربية لكم وبس ❤️"
 LoadSub.TextColor3 = Color3.fromRGB(170, 205, 235)
 LoadSub.Font = Enum.Font.GothamBold
-LoadSub.TextSize = 12
+LoadSub.TextWrapped = true
+LoadSub.TextXAlignment = Enum.TextXAlignment.Center
+LoadSub.TextSize = 11
 LoadSub.Parent = LoadFrame
 
 local BarBg = Instance.new("Frame")
@@ -762,7 +775,7 @@ local LoadFooter = Instance.new("TextLabel")
 LoadFooter.Size = UDim2.new(1, -20, 0, 18)
 LoadFooter.Position = UDim2.new(0, 10, 0, 154)
 LoadFooter.BackgroundTransparency = 1
-LoadFooter.Text = "PLAY  •  CONNECT  •  EXPLORE"
+LoadFooter.Text = "صناعة عربية • أهلاً بكم في KEON"
 LoadFooter.TextColor3 = Color3.fromRGB(95, 170, 235)
 LoadFooter.Font = Enum.Font.GothamBold
 LoadFooter.TextSize = 10
@@ -836,11 +849,19 @@ Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 14)
 
 -- دالة تطبيق الخلفية المتحركة أو العادية بدقة وتجنب السواد تماماً للجوال
 local function applyScriptBackground(idx)
-    selectedScriptBgIndex = 0
-    BgImage.Image = ""
-    BgImage.Visible = false
-    CenterBox.BackgroundTransparency = 0
-    CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+    idx = tonumber(idx) or 0
+    selectedScriptBgIndex = idx
+    if idx > 0 and wallUrls[idx] then
+        BgImage.Image = wallUrls[idx]
+        BgImage.Visible = true
+        CenterBox.BackgroundTransparency = 0.08
+        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+    else
+        BgImage.Image = ""
+        BgImage.Visible = false
+        CenterBox.BackgroundTransparency = 0
+        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+    end
     saveUserSettings()
 end
 applyScriptBackground(selectedScriptBgIndex)
@@ -1431,11 +1452,19 @@ ChatHeaderBtn3.MouseButton1Click:Connect(function()
 end)
 
 local function applyChatBackground(idx)
-    selectedChatBgIndex = 0
-    ChatBgImage.Image = ""
-    ChatBgImage.Visible = false
-    ChatWin.BackgroundTransparency = 0
-    ChatWin.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+    idx = tonumber(idx) or 0
+    selectedChatBgIndex = idx
+    if idx > 0 and wallUrls[idx] then
+        ChatBgImage.Image = wallUrls[idx]
+        ChatBgImage.Visible = true
+        ChatWin.BackgroundTransparency = 0.08
+        ChatWin.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+    else
+        ChatBgImage.Image = ""
+        ChatBgImage.Visible = false
+        ChatWin.BackgroundTransparency = 0
+        ChatWin.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+    end
     saveUserSettings()
 end
 applyChatBackground(selectedChatBgIndex)
@@ -1443,7 +1472,7 @@ applyChatBackground(selectedChatBgIndex)
 local chatFeatTitle = Instance.new("TextLabel")
 chatFeatTitle.Size = UDim2.new(1, 0, 0, 28)
 chatFeatTitle.BackgroundTransparency = 1
-chatFeatTitle.Text = "ℹ️ دليل الشات • PS5"
+chatFeatTitle.Text = "🛡️ دليل الشات والحماية • KEON"
 chatFeatTitle.TextColor3 = currentAccentColor
 chatFeatTitle.Font = Enum.Font.GothamBold
 chatFeatTitle.TextSize = 14
@@ -1736,10 +1765,38 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
     end
 end
 
+local lastChatSentAt = 0
+local blockedChatTerms = {
+    "كس", "كسم", "شرموط", "شرموطة", "قحبة", "منيوك", "يلعن", "fuck", "shit", "bitch", "asshole"
+}
+
+local function normalizeChatText(value)
+    value = string.lower(tostring(value or ""))
+    value = value:gsub("[أإآا]", "ا"):gsub("ى", "ي"):gsub("ة", "ه")
+    value = value:gsub("[%p%c%s]+", "")
+    return value
+end
+
 local function sendMessageNow()
     if ChatInput.Text ~= "" then
         local msg = ChatInput.Text
         ChatInput.Text = ""
+        if #msg > 250 then
+            addChatMessage("KEON • الحماية", "⚠️ الرسالة طويلة جداً. الحد الأقصى 250 حرفاً.", LocalPlayer.UserId, "chat_guard_length", false)
+            return
+        end
+        if os.clock() - lastChatSentAt < 2 then
+            addChatMessage("KEON • الحماية", "⏳ انتظر ثانيتين قبل إرسال رسالة أخرى لتقليل السبام.", LocalPlayer.UserId, "chat_guard_rate", false)
+            return
+        end
+        local normalizedMessage = normalizeChatText(msg)
+        for _, term in ipairs(blockedChatTerms) do
+            if normalizedMessage:find(normalizeChatText(term), 1, true) then
+                addChatMessage("KEON • الحماية", "🛡️ تم منع الرسالة لأنها قد تحتوي على إساءة. رجاءً احترم الجميع.", LocalPlayer.UserId, "chat_guard_toxic", false)
+                return
+            end
+        end
+        lastChatSentAt = os.clock()
         
         task.spawn(function()
             local isMuted = false
@@ -3077,10 +3134,14 @@ BtnSettings.MouseButton1Click:Connect(function()
         addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
     end)
 
-    addChilliAccordion("خلفية الواجهة • PS5 Clean Mode", function(addToggle, addAction, contentHolder)
-        addAction("✓ الخلفية النظيفة مفعّلة — بدون صور مزعجة", function()
-            applyScriptBackground(0)
-        end)
+    addChilliAccordion("🖼️ خلفيات PS5 الفاخرة", function(addToggle, addAction, contentHolder)
+        addAction("🌌 خلفية افتراضية نظيفة", function() applyScriptBackground(0) end)
+        for i, _ in ipairs(wallUrls) do
+            local index = i
+            addAction("✨ تفعيل الخلفية السينمائية " .. tostring(index), function()
+                applyScriptBackground(index)
+            end)
+        end
     end)
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 280)
