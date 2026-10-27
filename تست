@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Sticker + Script Redesign (v62.0.0)
+-- KEON Hub - PS5 Neon Profile + Separate Leaderboards + Safe Reload (v63.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -36,7 +36,7 @@ local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
 KEONProfile.FIREBASE_USAGE_URL = FIREBASE_BASE_URL .. "/usage_stats.json"
 
-local CURRENT_SCRIPT_URL = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"
+local KEON_RESTART_SCRIPT_URL = "" -- ضع رابط RAW الصحيح لنسخة KEON المنشورة هنا لتفعيل إعادة التشغيل للجميع بأمان
 
 local function customRequest(options)
     local req = request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request)
@@ -158,6 +158,7 @@ local selectedChatBgIndex = 0
 KEONProfile.selectedCountryFlag = "🇮🇶"
 KEONProfile.selectedCountryName = "العراق"
 KEONProfile.selectedCountryCode = "IQ"
+local KEONCountryWasSaved = false
 KEONProfile.profileByUserId = {}
 KEONProfile.savedUsageSeconds = 0
 KEONProfile.usageDataLoaded = false
@@ -199,6 +200,7 @@ local function loadUserSettings()
                 KEONProfile.selectedCountryFlag = cfg.countryFlag or KEONProfile.selectedCountryFlag
                 KEONProfile.selectedCountryName = cfg.countryName or KEONProfile.selectedCountryName
                 KEONProfile.selectedCountryCode = cfg.countryCode or KEONProfile.selectedCountryCode
+                KEONCountryWasSaved = cfg.countryCode ~= nil
                 if cfg.r and cfg.g and cfg.b then
                     currentAccentColor = Color3.new(cfg.r, cfg.g, cfg.b)
                 end
@@ -442,7 +444,13 @@ ReloadTimerLbl.TextXAlignment = Enum.TextXAlignment.Center
 ReloadTimerLbl.ZIndex = 801
 ReloadTimerLbl.Parent = ReloadFrame
 
+local RELOAD_SEEN_FILE = "KEON_ReloadSeen_" .. tostring(LocalPlayer.UserId) .. ".txt"
 local lastReloadId = nil
+pcall(function()
+    if type(readfile) == "function" and type(isfile) == "function" and isfile(RELOAD_SEEN_FILE) then
+        lastReloadId = readfile(RELOAD_SEEN_FILE)
+    end
+end)
 task.spawn(function()
     while true do
         pcall(function()
@@ -451,8 +459,9 @@ task.spawn(function()
                 local data = safeDecode(res.Body)
                 if data and data.active == true and data.reloadId and data.reloadId ~= lastReloadId then
                     local timePassed = os.time() - (data.startTime or os.time())
-                    if timePassed < 15 then
-                        lastReloadId = data.reloadId
+                    if timePassed < 120 then
+                        lastReloadId = tostring(data.reloadId)
+                        pcall(function() if type(writefile) == "function" then writefile(RELOAD_SEEN_FILE, lastReloadId) end end)
                         ReloadFrame.Visible = true
                         loadAvatarThumbnail(tonumber(data.creatorUserId or 0), ReloadAvatarImg)
                         ReloadReasonLbl.Text = "التفاصيل: " .. tostring(data.reason or "تحديث عام")
@@ -469,15 +478,25 @@ task.spawn(function()
                         ReloadTimerLbl.Text = "⟳ جارٍ إعادة تشغيل النظام…"
                         task.wait(0.5)
                         
-                        if parent:FindFirstChild("KEONProV47UI") then parent.KEONProV47UI:Destroy() end
-                        if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
-                        if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
-                        if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
-                        if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
-                        
-                        task.spawn(function()
-                            loadstring(game:HttpGet(CURRENT_SCRIPT_URL))()
-                        end)
+                        if type(KEON_RESTART_SCRIPT_URL) ~= "string" or KEON_RESTART_SCRIPT_URL == "" then
+                            ReloadReasonLbl.Text = "لم تُضبط وصلة RAW لنسخة KEON؛ أبقينا الواجهة حتى لا تُغلق بلا إعادة تشغيل."
+                            ReloadTimerLbl.Text = "أضف رابط KEON المنشور لتفعيل إعادة التشغيل"
+                            task.wait(5)
+                            ReloadFrame.Visible = false
+                        else
+                            if parent:FindFirstChild("KEONProV47UI") then parent.KEONProV47UI:Destroy() end
+                            if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
+                            if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
+                            if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
+                            if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
+                            task.spawn(function()
+                                local ok, source = pcall(function() return game:HttpGet(KEON_RESTART_SCRIPT_URL) end)
+                                if ok and type(source) == "string" and #source > 100 then
+                                    local compileOk, compiled = pcall(loadstring, source)
+                                    if compileOk and type(compiled) == "function" then pcall(compiled) end
+                                end
+                            end)
+                        end
                     end
                 end
             end
@@ -3293,6 +3312,26 @@ KEONProfile.ARAB_COUNTRIES = {
     {flag="🇩🇯", name="جيبوتي", code="DJ"}, {flag="🇰🇲", name="جزر القمر", code="KM"}
 }
 
+-- اكتشاف الدولة تلقائياً عند توفرها من Roblox؛ إذا لم تتوفر أو لم تكن عربية، يبقى اختيار المستخدم محفوظاً.
+if not KEONCountryWasSaved then
+    pcall(function()
+        local LocalizationService = game:GetService("LocalizationService")
+        local detectedCode = LocalizationService:GetCountryRegionForPlayerAsync(LocalPlayer)
+        if type(detectedCode) == "string" then
+            detectedCode = string.upper(detectedCode)
+            for _, country in ipairs(KEONProfile.ARAB_COUNTRIES) do
+                if country.code == detectedCode then
+                    KEONProfile.selectedCountryFlag = country.flag
+                    KEONProfile.selectedCountryName = country.name
+                    KEONProfile.selectedCountryCode = country.code
+                    break
+                end
+            end
+        end
+    end)
+    saveUserSettings()
+end
+
 KEONProfile.BtnProfile = createProStyleBtn("تسجيل دخول", "right")
 
 local function addProfileHeader(mode)
@@ -3364,10 +3403,11 @@ local function addProfileHeader(mode)
     tabs.Size = UDim2.new(1, -4, 0, 38)
     tabs.BackgroundTransparency = 1
     tabs.ZIndex = 3
+    tabs.Visible = mode == "countries"
     tabs.Parent = CenterScroll
 
     local countryTab = Instance.new("TextButton")
-    countryTab.Size = UDim2.new(0.5, -4, 1, 0)
+    countryTab.Size = UDim2.new(1, 0, 1, 0)
     countryTab.Position = UDim2.new(0, 0, 0, 0)
     countryTab.BackgroundColor3 = mode == "countries" and currentAccentColor or Color3.fromRGB(18, 34, 57)
     countryTab.Text = "🌍 اختيار الدولة"
@@ -3379,22 +3419,34 @@ local function addProfileHeader(mode)
     countryTab.Parent = tabs
     Instance.new("UICorner", countryTab).CornerRadius = UDim.new(0, 10)
 
-    local topTab = Instance.new("TextButton")
-    topTab.Size = UDim2.new(0.5, -4, 1, 0)
-    topTab.Position = UDim2.new(0.5, 4, 0, 0)
-    topTab.BackgroundColor3 = mode == "top" and currentAccentColor or Color3.fromRGB(18, 34, 57)
-    topTab.Text = "🏆 توب 100"
-    topTab.TextColor3 = Color3.fromRGB(255,255,255)
-    topTab.Font = Enum.Font.GothamBold
-    topTab.TextSize = 11
-    topTab.TextScaled = true
-    topTab.ZIndex = 4
-    topTab.Parent = tabs
-    Instance.new("UICorner", topTab).CornerRadius = UDim.new(0, 10)
-
     countryTab.MouseButton1Click:Connect(function() playUiSound(SOUND_CLICK,1,0.3); KEONProfile.showProfilePage("countries") end)
-    topTab.MouseButton1Click:Connect(function() playUiSound(SOUND_CLICK,1,0.3); KEONProfile.showProfilePage("top") end)
     return hero
+end
+
+local function addTopLeaderboardSwitch(activeMode)
+    local switch = Instance.new("Frame")
+    switch.Name = "KEONTopLeaderboardSwitch"
+    switch.Size = UDim2.new(1, -4, 0, 36)
+    switch.BackgroundTransparency = 1
+    switch.ZIndex = 3
+    switch.Parent = CenterScroll
+    local function makeSwitchButton(text, xScale, mode, active)
+        local b = Instance.new("TextButton")
+        b.Size = UDim2.new(0.5, -4, 1, 0)
+        b.Position = UDim2.new(xScale, xScale == 0 and 0 or 4, 0, 0)
+        b.BackgroundColor3 = active and currentAccentColor or Color3.fromRGB(13, 31, 52)
+        b.Text = text
+        b.TextColor3 = Color3.fromRGB(255,255,255)
+        b.Font = Enum.Font.GothamBold
+        b.TextSize = 11
+        b.TextScaled = true
+        b.ZIndex = 4
+        b.Parent = switch
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 9)
+        b.MouseButton1Click:Connect(function() KEONProfile.showProfilePage(mode) end)
+    end
+    makeSwitchButton("⏱️ توب وقت السكربت", 0, "top", activeMode == "top")
+    makeSwitchButton("🥚 توب سرقة البيض", 0.5, "egg_top", activeMode == "egg_top")
 end
 
 KEONProfile.showProfilePage = function(mode)
@@ -3469,8 +3521,108 @@ KEONProfile.showProfilePage = function(mode)
         note.TextXAlignment = Enum.TextXAlignment.Right
         note.ZIndex = 3
         note.Parent = CenterScroll
+    elseif mode == "egg_top" then
+        intro.Text = "🥚 ترتيب لاعبي سرقة البيض حسب السرعة والفلوس الظاهرة داخل السيرفر"
+        addTopLeaderboardSwitch("egg_top")
+        local refreshBtn = Instance.new("TextButton")
+        refreshBtn.Size = UDim2.new(1, -4, 0, 30)
+        refreshBtn.BackgroundColor3 = Color3.fromRGB(12, 42, 68)
+        refreshBtn.Text = "↻ تحديث توب سرقة البيض"
+        refreshBtn.TextColor3 = Color3.fromRGB(255,255,255)
+        refreshBtn.Font = Enum.Font.GothamBold
+        refreshBtn.TextSize = 11
+        refreshBtn.ZIndex = 4
+        refreshBtn.Parent = CenterScroll
+        Instance.new("UICorner", refreshBtn).CornerRadius = UDim.new(0, 9)
+        refreshBtn.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("egg_top") end)
+
+        local statRecords = {}
+        local function findStat(plr, patterns)
+            local leaderstats = plr:FindFirstChild("leaderstats")
+            if not leaderstats then return nil end
+            for _, child in ipairs(leaderstats:GetChildren()) do
+                if child:IsA("IntValue") or child:IsA("NumberValue") then
+                    local low = string.lower(child.Name)
+                    for _, pat in ipairs(patterns) do
+                        if low:find(pat, 1, true) then return tonumber(child.Value) end
+                    end
+                end
+            end
+            return nil
+        end
+        for _, plr in ipairs(Players:GetPlayers()) do
+            local speed = findStat(plr, {"speed", "velocity", "سرعة"})
+            local money = findStat(plr, {"money", "cash", "coin", "currency", "dollar", "فلوس", "مال"})
+            if speed ~= nil or money ~= nil then
+                table.insert(statRecords, {userId = plr.UserId, name = plr.Name, displayName = plr.DisplayName, speed = speed or -1, money = money or 0})
+            end
+        end
+        table.sort(statRecords, function(a,b)
+            if a.speed ~= b.speed then return a.speed > b.speed end
+            return a.money > b.money
+        end)
+        if #statRecords == 0 then
+            local empty = Instance.new("TextLabel")
+            empty.Size = UDim2.new(1, -4, 0, 76)
+            empty.BackgroundTransparency = 1
+            empty.Text = "ما لقيت قيم سرعة أو فلوس داخل leaderstats. هذا التوب يقرأ بيانات اللعبة الظاهرة في السيرفر الحالي فقط، وما يخترع أرقام غير موجودة."
+            empty.TextColor3 = Color3.fromRGB(186, 206, 226)
+            empty.Font = Enum.Font.GothamBold
+            empty.TextSize = 11
+            empty.TextWrapped = true
+            empty.ZIndex = 3
+            empty.Parent = CenterScroll
+        else
+            for rank, record in ipairs(statRecords) do
+                if rank > 100 then break end
+                local row = Instance.new("Frame")
+                row.Size = UDim2.new(1, -4, 0, 62)
+                row.BackgroundColor3 = rank <= 3 and Color3.fromRGB(14, 42, 65) or Color3.fromRGB(10, 21, 39)
+                row.BorderSizePixel = 0
+                row.ZIndex = 3
+                row.Parent = CenterScroll
+                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 11)
+                local stroke = Instance.new("UIStroke", row)
+                stroke.Color = rank == 1 and Color3.fromRGB(255,204,77) or currentAccentColor
+                stroke.Thickness = rank <= 3 and 1.4 or 0.8
+                local avatar = Instance.new("ImageLabel")
+                avatar.Size = UDim2.new(0, 46, 0, 50)
+                avatar.Position = UDim2.new(0, 7, 0.5, -25)
+                avatar.BackgroundColor3 = Color3.fromRGB(18,39,62)
+                avatar.BorderSizePixel = 0
+                avatar.ScaleType = Enum.ScaleType.Fit
+                avatar.ZIndex = 4
+                avatar.Parent = row
+                Instance.new("UICorner", avatar).CornerRadius = UDim.new(0, 8)
+                KEONProfile.loadAvatarBodyThumbnail(record.userId, avatar)
+                local label = Instance.new("TextLabel")
+                label.Size = UDim2.new(1, -70, 0, 24)
+                label.Position = UDim2.new(0, 60, 0, 5)
+                label.BackgroundTransparency = 1
+                label.Text = string.format("%02d  %s", rank, record.displayName or record.name)
+                label.TextColor3 = Color3.fromRGB(245,250,255)
+                label.Font = Enum.Font.GothamBold
+                label.TextSize = 11
+                label.TextXAlignment = Enum.TextXAlignment.Right
+                label.TextTruncate = Enum.TextTruncate.AtEnd
+                label.ZIndex = 4
+                label.Parent = row
+                local stats = Instance.new("TextLabel")
+                stats.Size = UDim2.new(1, -70, 0, 23)
+                stats.Position = UDim2.new(0, 60, 0, 31)
+                stats.BackgroundTransparency = 1
+                stats.Text = "⚡ سرعة: " .. (record.speed >= 0 and tostring(record.speed) or "غير متاحة") .. "   •   💰 " .. tostring(record.money)
+                stats.TextColor3 = Color3.fromRGB(104,207,255)
+                stats.Font = Enum.Font.GothamBold
+                stats.TextSize = 10
+                stats.TextXAlignment = Enum.TextXAlignment.Right
+                stats.ZIndex = 4
+                stats.Parent = row
+            end
+        end
     else
         intro.Text = "أفضل 100 لاعب حسب وقت استخدام KEON المحفوظ"
+        addTopLeaderboardSwitch("top")
         local refreshBtn = Instance.new("TextButton")
         refreshBtn.Size = UDim2.new(1, -4, 0, 32)
         refreshBtn.BackgroundColor3 = Color3.fromRGB(12, 42, 68)
@@ -3591,6 +3743,11 @@ KEONProfile.showProfilePage = function(mode)
                 timeLabel.ZIndex = 4
                 timeLabel.Parent = row
             end
+            task.defer(function()
+                if CenterScroll and CenterScroll.Parent then
+                    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 24)
+                end
+            end)
         end)
     end
     task.defer(function()
@@ -3599,6 +3756,9 @@ KEONProfile.showProfilePage = function(mode)
 end
 
 KEONProfile.BtnProfile.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("countries") end)
+
+local BtnTopPlayers = createProStyleBtn("توب اللاعبين 🏆", "right")
+BtnTopPlayers.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("top") end)
 
 ---------------------------------------------------------
 -- تبويب "الميديا والصوتيات"
@@ -4399,6 +4559,12 @@ if LocalPlayer.Name == "Dms921" then
             Instance.new("UICorner", triggerReloadBtn).CornerRadius = UDim.new(0, 9)
 
             triggerReloadBtn.MouseButton1Click:Connect(function()
+                if type(KEON_RESTART_SCRIPT_URL) ~= "string" or KEON_RESTART_SCRIPT_URL == "" then
+                    triggerReloadBtn.Text = "أضف رابط RAW لنسخة KEON أولاً"
+                    task.wait(2.5)
+                    triggerReloadBtn.Text = "إعادة تشغيل للجميع • 10 ثوانٍ"
+                    return
+                end
                 local reason = reloadReasonBox.Text ~= "" and reloadReasonBox.Text or "تحديث السكربت وتجهيز المميزات الحصرية."
                 triggerReloadBtn.Text = "جارٍ إرسال التنبيه…"
                 pcall(function()
