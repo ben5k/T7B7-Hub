@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.1.0)
+-- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
