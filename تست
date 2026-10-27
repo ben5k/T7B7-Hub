@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v58.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v59.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -840,7 +840,8 @@ centerSurfaceGradient.Parent = CenterBox
 local BgImage = Instance.new("ImageLabel")
 BgImage.Name = "BgImage"
 BgImage.Size = UDim2.new(1, 0, 1, 0)
-BgImage.BackgroundTransparency = 1
+BgImage.BackgroundTransparency = 0
+BgImage.ImageTransparency = 0
 BgImage.Visible = false
 BgImage.ScaleType = Enum.ScaleType.Crop
 BgImage.ZIndex = 0
@@ -854,8 +855,9 @@ local function applyScriptBackground(idx)
     if idx > 0 and wallUrls[idx] then
         BgImage.Image = wallUrls[idx]
         BgImage.Visible = true
-        CenterBox.BackgroundTransparency = 0.08
+        CenterBox.BackgroundTransparency = 0
         CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+        BgImage.ImageTransparency = 0
     else
         BgImage.Image = ""
         BgImage.Visible = false
@@ -1213,7 +1215,8 @@ Instance.new("UICorner", ChatWin).CornerRadius = UDim.new(0, 16)
 
 local ChatBgImage = Instance.new("ImageLabel")
 ChatBgImage.Size = UDim2.new(1, 0, 1, 0)
-ChatBgImage.BackgroundTransparency = 1
+ChatBgImage.BackgroundTransparency = 0
+ChatBgImage.ImageTransparency = 0
 ChatBgImage.Visible = false
 ChatBgImage.ScaleType = Enum.ScaleType.Crop
 ChatBgImage.ZIndex = 0
@@ -1457,8 +1460,9 @@ local function applyChatBackground(idx)
     if idx > 0 and wallUrls[idx] then
         ChatBgImage.Image = wallUrls[idx]
         ChatBgImage.Visible = true
-        ChatWin.BackgroundTransparency = 0.08
+        ChatWin.BackgroundTransparency = 0
         ChatWin.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+        ChatBgImage.ImageTransparency = 0
     else
         ChatBgImage.Image = ""
         ChatBgImage.Visible = false
@@ -1472,7 +1476,7 @@ applyChatBackground(selectedChatBgIndex)
 local chatFeatTitle = Instance.new("TextLabel")
 chatFeatTitle.Size = UDim2.new(1, 0, 0, 28)
 chatFeatTitle.BackgroundTransparency = 1
-chatFeatTitle.Text = "🛡️ دليل الشات والحماية • KEON"
+chatFeatTitle.Text = "🛡️ تعليمات الشات والحماية • KEON"
 chatFeatTitle.TextColor3 = currentAccentColor
 chatFeatTitle.Font = Enum.Font.GothamBold
 chatFeatTitle.TextSize = 14
@@ -1524,9 +1528,11 @@ ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, 230)
 
 local StickerModal = Instance.new("Frame")
 StickerModal.Name = "StickerModal"
-StickerModal.Size = UDim2.new(0, 220, 0, 160)
-StickerModal.Position = UDim2.new(1, -225, 1, -200)
-StickerModal.BackgroundColor3 = Color3.fromRGB(17, 25, 46)
+StickerModal.Size = UDim2.new(0, 232, 0, 176)
+StickerModal.Position = UDim2.new(1, -238, 1, -212)
+StickerModal.BackgroundColor3 = Color3.fromRGB(5, 12, 25)
+StickerModal.BackgroundTransparency = 0
+StickerModal.ClipsDescendants = true
 StickerModal.Visible = false
 StickerModal.ZIndex = 50
 StickerModal.Parent = ChatWin
@@ -1539,13 +1545,15 @@ stickerModalStroke.Parent = StickerModal
 
 local stickerModalGrid = Instance.new("UIGridLayout")
 stickerModalGrid.CellSize = UDim2.new(0, 60, 0, 60)
-stickerModalGrid.CellPadding = UDim2.new(0, 8, 0, 8)
+stickerModalGrid.CellPadding = UDim2.new(0, 7, 0, 7)
 stickerModalGrid.SortOrder = Enum.SortOrder.LayoutOrder
 stickerModalGrid.Parent = StickerModal
 
 local stickerPadding = Instance.new("UIPadding")
 stickerPadding.PaddingTop = UDim.new(0, 10)
 stickerPadding.PaddingLeft = UDim.new(0, 10)
+stickerPadding.PaddingRight = UDim.new(0, 10)
+stickerPadding.PaddingBottom = UDim.new(0, 10)
 stickerPadding.Parent = StickerModal
 
 for _, sUrl in ipairs(stickerUrls) do
@@ -1553,6 +1561,7 @@ for _, sUrl in ipairs(stickerUrls) do
     stBtn.Size = UDim2.new(0, 60, 0, 60)
     stBtn.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
     stBtn.Image = sUrl
+    stBtn.ImageTransparency = 0
     stBtn.ScaleType = Enum.ScaleType.Fit
     stBtn.ZIndex = 51
     stBtn.Parent = StickerModal
@@ -1599,7 +1608,7 @@ local function showPrivateScriptUserBubble(userId, text)
     local bubbleFrame = Instance.new("Frame")
     bubbleFrame.Size = UDim2.new(1, 0, 1, 0)
     bubbleFrame.BackgroundColor3 = Color3.fromRGB(15, 22, 42)
-    bubbleFrame.BackgroundTransparency = 0.15
+    bubbleFrame.BackgroundTransparency = 0
     bubbleFrame.Parent = bb
     Instance.new("UICorner", bubbleFrame).CornerRadius = UDim.new(0, 11)
 
@@ -1738,6 +1747,7 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
         stickerContent.Position = UDim2.new(1, -95, 0, 32)
         stickerContent.BackgroundColor3 = Color3.fromRGB(15, 22, 42)
         stickerContent.Image = text
+        stickerContent.ImageTransparency = 0
         stickerContent.ScaleType = Enum.ScaleType.Fit
         stickerContent.ZIndex = 4
         stickerContent.Parent = msgFrame
@@ -1933,12 +1943,13 @@ end)
 ---------------------------------------------------------
 local function createProStyleBtn(text, side)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 36)
-    btn.BackgroundColor3 = Color3.fromRGB(12, 23, 43)
+    btn.Size = UDim2.new(1, 0, 0, 39)
+    btn.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 13
+    btn.TextSize = 13.5
+    btn.AutoButtonColor = false
     btn.Parent = (side == "left") and LeftWing or RightWing
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
 
@@ -1951,12 +1962,12 @@ local function createProStyleBtn(text, side)
     table.insert(registeredWingStrokes, stroke)
     btn.MouseEnter:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(17, 48, 78)
+            BackgroundColor3 = Color3.fromRGB(0, 88, 145)
         }):Play()
     end)
     btn.MouseLeave:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(12, 23, 43)
+            BackgroundColor3 = Color3.fromRGB(8, 18, 36)
         }):Play()
     end)
     return btn
@@ -1965,14 +1976,14 @@ end
 local function addChilliAccordion(titleText, builderFunc)
     local folderFrame = Instance.new("Frame")
     folderFrame.Size = UDim2.new(1, 0, 0, 36)
-    folderFrame.BackgroundColor3 = Color3.fromRGB(10, 19, 36)
+    folderFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
     folderFrame.BackgroundTransparency = 0
     folderFrame.ZIndex = 3
     folderFrame.Parent = CenterScroll
     Instance.new("UICorner", folderFrame).CornerRadius = UDim.new(0, 10)
     local folderStroke = Instance.new("UIStroke")
-    folderStroke.Color = Color3.fromRGB(24, 76, 120)
-    folderStroke.Thickness = 0.8
+    folderStroke.Color = currentAccentColor
+    folderStroke.Thickness = 1.2
     folderStroke.Parent = folderFrame
 
     local headBtn = Instance.new("TextButton")
@@ -1981,7 +1992,7 @@ local function addChilliAccordion(titleText, builderFunc)
     headBtn.Text = "  ›  " .. titleText
     headBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     headBtn.Font = Enum.Font.GothamBold
-    headBtn.TextSize = 15
+    headBtn.TextSize = 14.5
     headBtn.TextXAlignment = Enum.TextXAlignment.Center
     headBtn.ZIndex = 3
     headBtn.Parent = folderFrame
@@ -2139,6 +2150,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     mapBanner.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
     mapBanner.Image = "rbxthumb://type=Asset&id=" .. tostring(placeId) .. "&w=768&h=432"
     mapBanner.ScaleType = Enum.ScaleType.Crop
+    mapBanner.ImageTransparency = 0
     mapBanner.ZIndex = 3
     mapBanner.Parent = CenterScroll
     Instance.new("UICorner", mapBanner).CornerRadius = UDim.new(0, 11)
@@ -2158,7 +2170,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     Instance.new("UICorner", bannerTitle).CornerRadius = UDim.new(0, 9)
 
     local updatesFrame = Instance.new("Frame")
-    updatesFrame.Size = UDim2.new(1, 0, 0, 130)
+    updatesFrame.Size = UDim2.new(1, 0, 0, 142)
     updatesFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
     updatesFrame.ZIndex = 3
     updatesFrame.Parent = CenterScroll
@@ -2168,7 +2180,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ سجل التحديثات • v58"
+    updatesTitle.Text = "✨ آخر التحديثات • KEON v59"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.GothamBold
     updatesTitle.TextSize = 14
@@ -2178,19 +2190,60 @@ BtnMainHome.MouseButton1Click:Connect(function()
     table.insert(activeNameLabels, updatesTitle)
 
     local updatesDesc = Instance.new("TextLabel")
-    updatesDesc.Size = UDim2.new(1, -10, 0, 100)
-    updatesDesc.Position = UDim2.new(0, 5, 0, 26)
+    updatesDesc.Size = UDim2.new(1, -18, 0, 110)
+    updatesDesc.Position = UDim2.new(0, 9, 0, 27)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• ترتيب أدوات الخرائط والإعدادات ضمن الواجهة.\n• تحسين عرض عناصر الصوت والتحكم بها.\n• ضبط الخلفيات والشفافية لتناسب الواجهة الداكنة.\n• تحسين وضوح النصوص وسلاسة التنقل."
+    updatesDesc.Text = "• إعادة تصميم الرئيسية وبطاقات عرض السكربتات.\n• جعل الخلفيات معتمة بالكامل لزيادة وضوح النصوص.\n• تحسين نافذة الملصقات وتوزيعها داخل الشات.\n• إضافة مشغل فيديو يتطلب رقم فيديو Roblox صالحاً.\n• ترتيب التعليمات والتحديثات داخل الصفحة الرئيسية."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.GothamBold
-    updatesDesc.TextSize = 11.5
+    updatesDesc.TextSize = 11
     updatesDesc.TextXAlignment = Enum.TextXAlignment.Right
     updatesDesc.TextYAlignment = Enum.TextYAlignment.Top
     updatesDesc.ZIndex = 4
     updatesDesc.Parent = updatesFrame
 
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
+    local guideFrame = Instance.new("Frame")
+    guideFrame.Name = "HomeInstructionsCard"
+    guideFrame.Size = UDim2.new(1, 0, 0, 150)
+    guideFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
+    guideFrame.BackgroundTransparency = 0
+    guideFrame.ZIndex = 3
+    guideFrame.Parent = CenterScroll
+    Instance.new("UICorner", guideFrame).CornerRadius = UDim.new(0, 14)
+    local guideStroke = Instance.new("UIStroke")
+    guideStroke.Color = currentAccentColor
+    guideStroke.Thickness = 1.6
+    guideStroke.Parent = guideFrame
+    table.insert(registeredOptionStrokes, guideStroke)
+
+    local guideTitle = Instance.new("TextLabel")
+    guideTitle.Size = UDim2.new(1, -20, 0, 28)
+    guideTitle.Position = UDim2.new(0, 10, 0, 8)
+    guideTitle.BackgroundTransparency = 1
+    guideTitle.Text = "📘 التعليمات • اقرأ قبل الاستخدام"
+    guideTitle.TextColor3 = currentAccentColor
+    guideTitle.Font = Enum.Font.GothamBold
+    guideTitle.TextSize = 14
+    guideTitle.TextXAlignment = Enum.TextXAlignment.Right
+    guideTitle.ZIndex = 4
+    guideTitle.Parent = guideFrame
+    table.insert(activeNameLabels, guideTitle)
+
+    local guideDesc = Instance.new("TextLabel")
+    guideDesc.Size = UDim2.new(1, -20, 0, 108)
+    guideDesc.Position = UDim2.new(0, 10, 0, 37)
+    guideDesc.BackgroundTransparency = 1
+    guideDesc.Text = "١) اختر القسم من القائمة الجانبية.\n٢) من (سكربتات) اختر الماب ثم افتح تفاصيل السكربت.\n٣) الخلفيات قابلة للتغيير من الإعدادات، وستبقى معتمة وواضحة.\n٤) الملصقات تعمل عبر الشات العام عند تحميل صورها بنجاح.\n٥) مشغل الفيديو يقبل رقم فيديو Roblox فقط؛ الروابط الخارجية لا تعمل مباشرة.\n٦) استخدم الأدوات على مسؤوليتك والتزم بقوانين اللعبة."
+    guideDesc.TextColor3 = Color3.fromRGB(245, 248, 255)
+    guideDesc.Font = Enum.Font.Gotham
+    guideDesc.TextSize = 11
+    guideDesc.TextXAlignment = Enum.TextXAlignment.Right
+    guideDesc.TextYAlignment = Enum.TextYAlignment.Top
+    guideDesc.TextWrapped = true
+    guideDesc.ZIndex = 4
+    guideDesc.Parent = guideFrame
+
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 25)
 end)
 
 ---------------------------------------------------------
@@ -2519,8 +2572,9 @@ BtnScripts.MouseButton1Click:Connect(function()
 
     local function addMapCard(mapTitle, mapImgUrl, scriptsList)
         local mapCard = Instance.new("Frame")
-        mapCard.Size = UDim2.new(1, 0, 0, 140)
-        mapCard.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+        mapCard.Size = UDim2.new(1, 0, 0, 154)
+        mapCard.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
+        mapCard.BackgroundTransparency = 0
         mapCard.ZIndex = 3
         mapCard.Parent = CenterScroll
         Instance.new("UICorner", mapCard).CornerRadius = UDim.new(0, 14)
@@ -2532,8 +2586,9 @@ BtnScripts.MouseButton1Click:Connect(function()
         table.insert(registeredOptionStrokes, mapCardStroke)
 
         local mapImg = Instance.new("ImageLabel")
-        mapImg.Size = UDim2.new(1, -16, 0, 80)
+        mapImg.Size = UDim2.new(1, -16, 0, 88)
         mapImg.Position = UDim2.new(0, 8, 0, 8)
+        mapImg.ImageTransparency = 0
         mapImg.BackgroundColor3 = Color3.fromRGB(31, 44, 73)
         mapImg.Image = mapImgUrl
         mapImg.ScaleType = Enum.ScaleType.Crop
@@ -2543,7 +2598,7 @@ BtnScripts.MouseButton1Click:Connect(function()
 
         local mapNameLbl = Instance.new("TextLabel")
         mapNameLbl.Size = UDim2.new(1, -110, 0, 36)
-        mapNameLbl.Position = UDim2.new(0, 100, 0, 94)
+        mapNameLbl.Position = UDim2.new(0, 100, 0, 105)
         mapNameLbl.BackgroundTransparency = 1
         mapNameLbl.Text = mapTitle
         mapNameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -2555,7 +2610,7 @@ BtnScripts.MouseButton1Click:Connect(function()
 
         local showBtn = Instance.new("TextButton")
         showBtn.Size = UDim2.new(0, 85, 0, 30)
-        showBtn.Position = UDim2.new(0, 10, 0, 97)
+        showBtn.Position = UDim2.new(0, 10, 0, 108)
         showBtn.BackgroundColor3 = currentAccentColor
         showBtn.Text = "فتح التفاصيل ↗"
         showBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -2787,7 +2842,104 @@ BtnMedia.MouseButton1Click:Connect(function()
         end)
     end
 
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 25)
+    local videoCard = Instance.new("Frame")
+    videoCard.Name = "RobloxVideoPlayerCard"
+    videoCard.Size = UDim2.new(1, 0, 0, 255)
+    videoCard.BackgroundColor3 = Color3.fromRGB(5, 12, 25)
+    videoCard.BackgroundTransparency = 0
+    videoCard.ZIndex = 3
+    videoCard.Parent = CenterScroll
+    Instance.new("UICorner", videoCard).CornerRadius = UDim.new(0, 13)
+    local videoStroke = Instance.new("UIStroke")
+    videoStroke.Color = currentAccentColor
+    videoStroke.Thickness = 1.5
+    videoStroke.Parent = videoCard
+    table.insert(registeredOptionStrokes, videoStroke)
+
+    local videoTitle = Instance.new("TextLabel")
+    videoTitle.Size = UDim2.new(1, -16, 0, 24)
+    videoTitle.Position = UDim2.new(0, 8, 0, 6)
+    videoTitle.BackgroundTransparency = 1
+    videoTitle.Text = "🎬 مشغل فيديو Roblox"
+    videoTitle.TextColor3 = currentAccentColor
+    videoTitle.Font = Enum.Font.GothamBold
+    videoTitle.TextSize = 14
+    videoTitle.TextXAlignment = Enum.TextXAlignment.Right
+    videoTitle.ZIndex = 4
+    videoTitle.Parent = videoCard
+
+    local videoIdBox = Instance.new("TextBox")
+    videoIdBox.Size = UDim2.new(1, -16, 0, 32)
+    videoIdBox.Position = UDim2.new(0, 8, 0, 34)
+    videoIdBox.BackgroundColor3 = Color3.fromRGB(18, 30, 50)
+    videoIdBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    videoIdBox.PlaceholderText = "أدخل رقم فيديو Roblox (Asset ID)"
+    videoIdBox.PlaceholderColor3 = Color3.fromRGB(165, 180, 200)
+    videoIdBox.Text = ""
+    videoIdBox.ClearTextOnFocus = false
+    videoIdBox.Font = Enum.Font.Gotham
+    videoIdBox.TextSize = 12
+    videoIdBox.TextXAlignment = Enum.TextXAlignment.Center
+    videoIdBox.ZIndex = 4
+    videoIdBox.Parent = videoCard
+    Instance.new("UICorner", videoIdBox).CornerRadius = UDim.new(0, 8)
+
+    local videoSurface = Instance.new("VideoFrame")
+    videoSurface.Size = UDim2.new(1, -16, 0, 142)
+    videoSurface.Position = UDim2.new(0, 8, 0, 74)
+    videoSurface.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    videoSurface.BackgroundTransparency = 0
+    videoSurface.Video = ""
+    videoSurface.Looped = false
+    videoSurface.Volume = 1
+    videoSurface.ZIndex = 4
+    videoSurface.Parent = videoCard
+    Instance.new("UICorner", videoSurface).CornerRadius = UDim.new(0, 8)
+
+    local videoPlayBtn = Instance.new("TextButton")
+    videoPlayBtn.Size = UDim2.new(0.5, -12, 0, 28)
+    videoPlayBtn.Position = UDim2.new(0, 8, 1, -34)
+    videoPlayBtn.BackgroundColor3 = currentAccentColor
+    videoPlayBtn.Text = "تشغيل ▶"
+    videoPlayBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    videoPlayBtn.Font = Enum.Font.GothamBold
+    videoPlayBtn.TextSize = 12
+    videoPlayBtn.ZIndex = 4
+    videoPlayBtn.Parent = videoCard
+    Instance.new("UICorner", videoPlayBtn).CornerRadius = UDim.new(0, 8)
+
+    local videoStopBtn = Instance.new("TextButton")
+    videoStopBtn.Size = UDim2.new(0.5, -12, 0, 28)
+    videoStopBtn.Position = UDim2.new(0.5, 4, 1, -34)
+    videoStopBtn.BackgroundColor3 = Color3.fromRGB(155, 45, 65)
+    videoStopBtn.Text = "إيقاف ■"
+    videoStopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    videoStopBtn.Font = Enum.Font.GothamBold
+    videoStopBtn.TextSize = 12
+    videoStopBtn.ZIndex = 4
+    videoStopBtn.Parent = videoCard
+    Instance.new("UICorner", videoStopBtn).CornerRadius = UDim.new(0, 8)
+
+    videoPlayBtn.MouseButton1Click:Connect(function()
+        local assetId = videoIdBox.Text:match("%d+")
+        if not assetId then
+            videoPlayBtn.Text = "أدخل رقم صحيح"
+            task.delay(1.5, function() if videoPlayBtn.Parent then videoPlayBtn.Text = "تشغيل ▶" end end)
+            return
+        end
+        local ok = pcall(function()
+            videoSurface.Video = "rbxassetid://" .. assetId
+            videoSurface:Play()
+        end)
+        videoPlayBtn.Text = ok and "جارٍ التشغيل…" or "تعذّر التشغيل"
+        task.delay(2, function() if videoPlayBtn.Parent then videoPlayBtn.Text = "تشغيل ▶" end end)
+    end)
+    videoStopBtn.MouseButton1Click:Connect(function()
+        pcall(function() videoSurface:Pause(); videoSurface.TimePosition = 0 end)
+        videoPlayBtn.Text = "تشغيل ▶"
+    end)
+
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 275)
 end)
 
 local BtnActivations = createProStyleBtn("تفعيلات", "left")
@@ -3153,6 +3305,7 @@ end)
 if LocalPlayer.Name == "Dms921" then
     local BtnAdmin = createProStyleBtn("لوحة الأدمن", "right")
     BtnAdmin.MouseButton1Click:Connect(function()
+        if LocalPlayer.Name ~= "Dms921" then return end
         playUiSound(SOUND_CLICK, 1, 0.35)
         clearCenter()
 
