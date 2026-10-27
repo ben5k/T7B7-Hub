@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v59.0.0)
+-- KEON Hub - PlayStation Dashboard UI Refresh (v60.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -799,18 +799,29 @@ ScreenGui.Parent = parent
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 560, 0, 360)
-MainFrame.Position = UDim2.new(0.5, -280, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 800, 0, 460)
+MainFrame.Position = UDim2.new(0.5, -400, 0.5, -230)
 MainFrame.BackgroundTransparency = 1
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
 
+-- Dashboard visual refresh: prevent the wide PS5 layout from extending beyond smaller screens.
+local camera = workspace.CurrentCamera
+if camera then
+    local viewport = camera.ViewportSize
+    if viewport.X < 850 then
+        MainFrame.Size = UDim2.new(0, math.max(620, viewport.X - 24), 0, math.min(460, viewport.Y - 30))
+        MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+        MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    end
+end
+
 local CenterGlow = Instance.new("Frame")
 CenterGlow.Name = "PS5SoftGlow"
-CenterGlow.Size = UDim2.new(0, 350, 1, 8)
-CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
+CenterGlow.Size = UDim2.new(0, 590, 1, 8)
+CenterGlow.Position = UDim2.new(0.5, -295, 0, -4)
 CenterGlow.BackgroundColor3 = Color3.fromRGB(0, 126, 255)
 CenterGlow.BackgroundTransparency = 0.91
 CenterGlow.BorderSizePixel = 0
@@ -820,9 +831,9 @@ Instance.new("UICorner", CenterGlow).CornerRadius = UDim.new(0, 19)
 
 local CenterBox = Instance.new("Frame")
 CenterBox.Name = "CenterBox"
-CenterBox.Size = UDim2.new(0, 340, 1, 0)
-CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
-CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+CenterBox.Size = UDim2.new(0, 580, 1, 0)
+CenterBox.Position = UDim2.new(0.5, -290, 0, 0)
+CenterBox.BackgroundColor3 = Color3.fromRGB(5, 10, 20)
 CenterBox.BackgroundTransparency = 0
 CenterBox.BorderSizePixel = 0
 CenterBox.ClipsDescendants = true
@@ -830,9 +841,9 @@ CenterBox.Parent = MainFrame
 Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 16)
 local centerSurfaceGradient = Instance.new("UIGradient")
 centerSurfaceGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 20, 42)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(7, 14, 28)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 10, 22))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(12, 30, 54)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(6, 15, 29)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(3, 7, 15))
 })
 centerSurfaceGradient.Rotation = 110
 centerSurfaceGradient.Parent = CenterBox
@@ -911,7 +922,7 @@ local TitleMain = Instance.new("TextLabel")
 TitleMain.Size = UDim2.new(1, -108, 1, 0)
 TitleMain.Position = UDim2.new(0, 10, 0, 0)
 TitleMain.BackgroundTransparency = 1
-TitleMain.Text = "◈  PLAYSTATION  •  KEON HUB"
+TitleMain.Text = "◈  PLAYSTATION DASHBOARD  •  KEON HUB"
 TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.GothamBold
 TitleMain.TextSize = 15
@@ -1016,14 +1027,14 @@ FloatingMinBox.MouseButton1Click:Connect(function()
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     TweenService:Create(MainFrame, TweenInfo.new(0.48, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 560, 0, 360),
-        Position = UDim2.new(0.5, -280, 0.5, -180)
+        Size = UDim2.new(0, 800, 0, 460),
+        Position = UDim2.new(0.5, -400, 0.5, -230)
     }):Play()
 end)
 
 local LeftWing = Instance.new("Frame")
-LeftWing.Size = UDim2.new(0, 105, 1, -48)
-LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
+LeftWing.Size = UDim2.new(0, 108, 1, -48)
+LeftWing.Position = UDim2.new(0.5, -400, 0, 48)
 LeftWing.BackgroundTransparency = 1
 LeftWing.Parent = MainFrame
 
@@ -1032,8 +1043,8 @@ LeftLayout.Padding = UDim.new(0, 7)
 LeftLayout.Parent = LeftWing
 
 local RightWing = Instance.new("Frame")
-RightWing.Size = UDim2.new(0, 105, 1, -48)
-RightWing.Position = UDim2.new(0.5, 175, 0, 48)
+RightWing.Size = UDim2.new(0, 108, 1, -48)
+RightWing.Position = UDim2.new(0.5, 292, 0, 48)
 RightWing.BackgroundTransparency = 1
 RightWing.Parent = MainFrame
 
@@ -1071,8 +1082,8 @@ HelpOverlay.Parent = MainFrame
 
 local HelpPanel = Instance.new("Frame")
 HelpPanel.Name = "PS5HelpPanel"
-HelpPanel.Size = UDim2.new(0, 420, 0, 286)
-HelpPanel.Position = UDim2.new(0.5, -210, 0.5, -143)
+HelpPanel.Size = UDim2.new(0, 460, 0, 310)
+HelpPanel.Position = UDim2.new(0.5, -230, 0.5, -155)
 HelpPanel.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
 HelpPanel.BorderSizePixel = 0
 HelpPanel.ZIndex = 51
@@ -1133,7 +1144,7 @@ local HelpFoot = Instance.new("TextLabel")
 HelpFoot.Size = UDim2.new(1, -28, 0, 18)
 HelpFoot.Position = UDim2.new(0, 14, 1, -58)
 HelpFoot.BackgroundTransparency = 1
-HelpFoot.Text = "CLEAN UI  •  ELECTRIC BLUE  •  NO WALLPAPER IMAGES"
+HelpFoot.Text = "PLAYSTATION STYLE  •  SCRIPTS  •  COMMUNITY CHAT"
 HelpFoot.TextColor3 = Color3.fromRGB(73, 173, 235)
 HelpFoot.Font = Enum.Font.GothamBold
 HelpFoot.TextSize = 9
@@ -1159,7 +1170,7 @@ local function closeHelpPanel()
     task.delay(0.19, function()
         if HelpOverlay and HelpOverlay.Parent then
             HelpOverlay.Visible = false
-            HelpPanel.Size = UDim2.new(0, 420, 0, 286)
+            HelpPanel.Size = UDim2.new(0, 460, 0, 310)
         end
     end)
 end
@@ -1168,7 +1179,7 @@ local function openHelpPanel()
     HelpOverlay.Visible = true
     HelpPanel.Size = UDim2.new(0, 0, 0, 0)
     TweenService:Create(HelpPanel, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 420, 0, 286)
+        Size = UDim2.new(0, 460, 0, 310)
     }):Play()
 end
 
@@ -1203,8 +1214,8 @@ Instance.new("UICorner", FloatingChatBtn).CornerRadius = UDim.new(0, 14)
 
 local ChatWin = Instance.new("Frame")
 ChatWin.Name = "ChatWin"
-ChatWin.Size = UDim2.new(0, 370, 0, 300)
-ChatWin.Position = UDim2.new(0, 160, 0, 10)
+ChatWin.Size = UDim2.new(0, 410, 0, 340)
+ChatWin.Position = UDim2.new(1, -430, 1, -365)
 ChatWin.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
 ChatWin.ClipsDescendants = true
 ChatWin.Active = true
@@ -3821,8 +3832,8 @@ task.spawn(function()
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     TweenService:Create(MainFrame, TweenInfo.new(0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 560, 0, 360),
-        Position = UDim2.new(0.5, -280, 0.5, -180)
+        Size = UDim2.new(0, 800, 0, 460),
+        Position = UDim2.new(0.5, -400, 0.5, -230)
     }):Play()
     task.delay(0.62, function()
         if MainFrame and MainFrame.Visible then
@@ -3839,7 +3850,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     }):Play()
     task.wait(0.3)
     MainFrame.Visible = false
-    MainFrame.Size = UDim2.new(0, 560, 0, 360)
+    MainFrame.Size = UDim2.new(0, 800, 0, 460)
 end)
 
 BtnMainHome.MouseButton1Click:Fire()
