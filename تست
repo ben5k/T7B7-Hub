@@ -1,4 +1,4 @@
--- KEON Hub - مطور كيون Neon Auto-Save, Quick Scripts & Voice Info (v59.1.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v58.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -974,37 +974,42 @@ ChatScreenGui.Parent = parent
 
 local FloatingChatBtn = Instance.new("TextButton")
 FloatingChatBtn.Name = "FloatingChatBtn"
-FloatingChatBtn.Size = UDim2.new(0, 46, 0, 46)
+FloatingChatBtn.Size = UDim2.new(0, 40, 0, 40)
 FloatingChatBtn.Position = UDim2.new(0, 115, 0, 10)
 FloatingChatBtn.BackgroundColor3 = Color3.fromRGB(15, 12, 18)
-FloatingChatBtn.Text = "💬\nCHAT"
+FloatingChatBtn.Text = "💬"
 FloatingChatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 FloatingChatBtn.Font = Enum.Font.FredokaOne
-FloatingChatBtn.TextSize = 13
+FloatingChatBtn.TextSize = 20
 FloatingChatBtn.Active = true
 FloatingChatBtn.Draggable = true
 FloatingChatBtn.Parent = ChatScreenGui
-Instance.new("UICorner", FloatingChatBtn).CornerRadius = UDim.new(0, 14)
-local floatingChatGradient = Instance.new("UIGradient")
-floatingChatGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 170, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 35, 180))})
-floatingChatGradient.Rotation = 35
-floatingChatGradient.Parent = FloatingChatBtn
+Instance.new("UICorner", FloatingChatBtn).CornerRadius = UDim.new(0, 10)
 
 local ChatWin = Instance.new("Frame")
 ChatWin.Name = "ChatWin"
-ChatWin.Size = UDim2.new(0, 380, 0, 300)
+ChatWin.Size = UDim2.new(0, 390, 0, 315)
 ChatWin.Position = UDim2.new(0, 160, 0, 10)
-ChatWin.BackgroundColor3 = Color3.fromRGB(7, 13, 27)
+ChatWin.BackgroundColor3 = Color3.fromRGB(5, 12, 27)
 ChatWin.ClipsDescendants = true
 ChatWin.Active = true
 ChatWin.Draggable = true
 ChatWin.Visible = false
 ChatWin.Parent = ChatScreenGui
-Instance.new("UICorner", ChatWin).CornerRadius = UDim.new(0, 16)
-local chatBackdropStroke = Instance.new("UIStroke")
-chatBackdropStroke.Color = Color3.fromRGB(0, 170, 255)
-chatBackdropStroke.Thickness = 2
-chatBackdropStroke.Parent = ChatWin
+Instance.new("UICorner", ChatWin).CornerRadius = UDim.new(0, 18)
+
+local chatBrand = Instance.new("TextLabel")
+chatBrand.Name = "KEONChatBrand"
+chatBrand.Size = UDim2.new(1, -20, 0, 20)
+chatBrand.Position = UDim2.new(0, 10, 0, 4)
+chatBrand.BackgroundTransparency = 1
+chatBrand.Text = "KEON HUB  •  NEON NETWORK"
+chatBrand.TextColor3 = Color3.fromRGB(112, 220, 255)
+chatBrand.Font = Enum.Font.GothamBlack
+chatBrand.TextSize = 12
+chatBrand.TextXAlignment = Enum.TextXAlignment.Center
+chatBrand.ZIndex = 3
+chatBrand.Parent = ChatWin
 
 local ChatBgImage = Instance.new("ImageLabel")
 ChatBgImage.Size = UDim2.new(1, 0, 1, 0)
@@ -1022,7 +1027,7 @@ floatStroke.Parent = FloatingChatBtn
 
 local chatStroke = Instance.new("UIStroke")
 chatStroke.Color = currentAccentColor
-chatStroke.Thickness = 3.5
+chatStroke.Thickness = 2.2
 chatStroke.Parent = ChatWin
 
 local chatNeonGradient = Instance.new("UIGradient")
@@ -1051,8 +1056,8 @@ ResetTimerLbl.ZIndex = 3
 ResetTimerLbl.Parent = ChatWin
 
 local ChatHeaderBtn1 = Instance.new("TextButton")
-ChatHeaderBtn1.Size = UDim2.new(0, 100, 0, 24)
-ChatHeaderBtn1.Position = UDim2.new(0, 6, 0, 25)
+ChatHeaderBtn1.Size = UDim2.new(0, 112, 0, 28)
+ChatHeaderBtn1.Position = UDim2.new(0, 8, 0, 27)
 ChatHeaderBtn1.BackgroundColor3 = currentAccentColor
 ChatHeaderBtn1.Text = "💬 الشات"
 ChatHeaderBtn1.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1063,8 +1068,8 @@ ChatHeaderBtn1.Parent = ChatWin
 Instance.new("UICorner", ChatHeaderBtn1).CornerRadius = UDim.new(0, 6)
 
 local ChatHeaderBtn2 = Instance.new("TextButton")
-ChatHeaderBtn2.Size = UDim2.new(0, 105, 0, 24)
-ChatHeaderBtn2.Position = UDim2.new(0, 112, 0, 25)
+ChatHeaderBtn2.Size = UDim2.new(0, 112, 0, 28)
+ChatHeaderBtn2.Position = UDim2.new(0, 128, 0, 27)
 ChatHeaderBtn2.BackgroundColor3 = currentAccentColor
 ChatHeaderBtn2.Text = "★ خلفيات"
 ChatHeaderBtn2.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1075,8 +1080,8 @@ ChatHeaderBtn2.Parent = ChatWin
 Instance.new("UICorner", ChatHeaderBtn2).CornerRadius = UDim.new(0, 6)
 
 local ChatHeaderBtn3 = Instance.new("TextButton")
-ChatHeaderBtn3.Size = UDim2.new(0, 115, 0, 24)
-ChatHeaderBtn3.Position = UDim2.new(0, 223, 0, 25)
+ChatHeaderBtn3.Size = UDim2.new(0, 126, 0, 28)
+ChatHeaderBtn3.Position = UDim2.new(0, 248, 0, 27)
 ChatHeaderBtn3.BackgroundColor3 = currentAccentColor
 ChatHeaderBtn3.Text = "👥 متواجدون"
 ChatHeaderBtn3.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1087,15 +1092,15 @@ ChatHeaderBtn3.Parent = ChatWin
 Instance.new("UICorner", ChatHeaderBtn3).CornerRadius = UDim.new(0, 6)
 
 local ChatMainContainer = Instance.new("Frame")
-ChatMainContainer.Size = UDim2.new(1, 0, 1, -60)
-ChatMainContainer.Position = UDim2.new(0, 0, 0, 55)
+ChatMainContainer.Size = UDim2.new(1, 0, 1, -67)
+ChatMainContainer.Position = UDim2.new(0, 0, 0, 62)
 ChatMainContainer.BackgroundTransparency = 1
 ChatMainContainer.ZIndex = 2
 ChatMainContainer.Parent = ChatWin
 
 local ChatFeaturesContainer = Instance.new("ScrollingFrame")
 ChatFeaturesContainer.Size = UDim2.new(1, -20, 1, -65)
-ChatFeaturesContainer.Position = UDim2.new(0, 10, 0, 55)
+ChatFeaturesContainer.Position = UDim2.new(0, 10, 0, 62)
 ChatFeaturesContainer.BackgroundTransparency = 1
 ChatFeaturesContainer.Visible = false
 ChatFeaturesContainer.ZIndex = 2
@@ -1109,7 +1114,7 @@ featLayout.Parent = ChatFeaturesContainer
 
 local ChatOnlineContainer = Instance.new("ScrollingFrame")
 ChatOnlineContainer.Size = UDim2.new(1, -20, 1, -70)
-ChatOnlineContainer.Position = UDim2.new(0, 10, 0, 58)
+ChatOnlineContainer.Position = UDim2.new(0, 10, 0, 64)
 ChatOnlineContainer.BackgroundTransparency = 1
 ChatOnlineContainer.Visible = false
 ChatOnlineContainer.ZIndex = 2
@@ -1481,122 +1486,6 @@ FloatingChatBtn.MouseButton1Click:Connect(function()
     ChatWin.Visible = not ChatWin.Visible
 end)
 
--- قائمة جانبية سريعة للسكربتات + معلومات مكالمة الصوت
-local QuickScriptsBtn = Instance.new("TextButton")
-QuickScriptsBtn.Name = "KEONQuickScriptsBtn"
-QuickScriptsBtn.Size = UDim2.new(0, 46, 0, 46)
-QuickScriptsBtn.Position = UDim2.new(0, 168, 0, 10)
-QuickScriptsBtn.BackgroundColor3 = Color3.fromRGB(9, 20, 42)
-QuickScriptsBtn.Text = "🧩\nSCRIPTS"
-QuickScriptsBtn.TextColor3 = Color3.fromRGB(255,255,255)
-QuickScriptsBtn.Font = Enum.Font.GothamBlack
-QuickScriptsBtn.TextSize = 11
-QuickScriptsBtn.Active = true
-QuickScriptsBtn.Draggable = true
-QuickScriptsBtn.Parent = ChatScreenGui
-Instance.new("UICorner", QuickScriptsBtn).CornerRadius = UDim.new(0, 14)
-local quickStroke = Instance.new("UIStroke")
-quickStroke.Color = Color3.fromRGB(0, 170, 255)
-quickStroke.Thickness = 2
-quickStroke.Parent = QuickScriptsBtn
-
-local QuickDrawer = Instance.new("Frame")
-QuickDrawer.Name = "KEONQuickScriptsDrawer"
-QuickDrawer.Size = UDim2.new(0, 245, 0, 310)
-QuickDrawer.Position = UDim2.new(0, 8, 0.5, -155)
-QuickDrawer.BackgroundColor3 = Color3.fromRGB(5, 12, 27)
-QuickDrawer.Visible = false
-QuickDrawer.Active = true
-QuickDrawer.Draggable = true
-QuickDrawer.ZIndex = 30
-QuickDrawer.Parent = ChatScreenGui
-Instance.new("UICorner", QuickDrawer).CornerRadius = UDim.new(0, 16)
-local drawerStroke = Instance.new("UIStroke")
-drawerStroke.Color = Color3.fromRGB(0, 170, 255)
-drawerStroke.Thickness = 2
-drawerStroke.Parent = QuickDrawer
-local drawerTitle = Instance.new("TextLabel")
-drawerTitle.Size = UDim2.new(1, -42, 0, 38)
-drawerTitle.Position = UDim2.new(0, 10, 0, 5)
-drawerTitle.BackgroundTransparency = 1
-drawerTitle.Text = "🧩 KEON HUB • QUICK SCRIPTS"
-drawerTitle.TextColor3 = Color3.fromRGB(115, 220, 255)
-drawerTitle.Font = Enum.Font.GothamBlack
-drawerTitle.TextSize = 12
-drawerTitle.TextXAlignment = Enum.TextXAlignment.Left
-drawerTitle.ZIndex = 31
-drawerTitle.Parent = QuickDrawer
-local drawerClose = Instance.new("TextButton")
-drawerClose.Size = UDim2.new(0, 28, 0, 28)
-drawerClose.Position = UDim2.new(1, -34, 0, 8)
-drawerClose.BackgroundColor3 = Color3.fromRGB(90, 25, 45)
-drawerClose.Text = "✕"
-drawerClose.TextColor3 = Color3.fromRGB(255,255,255)
-drawerClose.Font = Enum.Font.GothamBold
-drawerClose.TextSize = 14
-drawerClose.ZIndex = 32
-drawerClose.Parent = QuickDrawer
-Instance.new("UICorner", drawerClose).CornerRadius = UDim.new(0, 8)
-drawerClose.MouseButton1Click:Connect(function() QuickDrawer.Visible = false end)
-local drawerScroll = Instance.new("ScrollingFrame")
-drawerScroll.Size = UDim2.new(1, -16, 1, -52)
-drawerScroll.Position = UDim2.new(0, 8, 0, 44)
-drawerScroll.BackgroundTransparency = 1
-drawerScroll.BorderSizePixel = 0
-drawerScroll.ScrollBarThickness = 3
-drawerScroll.CanvasSize = UDim2.new(0,0,0,0)
-drawerScroll.ZIndex = 31
-drawerScroll.Parent = QuickDrawer
-local drawerLayout = Instance.new("UIListLayout")
-drawerLayout.Padding = UDim.new(0, 7)
-drawerLayout.SortOrder = Enum.SortOrder.LayoutOrder
-drawerLayout.Parent = drawerScroll
-local function addDrawerButton(label, callback)
-    local b = Instance.new("TextButton")
-    b.Size = UDim2.new(1, -4, 0, 38)
-    b.BackgroundColor3 = Color3.fromRGB(13, 32, 55)
-    b.Text = label
-    b.TextColor3 = Color3.fromRGB(245,250,255)
-    b.Font = Enum.Font.GothamBold
-    b.TextSize = 12
-    b.ZIndex = 32
-    b.Parent = drawerScroll
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
-    local st = Instance.new("UIStroke") st.Color = Color3.fromRGB(0, 130, 220) st.Thickness = 1 st.Parent = b
-    b.MouseButton1Click:Connect(function()
-        playUiSound(SOUND_CLICK, 1, 0.35)
-        QuickDrawer.Visible = false
-        if callback then callback() end
-    end)
-end
-addDrawerButton("🥚 ماب سرقة البيض", function() if BtnScripts then BtnScripts:Activate() end end)
-addDrawerButton("⚡ التفعيلات", function() if BtnActivations then BtnActivations:Activate() end end)
-addDrawerButton("🎵 الميديا والصوت", function() if BtnMedia then BtnMedia:Activate() end end)
-addDrawerButton("💬 فتح الشات", function() ChatWin.Visible = true end)
-addDrawerButton("🎙️ إعدادات الصوت", function()
-    local notice = Instance.new("TextLabel")
-    notice.Size = UDim2.new(0, 280, 0, 86)
-    notice.Position = UDim2.new(0.5, -140, 0.5, -43)
-    notice.BackgroundColor3 = Color3.fromRGB(5, 12, 27)
-    notice.TextColor3 = Color3.fromRGB(255,255,255)
-    notice.TextWrapped = true
-    notice.Text = "🎙️ المكالمات الصوتية الحقيقية تتحكم بها ميزة Roblox Voice Chat وصلاحيات الحساب. فعّلها من إعدادات Roblox؛ السكربت لا يستطيع إنشاء قناة صوتية مستقلة أو تجاوز صلاحيات Roblox."
-    notice.Font = Enum.Font.GothamBold
-    notice.TextSize = 12
-    notice.ZIndex = 90
-    notice.Parent = ChatScreenGui
-    Instance.new("UICorner", notice).CornerRadius = UDim.new(0, 12)
-    local ns = Instance.new("UIStroke") ns.Color = Color3.fromRGB(0,170,255) ns.Thickness = 2 ns.Parent = notice
-    task.delay(7, function() if notice then notice:Destroy() end end)
-end)
-drawerLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    drawerScroll.CanvasSize = UDim2.new(0,0,0,drawerLayout.AbsoluteContentSize.Y + 8)
-end)
-QuickScriptsBtn.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    QuickDrawer.Visible = not QuickDrawer.Visible
-end)
-
 StickerBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     StickerModal.Visible = not StickerModal.Visible
@@ -1608,7 +1497,7 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
     local msgFrame = Instance.new("Frame")
     msgFrame.Name = msgKey or "MsgItem"
     msgFrame.Size = UDim2.new(1, 0, 0, frameHeight)
-    msgFrame.BackgroundColor3 = Color3.fromRGB(10, 24, 43)
+    msgFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
     msgFrame.ZIndex = 2
     msgFrame.Parent = ChatScroll
     Instance.new("UICorner", msgFrame).CornerRadius = UDim.new(0, 6)
@@ -1995,7 +1884,7 @@ end
 ---------------------------------------------------------
 -- التبويبات الرئيسية
 ---------------------------------------------------------
-local BtnMainHome = createProStyleBtn("🏠 الرئيسية", "left")
+local BtnMainHome = createProStyleBtn("الرئيسية", "left")
 BtnMainHome.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
@@ -2306,37 +2195,37 @@ local function openScriptDetailsPage(mapName, scriptsList)
         for _, sData in ipairs(scriptsList) do
             if query == "" or string.find(string.lower(sData.name), string.lower(query)) then
                 local scriptCard = Instance.new("Frame")
-                scriptCard.Size = UDim2.new(1, 0, 0, 95)
-                scriptCard.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+                scriptCard.Size = UDim2.new(1, 0, 0, 112)
+                scriptCard.BackgroundColor3 = Color3.fromRGB(8, 19, 37)
                 scriptCard.ZIndex = 3
                 scriptCard.Parent = cardsContainer
-                Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 8)
+                Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 14)
 
                 local cardStroke = Instance.new("UIStroke")
                 cardStroke.Color = currentAccentColor
-                cardStroke.Thickness = 1.5
+                cardStroke.Thickness = 1.15
                 cardStroke.Parent = scriptCard
                 table.insert(registeredOptionStrokes, cardStroke)
 
                 local scriptTitle = Instance.new("TextLabel")
-                scriptTitle.Size = UDim2.new(1, -120, 0, 26)
-                scriptTitle.Position = UDim2.new(0, 10, 0, 8)
+                scriptTitle.Size = UDim2.new(1, -132, 0, 30)
+                scriptTitle.Position = UDim2.new(0, 12, 0, 10)
                 scriptTitle.BackgroundTransparency = 1
                 scriptTitle.Text = sData.name
                 scriptTitle.TextColor3 = currentAccentColor
                 scriptTitle.Font = Enum.Font.FredokaOne
-                scriptTitle.TextSize = 14
+                scriptTitle.TextSize = 15
                 scriptTitle.TextXAlignment = Enum.TextXAlignment.Right
                 scriptTitle.ZIndex = 4
                 scriptTitle.Parent = scriptCard
                 table.insert(activeNameLabels, scriptTitle)
 
                 local keyTag = Instance.new("TextLabel")
-                keyTag.Size = UDim2.new(1, -120, 0, 20)
-                keyTag.Position = UDim2.new(0, 10, 0, 34)
+                keyTag.Size = UDim2.new(1, -132, 0, 22)
+                keyTag.Position = UDim2.new(0, 12, 0, 43)
                 keyTag.BackgroundTransparency = 1
-                keyTag.Text = "🔓 الحالة: " .. sData.keyState
-                keyTag.TextColor3 = Color3.fromRGB(255, 255, 255)
+                keyTag.Text = "●  الحالة  /  " .. sData.keyState
+                keyTag.TextColor3 = Color3.fromRGB(164, 201, 226)
                 keyTag.Font = Enum.Font.FredokaOne
                 keyTag.TextSize = 11.5
                 keyTag.TextXAlignment = Enum.TextXAlignment.Right
@@ -2344,16 +2233,21 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 keyTag.Parent = scriptCard
 
                 local runBtn = Instance.new("TextButton")
-                runBtn.Size = UDim2.new(0, 100, 0, 34)
-                runBtn.Position = UDim2.new(0, 10, 0.5, -17)
+                runBtn.Size = UDim2.new(0, 108, 0, 38)
+                runBtn.Position = UDim2.new(0, 12, 0.5, -19)
                 runBtn.BackgroundColor3 = currentAccentColor
-                runBtn.Text = "تشغيل 🚀"
+                runBtn.Text = "▶  تشغيل السكربت"
                 runBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
                 runBtn.Font = Enum.Font.FredokaOne
-                runBtn.TextSize = 13.5
+                runBtn.TextSize = 12
                 runBtn.ZIndex = 4
                 runBtn.Parent = scriptCard
-                Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 6)
+                Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 11)
+                local runStroke = Instance.new("UIStroke")
+                runStroke.Color = Color3.fromRGB(150, 225, 255)
+                runStroke.Transparency = 0.35
+                runStroke.Thickness = 1
+                runStroke.Parent = runBtn
 
                 runBtn.MouseButton1Click:Connect(function()
                     playUiSound(SOUND_CLICK, 1, 0.35)
@@ -2385,27 +2279,27 @@ end
 ---------------------------------------------------------
 -- تبويب "سكربتات" الرئيسي
 ---------------------------------------------------------
-local BtnScripts = createProStyleBtn("🧩 سكربتات", "left")
+local BtnScripts = createProStyleBtn("سكربتات", "left")
 BtnScripts.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
     local function addMapCard(mapTitle, mapImgUrl, scriptsList)
         local mapCard = Instance.new("Frame")
-        mapCard.Size = UDim2.new(1, 0, 0, 140)
-        mapCard.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+        mapCard.Size = UDim2.new(1, 0, 0, 158)
+        mapCard.BackgroundColor3 = Color3.fromRGB(8, 20, 39)
         mapCard.ZIndex = 3
         mapCard.Parent = CenterScroll
-        Instance.new("UICorner", mapCard).CornerRadius = UDim.new(0, 10)
+        Instance.new("UICorner", mapCard).CornerRadius = UDim.new(0, 15)
 
         local mapCardStroke = Instance.new("UIStroke")
         mapCardStroke.Color = currentAccentColor
-        mapCardStroke.Thickness = 1.8
+        mapCardStroke.Thickness = 1.35
         mapCardStroke.Parent = mapCard
         table.insert(registeredOptionStrokes, mapCardStroke)
 
         local mapImg = Instance.new("ImageLabel")
-        mapImg.Size = UDim2.new(1, -16, 0, 80)
+        mapImg.Size = UDim2.new(1, -16, 0, 91)
         mapImg.Position = UDim2.new(0, 8, 0, 8)
         mapImg.BackgroundColor3 = Color3.fromRGB(30, 20, 35)
         mapImg.Image = mapImgUrl
@@ -2415,28 +2309,28 @@ BtnScripts.MouseButton1Click:Connect(function()
         Instance.new("UICorner", mapImg).CornerRadius = UDim.new(0, 8)
 
         local mapNameLbl = Instance.new("TextLabel")
-        mapNameLbl.Size = UDim2.new(1, -110, 0, 36)
-        mapNameLbl.Position = UDim2.new(0, 100, 0, 94)
+        mapNameLbl.Size = UDim2.new(1, -120, 0, 40)
+        mapNameLbl.Position = UDim2.new(0, 110, 0, 104)
         mapNameLbl.BackgroundTransparency = 1
         mapNameLbl.Text = mapTitle
         mapNameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
         mapNameLbl.Font = Enum.Font.FredokaOne
-        mapNameLbl.TextSize = 14.5
+        mapNameLbl.TextSize = 15
         mapNameLbl.TextXAlignment = Enum.TextXAlignment.Right
         mapNameLbl.ZIndex = 4
         mapNameLbl.Parent = mapCard
 
         local showBtn = Instance.new("TextButton")
-        showBtn.Size = UDim2.new(0, 85, 0, 30)
-        showBtn.Position = UDim2.new(0, 10, 0, 97)
+        showBtn.Size = UDim2.new(0, 92, 0, 32)
+        showBtn.Position = UDim2.new(0, 10, 0, 108)
         showBtn.BackgroundColor3 = currentAccentColor
-        showBtn.Text = "عرض 👁️"
+        showBtn.Text = "استكشف الماب  ›"
         showBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         showBtn.Font = Enum.Font.FredokaOne
         showBtn.TextSize = 13
         showBtn.ZIndex = 4
         showBtn.Parent = mapCard
-        Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 10)
 
         showBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
@@ -2462,7 +2356,7 @@ end)
 ---------------------------------------------------------
 -- تبويب "الميديا والصوتيات"
 ---------------------------------------------------------
-local BtnMedia = createProStyleBtn("🎵 الميديا والصوت", "left")
+local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
 BtnMedia.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
@@ -2663,7 +2557,7 @@ BtnMedia.MouseButton1Click:Connect(function()
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 25)
 end)
 
-local BtnActivations = createProStyleBtn("⚡ تفعيلات", "left")
+local BtnActivations = createProStyleBtn("تفعيلات", "left")
 BtnActivations.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
@@ -2806,7 +2700,7 @@ BtnActivations.MouseButton1Click:Connect(function()
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
 end)
 
-local BtnSuggestions = createProStyleBtn("💡 اقتراحات", "left")
+local BtnSuggestions = createProStyleBtn("اقتراحات", "left")
 BtnSuggestions.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
@@ -2872,7 +2766,7 @@ end)
 ---------------------------------------------------------
 -- زر "اسرق البيض" في الجانب الأيمن (مباشرة جنب الإعدادات)
 ---------------------------------------------------------
-local BtnStealEggRight = createProStyleBtn("🥚 اسرق البيض", "right")
+local BtnStealEggRight = createProStyleBtn("اسرق البيض 🥚", "right")
 BtnStealEggRight.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
@@ -2954,12 +2848,12 @@ end)
 ---------------------------------------------------------
 -- زر الإعدادات في الجانب الأيمن (بجانب اسرق البيض مباشرة)
 ---------------------------------------------------------
-local BtnSettings = createProStyleBtn("⚙️ الإعدادات", "right")
+local BtnSettings = createProStyleBtn("الإعدادات", "right")
 BtnSettings.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    addChilliAccordion("🎨 تخصيص الثيمات والألوان الكثيرة", function(addToggle, addAction)
+    addChilliAccordion("تخصيص الثيمات والألوان الكثيرة 🎨", function(addToggle, addAction)
         local function updateTheme(accent, headerCol)
             currentAccentColor = accent
             currentHeaderColor = headerCol
@@ -3007,7 +2901,7 @@ BtnSettings.MouseButton1Click:Connect(function()
         addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
     end)
 
-    addChilliAccordion("🖼️ تخصيص خلفيات واجهة السكربت Pro", function(addToggle, addAction, contentHolder)
+    addChilliAccordion("تخصيص خلفيات واجهة السكربت Pro", function(addToggle, addAction, contentHolder)
         addAction("❌ إغلاق خلفية السكربت", function()
             applyScriptBackground(0)
         end)
@@ -3048,7 +2942,7 @@ end)
 -- لوحة الأدمن الحصرية للمطور كـيـون
 ---------------------------------------------------------
 if LocalPlayer.Name == "Dms921" then
-    local BtnAdmin = createProStyleBtn("🛡️ لوحة الأدمن", "right")
+    local BtnAdmin = createProStyleBtn("لوحة الأدمن", "right")
     BtnAdmin.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
         clearCenter()
