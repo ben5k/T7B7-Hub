@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Music Layout Fix (v61.0.0)
+-- KEON Hub - PS5 Neon Profile + Sticker + Script Redesign (v62.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -24,6 +24,7 @@ if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:
 local CONFIG_FILE = "KEON_Config_v58.json"
 local DISCORD_WEBHOOK_URL = "" -- ضع Webhook جديداً بعد تدويره؛ لا تشارك رابطاً مكشوفاً
 
+local KEONProfile = {}
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
 local FIREBASE_CHAT_URL = FIREBASE_BASE_URL .. "/global_chat.json"
 local FIREBASE_USERS_URL = FIREBASE_BASE_URL .. "/active_users.json"
@@ -33,6 +34,7 @@ local FIREBASE_ADMIN_ACTIONS_URL = FIREBASE_BASE_URL .. "/admin_actions.json"
 local FIREBASE_VOTE_BASE = FIREBASE_BASE_URL .. "/global_vote"
 local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
+KEONProfile.FIREBASE_USAGE_URL = FIREBASE_BASE_URL .. "/usage_stats.json"
 
 local CURRENT_SCRIPT_URL = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"
 
@@ -113,14 +115,19 @@ local wallNames = {
     "🌌 مجرة عميقة", "🎮 خلفية جيمينغ"
 }
 
-local stickerUrls = {
-    fetchAsset("https://up6.cc/2026/10/179301030915811.jpg", "stk_1"),
-    fetchAsset("https://up6.cc/2026/10/179301030920862.jpg", "stk_2"),
-    fetchAsset("https://up6.cc/2026/10/179301030923343.jpg", "stk_3"),
-    fetchAsset("https://up6.cc/2026/10/179301030928524.jpg", "stk_4"),
-    fetchAsset("https://up6.cc/2026/10/179301041828331.jpg", "stk_5"),
-    fetchAsset("https://up6.cc/2026/10/179301041832562.jpg", "stk_6")
+-- احتفظ بالرابط العام داخل قاعدة البيانات؛ مسار getcustomasset محلي ولا يراه باقي اللاعبين.
+KEONProfile.stickerRawUrls = {
+    "https://up6.cc/2026/10/179301030915811.jpg",
+    "https://up6.cc/2026/10/179301030920862.jpg",
+    "https://up6.cc/2026/10/179301030923343.jpg",
+    "https://up6.cc/2026/10/179301030928524.jpg",
+    "https://up6.cc/2026/10/179301041828331.jpg",
+    "https://up6.cc/2026/10/179301041832562.jpg"
 }
+KEONProfile.stickerUrls = {}
+for i, rawUrl in ipairs(KEONProfile.stickerRawUrls) do
+    KEONProfile.stickerUrls[i] = fetchAsset(rawUrl, "stk_" .. tostring(i))
+end
 
 local EGG_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_3948flo0t0.jpg", "egg_map")
 local BREAK_EGG_MAP_IMAGE = fetchAsset("https://e.top4top.io/p_3948fd0c20.jpg", "break_egg_map")
@@ -148,6 +155,15 @@ local applyResponsiveChat
 
 local selectedScriptBgIndex = 0
 local selectedChatBgIndex = 0
+KEONProfile.selectedCountryFlag = "🇮🇶"
+KEONProfile.selectedCountryName = "العراق"
+KEONProfile.selectedCountryCode = "IQ"
+KEONProfile.profileByUserId = {}
+KEONProfile.savedUsageSeconds = 0
+KEONProfile.usageDataLoaded = false
+KEONProfile.usageStoreWritable = false
+KEONProfile.sessionStartedClock = os.clock()
+KEONProfile.LOCAL_USAGE_FILE = "KEON_Playtime_" .. tostring(LocalPlayer.UserId) .. ".json"
 local espEnabled = false
 
 local registeredWingStrokes = {}
@@ -164,7 +180,10 @@ local function saveUserSettings()
             b = currentAccentColor.B,
             hr = currentHeaderColor.R,
             hg = currentHeaderColor.G,
-            hb = currentHeaderColor.B
+            hb = currentHeaderColor.B,
+            countryFlag = KEONProfile.selectedCountryFlag,
+            countryName = KEONProfile.selectedCountryName,
+            countryCode = KEONProfile.selectedCountryCode
         }
         pcall(function() writefile(CONFIG_FILE, HttpService:JSONEncode(cfg)) end)
     end
@@ -177,6 +196,9 @@ local function loadUserSettings()
             if cfg then
                 selectedScriptBgIndex = cfg.scriptBg or 0
                 selectedChatBgIndex = cfg.chatBg or 0
+                KEONProfile.selectedCountryFlag = cfg.countryFlag or KEONProfile.selectedCountryFlag
+                KEONProfile.selectedCountryName = cfg.countryName or KEONProfile.selectedCountryName
+                KEONProfile.selectedCountryCode = cfg.countryCode or KEONProfile.selectedCountryCode
                 if cfg.r and cfg.g and cfg.b then
                     currentAccentColor = Color3.new(cfg.r, cfg.g, cfg.b)
                 end
@@ -214,12 +236,125 @@ playUiSound(SOUND_OPEN, 1, 1)
 local function loadAvatarThumbnail(userId, imageLabel)
     task.spawn(function()
         pcall(function()
-            local content, isLoaded = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
-            if isLoaded and imageLabel and imageLabel.Parent then
-                imageLabel.Image = content
+            local content, isLoaded = Players:GetUserThumbnailAsync(tonumber(userId) or userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+            if isLoaded and imageLabel and imageLabel.Parent then imageLabel.Image = content end
+        end)
+    end)
+end
+
+function KEONProfile.loadAvatarBodyThumbnail(userId, imageLabel)
+    task.spawn(function()
+        pcall(function()
+            local thumbType = Enum.ThumbnailType.AvatarThumbnail
+            local content, isLoaded = Players:GetUserThumbnailAsync(tonumber(userId) or userId, thumbType, Enum.ThumbnailSize.Size150x150)
+            if isLoaded and imageLabel and imageLabel.Parent then imageLabel.Image = content end
+        end)
+    end)
+end
+
+function KEONProfile.formatPlayTime(seconds)
+    seconds = math.max(0, math.floor(tonumber(seconds) or 0))
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local secs = seconds % 60
+    if hours > 0 then return string.format("%dس %02dد", hours, minutes) end
+    if minutes > 0 then return string.format("%dد %02dث", minutes, secs) end
+    return string.format("%dث", secs)
+end
+
+KEONProfile.profileByUserId[tostring(LocalPlayer.UserId)] = {
+    userId = LocalPlayer.UserId,
+    name = LocalPlayer.Name,
+    displayName = LocalPlayer.DisplayName,
+    countryFlag = KEONProfile.selectedCountryFlag,
+    countryName = KEONProfile.selectedCountryName,
+    countryCode = KEONProfile.selectedCountryCode
+}
+
+function KEONProfile.applyCountryTag(plr, flag, countryName)
+    if not plr or not plr.Character then return end
+    local head = plr.Character:FindFirstChild("Head")
+    if not head then return end
+    local existing = head:FindFirstChild("KEONCountryFlagTag")
+    local tagText = tostring(flag or "🌐") .. "  " .. tostring(countryName or "غير محدد")
+    if existing then
+        local label = existing:FindFirstChild("CountryLabel")
+        if label then label.Text = tagText end
+        return
+    end
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "KEONCountryFlagTag"
+    billboard.Size = UDim2.new(0, 190, 0, 28)
+    billboard.StudsOffset = Vector3.new(0, 4.25, 0)
+    billboard.AlwaysOnTop = true
+    billboard.LightInfluence = 0
+    billboard.MaxDistance = 160
+    billboard.Parent = head
+    local label = Instance.new("TextLabel")
+    label.Name = "CountryLabel"
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundColor3 = Color3.fromRGB(5, 14, 29)
+    label.BackgroundTransparency = 0.12
+    label.BorderSizePixel = 0
+    label.Text = tagText
+    label.TextColor3 = Color3.fromRGB(245, 250, 255)
+    label.TextStrokeTransparency = 0.35
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.Parent = billboard
+    Instance.new("UICorner", label).CornerRadius = UDim.new(0, 8)
+    local outline = Instance.new("UIStroke")
+    outline.Color = currentAccentColor
+    outline.Thickness = 1.25
+    outline.Parent = label
+end
+
+function KEONProfile.refreshCountryTags()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        local profile = KEONProfile.profileByUserId[tostring(plr.UserId)]
+        if plr == LocalPlayer then
+            KEONProfile.applyCountryTag(plr, KEONProfile.selectedCountryFlag, KEONProfile.selectedCountryName)
+        elseif profile then
+            KEONProfile.applyCountryTag(plr, profile.countryFlag, profile.countryName)
+        end
+    end
+end
+
+function KEONProfile.publishProfileCountry()
+    KEONProfile.profileByUserId[tostring(LocalPlayer.UserId)] = {
+        userId = LocalPlayer.UserId, name = LocalPlayer.Name,
+        displayName = LocalPlayer.DisplayName,
+        countryFlag = KEONProfile.selectedCountryFlag, countryName = KEONProfile.selectedCountryName,
+        countryCode = KEONProfile.selectedCountryCode
+    }
+    saveUserSettings()
+    KEONProfile.refreshCountryTags()
+    task.spawn(function()
+        pcall(function()
+            customRequest({
+                Url = FIREBASE_BASE_URL .. "/active_users/" .. tostring(LocalPlayer.UserId) .. ".json",
+                Method = "PATCH",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode({countryFlag = KEONProfile.selectedCountryFlag, countryName = KEONProfile.selectedCountryName, countryCode = KEONProfile.selectedCountryCode})
+            })
+            if KEONProfile.usageDataLoaded and KEONProfile.usageStoreWritable then
+                customRequest({
+                    Url = FIREBASE_BASE_URL .. "/usage_stats/" .. tostring(LocalPlayer.UserId) .. ".json",
+                    Method = "PATCH",
+                    Headers = { ["Content-Type"] = "application/json" },
+                    Body = HttpService:JSONEncode({countryFlag = KEONProfile.selectedCountryFlag, countryName = KEONProfile.selectedCountryName, countryCode = KEONProfile.selectedCountryCode})
+                })
             end
         end)
     end)
+end
+
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function() task.wait(1); KEONProfile.refreshCountryTags() end)
+end)
+for _, plr in ipairs(Players:GetPlayers()) do
+    plr.CharacterAdded:Connect(function() task.wait(1); KEONProfile.refreshCountryTags() end)
 end
 
 ---------------------------------------------------------
@@ -629,11 +764,73 @@ task.spawn(function()
                     userId = LocalPlayer.UserId,
                     placeId = game.PlaceId,
                     jobId = game.JobId,
-                    lastSeen = os.time()
+                    lastSeen = os.time(),
+                    countryFlag = KEONProfile.selectedCountryFlag,
+                    countryName = KEONProfile.selectedCountryName,
+                    countryCode = KEONProfile.selectedCountryCode,
+                    totalSeconds = KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock)
                 })
             })
         end)
         task.wait(10)
+    end
+end)
+
+-- وقت الاستخدام محفوظ في قاعدة البيانات المشتركة ويُحدّث دورياً حتى يستمر بين الجلسات.
+task.spawn(function()
+    -- Local backup first, so a temporary network failure never wipes a player's saved time.
+    pcall(function()
+        if readfile and isfile and isfile(KEONProfile.LOCAL_USAGE_FILE) then
+            local localRecord = safeDecode(readfile(KEONProfile.LOCAL_USAGE_FILE))
+            if type(localRecord) == "table" then
+                KEONProfile.savedUsageSeconds = math.max(0, tonumber(localRecord.totalSeconds) or 0)
+            end
+        end
+    end)
+    pcall(function()
+        local res = customRequest({Url = FIREBASE_BASE_URL .. "/usage_stats/" .. tostring(LocalPlayer.UserId) .. ".json", Method = "GET"})
+        if res and res.StatusCode == 200 then
+            KEONProfile.usageStoreWritable = true
+            local data = safeDecode(res.Body)
+            if type(data) == "table" then
+                KEONProfile.savedUsageSeconds = math.max(KEONProfile.savedUsageSeconds, tonumber(data.totalSeconds) or 0)
+            end
+        end
+    end)
+    KEONProfile.usageDataLoaded = true
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(20)
+        if KEONProfile.usageDataLoaded then
+            local elapsed = math.max(0, math.floor(os.clock() - KEONProfile.sessionStartedClock))
+            local totalSeconds = KEONProfile.savedUsageSeconds + elapsed
+            pcall(function()
+                if type(writefile) == "function" then
+                    writefile(KEONProfile.LOCAL_USAGE_FILE, HttpService:JSONEncode({totalSeconds = totalSeconds, updatedAt = os.time()}))
+                end
+            end)
+            if KEONProfile.usageStoreWritable then
+                pcall(function()
+                    customRequest({
+                        Url = FIREBASE_BASE_URL .. "/usage_stats/" .. tostring(LocalPlayer.UserId) .. ".json",
+                        Method = "PUT",
+                        Headers = { ["Content-Type"] = "application/json" },
+                        Body = HttpService:JSONEncode({
+                            userId = LocalPlayer.UserId,
+                            name = LocalPlayer.Name,
+                            displayName = LocalPlayer.DisplayName,
+                            totalSeconds = totalSeconds,
+                            countryFlag = KEONProfile.selectedCountryFlag,
+                            countryName = KEONProfile.selectedCountryName,
+                            countryCode = KEONProfile.selectedCountryCode,
+                            updatedAt = os.time()
+                        })
+                    })
+                end)
+            end
+        end
     end
 end)
 
@@ -1099,6 +1296,17 @@ RightLayout.Padding = UDim.new(0, 7)
 RightLayout.SortOrder = Enum.SortOrder.LayoutOrder
 RightLayout.Parent = RightWing
 
+KEONProfile.leftNavPadding = Instance.new("UIPadding")
+KEONProfile.leftNavPadding.PaddingLeft = UDim.new(0, 3)
+KEONProfile.leftNavPadding.PaddingRight = UDim.new(0, 3)
+KEONProfile.leftNavPadding.PaddingTop = UDim.new(0, 2)
+KEONProfile.leftNavPadding.Parent = LeftWing
+KEONProfile.rightNavPadding = Instance.new("UIPadding")
+KEONProfile.rightNavPadding.PaddingLeft = UDim.new(0, 3)
+KEONProfile.rightNavPadding.PaddingRight = UDim.new(0, 3)
+KEONProfile.rightNavPadding.PaddingTop = UDim.new(0, 2)
+KEONProfile.rightNavPadding.Parent = RightWing
+
 local CenterScroll = Instance.new("ScrollingFrame")
 CenterScroll.Size = UDim2.new(1, -16, 1, -54)
 CenterScroll.Position = UDim2.new(0, 8, 0, 48)
@@ -1159,8 +1367,8 @@ applyResponsiveMain = function()
         for _, navBtn in ipairs({LeftWing:GetChildren(), RightWing:GetChildren()}) do
             for _, child in ipairs(navBtn) do
                 if child:IsA("TextButton") then
-                    child.Size = UDim2.new(0, 96, 0, 32)
-                    child.TextSize = 11
+                    child.Size = UDim2.new(0, 108, 0, 34)
+                    child.TextSize = 11.5
                     child.ZIndex = 9
                 end
             end
@@ -1197,8 +1405,8 @@ applyResponsiveMain = function()
         for _, wing in ipairs({LeftWing, RightWing}) do
             for _, child in ipairs(wing:GetChildren()) do
                 if child:IsA("TextButton") then
-                    child.Size = UDim2.new(1, 0, 0, 39)
-                    child.TextSize = 13.5
+                    child.Size = UDim2.new(1, -4, 0, 40)
+                    child.TextSize = 13
                     child.ZIndex = 1
                 end
             end
@@ -1530,10 +1738,14 @@ local function fetchScriptUsersOnly()
                 local currentTime = os.time()
                 
                 for uid, uData in pairs(data) do
-                    if type(uData) == "table" and uData.lastSeen and (currentTime - uData.lastSeen) < 35 then
-                        table.insert(activeUsers, uData)
+                    if type(uData) == "table" then
+                        KEONProfile.profileByUserId[tostring(uData.userId or uid)] = uData
+                        if uData.lastSeen and (currentTime - uData.lastSeen) < 35 then
+                            table.insert(activeUsers, uData)
+                        end
                     end
                 end
+                KEONProfile.refreshCountryTags()
                 
                 ChatHeaderBtn3.Text = "🟢 المتصلون (" .. #activeUsers .. ")"
                 
@@ -1563,7 +1775,8 @@ local function fetchScriptUsersOnly()
                     pNameLbl.Size = UDim2.new(1, -190, 1, 0)
                     pNameLbl.Position = UDim2.new(0, 140, 0, 0)
                     pNameLbl.BackgroundTransparency = 1
-                    pNameLbl.Text = "★ " .. (u.displayName or u.name)
+                    pNameLbl.Text = tostring(u.countryFlag or "🌐") .. "  ★ " .. (u.displayName or u.name or "لاعب")
+                    pNameLbl.TextTruncate = Enum.TextTruncate.AtEnd
                     pNameLbl.TextColor3 = currentAccentColor
                     pNameLbl.Font = Enum.Font.GothamBold
                     pNameLbl.TextSize = 13
@@ -1863,7 +2076,7 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
     end
 end)
 
-for _, sUrl in ipairs(stickerUrls) do
+for stickerIndex, sUrl in ipairs(KEONProfile.stickerUrls) do
     local stBtn = Instance.new("ImageButton")
     stBtn.Size = UDim2.new(0, 60, 0, 60)
     stBtn.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
@@ -1873,6 +2086,10 @@ for _, sUrl in ipairs(stickerUrls) do
     stBtn.ZIndex = 51
     stBtn.Parent = StickerModal
     Instance.new("UICorner", stBtn).CornerRadius = UDim.new(0, 9)
+    local stickerBorder = Instance.new("UIStroke")
+    stickerBorder.Color = currentAccentColor
+    stickerBorder.Thickness = 1
+    stickerBorder.Parent = stBtn
 
     stBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
@@ -1887,7 +2104,9 @@ for _, sUrl in ipairs(stickerUrls) do
                     Body = HttpService:JSONEncode({
                         sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
                         userId = LocalPlayer.UserId,
-                        text = sUrl,
+                        text = KEONProfile.stickerRawUrls[stickerIndex],
+                        countryFlag = KEONProfile.selectedCountryFlag,
+                        countryName = KEONProfile.selectedCountryName,
                         isSticker = true,
                         time = os.time()
                     })
@@ -1954,7 +2173,7 @@ ChatLayout.Padding = UDim.new(0, 6)
 ChatLayout.Parent = ChatScroll
 
 local ChatInput = Instance.new("TextBox")
-ChatInput.Size = UDim2.new(1, -135, 0, 30)
+ChatInput.Size = UDim2.new(1, -145, 0, 30)
 ChatInput.Position = UDim2.new(0, 10, 1, -36)
 ChatInput.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
 ChatInput.PlaceholderText = "اكتب رسالة…"
@@ -2006,16 +2225,18 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
     local frameHeight = isSticker and 110 or 58
     local msgFrame = Instance.new("Frame")
     msgFrame.Name = msgKey or "MsgItem"
-    msgFrame.Size = UDim2.new(1, 0, 0, frameHeight)
-    msgFrame.BackgroundColor3 = Color3.fromRGB(15, 29, 51)
-    msgFrame.BackgroundTransparency = 0.08
+    msgFrame.Size = UDim2.new(1, -4, 0, frameHeight)
+    msgFrame.BackgroundColor3 = Color3.fromRGB(9, 22, 40)
+    msgFrame.BackgroundTransparency = 0.02
+    msgFrame.BorderSizePixel = 0
     msgFrame.ZIndex = 2
     msgFrame.Parent = ChatScroll
     Instance.new("UICorner", msgFrame).CornerRadius = UDim.new(0, 9)
 
     local stroke = Instance.new("UIStroke")
     stroke.Color = currentAccentColor
-    stroke.Thickness = 1.2
+    stroke.Thickness = 1.05
+    stroke.Transparency = 0.12
     stroke.Parent = msgFrame
     table.insert(registeredOptionStrokes, stroke)
 
@@ -2040,11 +2261,14 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
     nameLbl.Size = UDim2.new(1, -42, 1, 0)
     nameLbl.Position = UDim2.new(0, 0, 0, 0)
     nameLbl.BackgroundTransparency = 1
-    nameLbl.Text = sender .. "  •"
+    local senderProfile = KEONProfile.profileByUserId[tostring(userId or LocalPlayer.UserId)]
+    local flagForSender = senderProfile and senderProfile.countryFlag or (userId == LocalPlayer.UserId and KEONProfile.selectedCountryFlag or "🌐")
+    nameLbl.Text = tostring(flagForSender or "🌐") .. "  " .. tostring(sender) .. "  •"
     nameLbl.TextTruncate = Enum.TextTruncate.AtEnd
     nameLbl.TextColor3 = currentAccentColor
     nameLbl.Font = Enum.Font.GothamBold
-    nameLbl.TextSize = 13
+    nameLbl.TextSize = 12
+    nameLbl.TextScaled = true
     nameLbl.TextXAlignment = Enum.TextXAlignment.Right
     nameLbl.ZIndex = 4
     nameLbl.Parent = rightHeader
@@ -2052,10 +2276,17 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
 
     if isSticker then
         local stickerContent = Instance.new("ImageLabel")
-        stickerContent.Size = UDim2.new(0, 75, 0, 75)
-        stickerContent.Position = UDim2.new(1, -95, 0, 32)
+        stickerContent.Size = UDim2.new(0, 80, 0, 80)
+        stickerContent.Position = UDim2.new(1, -90, 0, 28)
         stickerContent.BackgroundColor3 = Color3.fromRGB(15, 22, 42)
-        stickerContent.Image = text
+        local visibleStickerImage = text
+        for stickerIndex, publicUrl in ipairs(KEONProfile.stickerRawUrls) do
+            if publicUrl == text then
+                visibleStickerImage = KEONProfile.stickerUrls[stickerIndex]
+                break
+            end
+        end
+        stickerContent.Image = visibleStickerImage
         stickerContent.ImageTransparency = 0
         stickerContent.ScaleType = Enum.ScaleType.Fit
         stickerContent.ZIndex = 4
@@ -2153,6 +2384,9 @@ local function sendMessageNow()
                         sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
                         userId = LocalPlayer.UserId,
                         text = msg,
+                        countryFlag = KEONProfile.selectedCountryFlag,
+                        countryName = KEONProfile.selectedCountryName,
+                        countryCode = KEONProfile.selectedCountryCode,
                         isSticker = false,
                         time = os.time()
                     })
@@ -2257,20 +2491,28 @@ end)
 ---------------------------------------------------------
 local function createProStyleBtn(text, side)
     local btn = Instance.new("TextButton")
-    btn.Size = responsiveState.narrow and UDim2.new(0, 96, 0, 32) or UDim2.new(1, 0, 0, 39)
+    btn.Size = responsiveState.narrow and UDim2.new(0, 108, 0, 34) or UDim2.new(1, -4, 0, 40)
     btn.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = responsiveState.narrow and 11 or 13.5
+    btn.TextSize = responsiveState.narrow and 11.5 or 13
+    btn.TextScaled = true
+    btn.TextWrapped = false
+    btn.TextTruncate = Enum.TextTruncate.AtEnd
     btn.AutoButtonColor = false
+    btn.ClipsDescendants = false
     btn.ZIndex = responsiveState.narrow and 9 or 1
+    local textConstraint = Instance.new("UITextSizeConstraint")
+    textConstraint.MinTextSize = 10
+    textConstraint.MaxTextSize = responsiveState.narrow and 12 or 13
+    textConstraint.Parent = btn
     btn.Parent = (side == "left") and LeftWing or RightWing
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
 
     local stroke = Instance.new("UIStroke")
     stroke.Color = currentAccentColor
-    stroke.Thickness = 1.15
+    stroke.Thickness = 1.45
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Parent = btn
 
@@ -2501,7 +2743,7 @@ local function showHomePage()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر التحديثات • KEON v61"
+    updatesTitle.Text = "✨ آخر التحديثات • KEON v62"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.GothamBold
     updatesTitle.TextSize = 14
@@ -2514,7 +2756,7 @@ local function showHomePage()
     updatesDesc.Size = UDim2.new(1, -18, 0, 110)
     updatesDesc.Position = UDim2.new(0, 9, 0, 27)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إعادة تصميم الرئيسية وبطاقات عرض السكربتات.\n• جعل الخلفيات معتمة بالكامل لزيادة وضوح النصوص.\n• تحسين نافذة الملصقات وتوزيعها داخل الشات.\n• استبدال مشغل الفيديو بمكتبة موسيقى من 8 أغنيات.\n• إضافة إعجاب وعدّاد محبين محلي لكل أغنية.\n• معاينات مرئية لاختيار خلفيات الواجهة والشات."
+    updatesDesc.Text = "• إعادة تصميم الرئيسية وبطاقات عرض السكربتات.\n• جعل الخلفيات معتمة بالكامل لزيادة وضوح النصوص.\n• تحسين نافذة الملصقات وتوزيعها داخل الشات.\n• استبدال مشغل الفيديو بمكتبة موسيقى من 8 أغنيات.\n• إضافة إعجاب وعدّاد محبين محلي لكل أغنية.\n• اختيار العلم العربي وحفظ وقت الاستخدام وتوب 100."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.GothamBold
     updatesDesc.TextSize = 11
@@ -2554,7 +2796,7 @@ local function showHomePage()
     guideDesc.Size = UDim2.new(1, -20, 0, 108)
     guideDesc.Position = UDim2.new(0, 10, 0, 37)
     guideDesc.BackgroundTransparency = 1
-    guideDesc.Text = "١) اختر القسم من القائمة الجانبية.\n٢) من (سكربتات) اختر الماب ثم افتح تفاصيل السكربت.\n٣) الخلفيات قابلة للتغيير من الإعدادات، وستبقى معتمة وواضحة.\n٤) الملصقات تعمل عبر الشات العام عند تحميل صورها بنجاح.\n٥) قسم الموسيقى يحتوي على ٨ أغنيات مع زر إعجاب.\n٦) خلفيات الواجهة والشات قابلة للاختيار من المعاينات."
+    guideDesc.Text = "١) اختر القسم من القائمة الجانبية.\n٢) من (سكربتات) اختر الماب ثم افتح تفاصيل السكربت.\n٣) الخلفيات قابلة للتغيير من الإعدادات، وستبقى معتمة وواضحة.\n٤) الملصقات تعمل عبر الشات العام عند تحميل صورها بنجاح.\n٥) قسم الموسيقى يحتوي على ٨ أغنيات مع زر إعجاب.\n٦) قسم تسجيل الدخول يحفظ العلم ووقت الاستخدام ويعرض التوب 100."
     guideDesc.TextColor3 = Color3.fromRGB(245, 248, 255)
     guideDesc.Font = Enum.Font.Gotham
     guideDesc.TextSize = 11
@@ -2809,25 +3051,44 @@ local function openScriptDetailsPage(mapName, scriptsList)
         for _, sData in ipairs(scriptsList) do
             if query == "" or string.find(string.lower(sData.name), string.lower(query)) then
                 local scriptCard = Instance.new("Frame")
-                scriptCard.Size = UDim2.new(1, 0, 0, 112)
-                scriptCard.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+                scriptCard.Size = UDim2.new(1, -4, 0, 108)
+                scriptCard.BackgroundColor3 = Color3.fromRGB(10, 20, 39)
+                scriptCard.BorderSizePixel = 0
                 scriptCard.ZIndex = 3
                 scriptCard.Parent = cardsContainer
-                Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 11)
+                Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 14)
+
+                local cardGradient = Instance.new("UIGradient")
+                cardGradient.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(16, 41, 72)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 15, 30))
+                })
+                cardGradient.Rotation = 18
+                cardGradient.Parent = scriptCard
 
                 local cardStroke = Instance.new("UIStroke")
                 cardStroke.Color = currentAccentColor
-                cardStroke.Thickness = 1.5
+                cardStroke.Thickness = 1.35
+                cardStroke.Transparency = 0.12
                 cardStroke.Parent = scriptCard
                 table.insert(registeredOptionStrokes, cardStroke)
 
+                local accentRail = Instance.new("Frame")
+                accentRail.Size = UDim2.new(0, 4, 1, -18)
+                accentRail.Position = UDim2.new(0, 6, 0, 9)
+                accentRail.BackgroundColor3 = currentAccentColor
+                accentRail.BorderSizePixel = 0
+                accentRail.ZIndex = 4
+                accentRail.Parent = scriptCard
+                Instance.new("UICorner", accentRail).CornerRadius = UDim.new(1, 0)
+
                 local scriptTitle = Instance.new("TextLabel")
-                scriptTitle.Size = UDim2.new(1, -20, 0, 24)
-                scriptTitle.Position = UDim2.new(0, 10, 0, 7)
+                scriptTitle.Size = UDim2.new(1, -24, 0, 26)
+                scriptTitle.Position = UDim2.new(0, 16, 0, 8)
                 scriptTitle.BackgroundTransparency = 1
                 scriptTitle.Text = sData.name
-                scriptTitle.TextColor3 = currentAccentColor
-                scriptTitle.Font = Enum.Font.GothamBold
+                scriptTitle.TextColor3 = Color3.fromRGB(238, 248, 255)
+                scriptTitle.Font = Enum.Font.GothamBlack
                 scriptTitle.TextSize = 13
                 scriptTitle.TextTruncate = Enum.TextTruncate.AtEnd
                 scriptTitle.TextXAlignment = Enum.TextXAlignment.Right
@@ -2836,28 +3097,36 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 table.insert(activeNameLabels, scriptTitle)
 
                 local keyTag = Instance.new("TextLabel")
-                keyTag.Size = UDim2.new(1, -20, 0, 20)
-                keyTag.Position = UDim2.new(0, 10, 0, 33)
-                keyTag.BackgroundTransparency = 1
-                keyTag.Text = "🔑 حالة المفتاح: " .. sData.keyState
-                keyTag.TextColor3 = Color3.fromRGB(255, 255, 255)
+                keyTag.Size = UDim2.new(1, -156, 0, 27)
+                keyTag.Position = UDim2.new(0, 16, 0, 47)
+                keyTag.BackgroundColor3 = Color3.fromRGB(7, 33, 51)
+                keyTag.BackgroundTransparency = 0.1
+                keyTag.Text = "🔑 " .. tostring(sData.keyState or "غير محدد")
+                keyTag.TextColor3 = Color3.fromRGB(143, 218, 255)
                 keyTag.Font = Enum.Font.GothamBold
-                keyTag.TextSize = 11.5
-                keyTag.TextXAlignment = Enum.TextXAlignment.Right
+                keyTag.TextSize = 10.5
+                keyTag.TextTruncate = Enum.TextTruncate.AtEnd
+                keyTag.TextXAlignment = Enum.TextXAlignment.Center
                 keyTag.ZIndex = 4
                 keyTag.Parent = scriptCard
+                Instance.new("UICorner", keyTag).CornerRadius = UDim.new(0, 8)
 
                 local runBtn = Instance.new("TextButton")
-                runBtn.Size = UDim2.new(1, -20, 0, 31)
-                runBtn.Position = UDim2.new(0, 10, 0, 70)
+                runBtn.Size = UDim2.new(0, 126, 0, 33)
+                runBtn.Position = UDim2.new(1, -136, 0, 44)
                 runBtn.BackgroundColor3 = currentAccentColor
-                runBtn.Text = "تشغيل السكربت  ➤"
+                runBtn.Text = "تشغيل  ➤"
                 runBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
                 runBtn.Font = Enum.Font.GothamBold
-                runBtn.TextSize = 13.5
+                runBtn.TextSize = 12
+                runBtn.TextScaled = true
                 runBtn.ZIndex = 4
                 runBtn.Parent = scriptCard
-                Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 9)
+                Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 10)
+                local runStroke = Instance.new("UIStroke")
+                runStroke.Color = Color3.fromRGB(125, 220, 255)
+                runStroke.Thickness = 1
+                runStroke.Parent = runBtn
 
                 runBtn.MouseButton1Click:Connect(function()
                     playUiSound(SOUND_CLICK, 1, 0.35)
@@ -2900,21 +3169,23 @@ showScriptsPage = function()
 
     local function addMapCard(mapTitle, mapImgUrl, scriptsList)
         local mapCard = Instance.new("Frame")
-        mapCard.Size = UDim2.new(1, 0, 0, 174)
-        mapCard.BackgroundColor3 = Color3.fromRGB(10, 20, 42)
+        mapCard.Size = UDim2.new(1, -4, 0, 202)
+        mapCard.BackgroundColor3 = Color3.fromRGB(7, 17, 33)
         mapCard.BackgroundTransparency = 0
+        mapCard.BorderSizePixel = 0
         mapCard.ZIndex = 3
         mapCard.Parent = CenterScroll
-        Instance.new("UICorner", mapCard).CornerRadius = UDim.new(0, 14)
+        Instance.new("UICorner", mapCard).CornerRadius = UDim.new(0, 16)
 
         local mapCardStroke = Instance.new("UIStroke")
         mapCardStroke.Color = currentAccentColor
-        mapCardStroke.Thickness = 1.8
+        mapCardStroke.Thickness = 1.45
+        mapCardStroke.Transparency = 0.1
         mapCardStroke.Parent = mapCard
         table.insert(registeredOptionStrokes, mapCardStroke)
 
         local mapImg = Instance.new("ImageLabel")
-        mapImg.Size = UDim2.new(1, -16, 0, 88)
+        mapImg.Size = UDim2.new(1, -16, 0, 106)
         mapImg.Position = UDim2.new(0, 8, 0, 8)
         mapImg.ImageTransparency = 0
         mapImg.BackgroundColor3 = Color3.fromRGB(31, 44, 73)
@@ -2922,29 +3193,63 @@ showScriptsPage = function()
         mapImg.ScaleType = Enum.ScaleType.Crop
         mapImg.ZIndex = 4
         mapImg.Parent = mapCard
-        Instance.new("UICorner", mapImg).CornerRadius = UDim.new(0, 11)
+        Instance.new("UICorner", mapImg).CornerRadius = UDim.new(0, 12)
+
+        local mapBannerShade = Instance.new("Frame")
+        mapBannerShade.Size = UDim2.new(1, -16, 0, 32)
+        mapBannerShade.Position = UDim2.new(0, 8, 0, 82)
+        mapBannerShade.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        mapBannerShade.BackgroundTransparency = 0.28
+        mapBannerShade.BorderSizePixel = 0
+        mapBannerShade.ZIndex = 5
+        mapBannerShade.Parent = mapCard
+        Instance.new("UICorner", mapBannerShade).CornerRadius = UDim.new(0, 8)
+        local mapBadge = Instance.new("TextLabel")
+        mapBadge.Size = UDim2.new(1, -12, 1, 0)
+        mapBadge.Position = UDim2.new(0, 6, 0, 0)
+        mapBadge.BackgroundTransparency = 1
+        mapBadge.Text = "✦  " .. tostring(#scriptsList) .. " سكربتات  •  KEON SELECTED"
+        mapBadge.TextColor3 = Color3.fromRGB(230, 245, 255)
+        mapBadge.Font = Enum.Font.GothamBold
+        mapBadge.TextSize = 10
+        mapBadge.TextXAlignment = Enum.TextXAlignment.Right
+        mapBadge.ZIndex = 6
+        mapBadge.Parent = mapBannerShade
 
         local mapNameLbl = Instance.new("TextLabel")
-        mapNameLbl.Size = UDim2.new(1, -20, 0, 24)
-        mapNameLbl.Position = UDim2.new(0, 10, 0, 101)
+        mapNameLbl.Size = UDim2.new(1, -24, 0, 26)
+        mapNameLbl.Position = UDim2.new(0, 12, 0, 116)
         mapNameLbl.BackgroundTransparency = 1
         mapNameLbl.Text = mapTitle
-        mapNameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-        mapNameLbl.Font = Enum.Font.GothamBold
-        mapNameLbl.TextSize = 13
+        mapNameLbl.TextColor3 = Color3.fromRGB(240, 249, 255)
+        mapNameLbl.Font = Enum.Font.GothamBlack
+        mapNameLbl.TextSize = 14
         mapNameLbl.TextTruncate = Enum.TextTruncate.AtEnd
         mapNameLbl.TextXAlignment = Enum.TextXAlignment.Right
         mapNameLbl.ZIndex = 4
         mapNameLbl.Parent = mapCard
 
+        local mapMeta = Instance.new("TextLabel")
+        mapMeta.Size = UDim2.new(1, -24, 0, 16)
+        mapMeta.Position = UDim2.new(0, 12, 0, 144)
+        mapMeta.BackgroundTransparency = 1
+        mapMeta.Text = "✦ " .. tostring(#scriptsList) .. " سكربتات متاحة  •  NEON LIBRARY"
+        mapMeta.TextColor3 = Color3.fromRGB(135, 186, 221)
+        mapMeta.Font = Enum.Font.GothamMedium
+        mapMeta.TextSize = 9.5
+        mapMeta.TextXAlignment = Enum.TextXAlignment.Right
+        mapMeta.ZIndex = 4
+        mapMeta.Parent = mapCard
+
         local showBtn = Instance.new("TextButton")
-        showBtn.Size = UDim2.new(1, -20, 0, 31)
-        showBtn.Position = UDim2.new(0, 10, 0, 134)
+        showBtn.Size = UDim2.new(1, -20, 0, 32)
+        showBtn.Position = UDim2.new(0, 10, 0, 164)
         showBtn.BackgroundColor3 = currentAccentColor
-        showBtn.Text = "فتح التفاصيل ↗"
+        showBtn.Text = "استكشف السكربتات  ↗"
         showBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         showBtn.Font = Enum.Font.GothamBold
         showBtn.TextSize = 12
+        showBtn.TextScaled = true
         showBtn.ZIndex = 4
         showBtn.Parent = mapCard
         Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 9)
@@ -2970,6 +3275,330 @@ showScriptsPage = function()
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
 end
 BtnScripts.MouseButton1Click:Connect(showScriptsPage)
+
+---------------------------------------------------------
+-- ملف اللاعب: اختيار علم + توب 100 وقت استخدام السكربت
+---------------------------------------------------------
+KEONProfile.ARAB_COUNTRIES = {
+    {flag="🇮🇶", name="العراق", code="IQ"}, {flag="🇸🇦", name="السعودية", code="SA"},
+    {flag="🇦🇪", name="الإمارات", code="AE"}, {flag="🇰🇼", name="الكويت", code="KW"},
+    {flag="🇶🇦", name="قطر", code="QA"}, {flag="🇧🇭", name="البحرين", code="BH"},
+    {flag="🇴🇲", name="عُمان", code="OM"}, {flag="🇯🇴", name="الأردن", code="JO"},
+    {flag="🇵🇸", name="فلسطين", code="PS"}, {flag="🇸🇾", name="سوريا", code="SY"},
+    {flag="🇱🇧", name="لبنان", code="LB"}, {flag="🇪🇬", name="مصر", code="EG"},
+    {flag="🇾🇪", name="اليمن", code="YE"}, {flag="🇲🇦", name="المغرب", code="MA"},
+    {flag="🇹🇳", name="تونس", code="TN"}, {flag="🇩🇿", name="الجزائر", code="DZ"},
+    {flag="🇱🇾", name="ليبيا", code="LY"}, {flag="🇸🇩", name="السودان", code="SD"},
+    {flag="🇸🇴", name="الصومال", code="SO"}, {flag="🇲🇷", name="موريتانيا", code="MR"},
+    {flag="🇩🇯", name="جيبوتي", code="DJ"}, {flag="🇰🇲", name="جزر القمر", code="KM"}
+}
+
+KEONProfile.BtnProfile = createProStyleBtn("تسجيل دخول", "right")
+
+local function addProfileHeader(mode)
+    local hero = Instance.new("Frame")
+    hero.Size = UDim2.new(1, -4, 0, 82)
+    hero.BackgroundColor3 = Color3.fromRGB(8, 23, 43)
+    hero.BorderSizePixel = 0
+    hero.ZIndex = 3
+    hero.Parent = CenterScroll
+    Instance.new("UICorner", hero).CornerRadius = UDim.new(0, 15)
+    local heroGradient = Instance.new("UIGradient")
+    heroGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(13, 59, 95)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 17, 34))
+    })
+    heroGradient.Rotation = 15
+    heroGradient.Parent = hero
+    local heroStroke = Instance.new("UIStroke")
+    heroStroke.Color = currentAccentColor
+    heroStroke.Thickness = 1.35
+    heroStroke.Parent = hero
+    table.insert(registeredOptionStrokes, heroStroke)
+
+    local avatar = Instance.new("ImageLabel")
+    avatar.Size = UDim2.new(0, 58, 0, 58)
+    avatar.Position = UDim2.new(0, 10, 0.5, -29)
+    avatar.BackgroundColor3 = Color3.fromRGB(18, 41, 68)
+    avatar.BorderSizePixel = 0
+    avatar.ZIndex = 4
+    avatar.Parent = hero
+    Instance.new("UICorner", avatar).CornerRadius = UDim.new(0, 12)
+    loadAvatarThumbnail(LocalPlayer.UserId, avatar)
+
+    local heroTitle = Instance.new("TextLabel")
+    heroTitle.Size = UDim2.new(1, -86, 0, 26)
+    heroTitle.Position = UDim2.new(0, 78, 0, 10)
+    heroTitle.BackgroundTransparency = 1
+    heroTitle.Text = "👤 " .. LocalPlayer.DisplayName .. "  •  @" .. LocalPlayer.Name
+    heroTitle.TextColor3 = Color3.fromRGB(245, 250, 255)
+    heroTitle.Font = Enum.Font.GothamBlack
+    heroTitle.TextSize = 12
+    heroTitle.TextXAlignment = Enum.TextXAlignment.Right
+    heroTitle.TextTruncate = Enum.TextTruncate.AtEnd
+    heroTitle.ZIndex = 4
+    heroTitle.Parent = hero
+
+    local heroMeta = Instance.new("TextLabel")
+    heroMeta.Size = UDim2.new(1, -86, 0, 38)
+    heroMeta.Position = UDim2.new(0, 78, 0, 36)
+    heroMeta.BackgroundTransparency = 1
+    heroMeta.Text = KEONProfile.selectedCountryFlag .. " " .. KEONProfile.selectedCountryName .. "\n⏱ وقت الاستخدام المحفوظ: " .. KEONProfile.formatPlayTime(KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock))
+    heroMeta.TextColor3 = Color3.fromRGB(153, 218, 255)
+    heroMeta.Font = Enum.Font.GothamBold
+    heroMeta.TextSize = 10.5
+    heroMeta.TextXAlignment = Enum.TextXAlignment.Right
+    heroMeta.TextYAlignment = Enum.TextYAlignment.Center
+    heroMeta.TextWrapped = true
+    heroMeta.ZIndex = 4
+    heroMeta.Parent = hero
+    task.spawn(function()
+        for _ = 1, 15 do
+            task.wait(1)
+            if not heroMeta.Parent then return end
+            heroMeta.Text = KEONProfile.selectedCountryFlag .. " " .. KEONProfile.selectedCountryName .. "\n⏱ وقت الاستخدام المحفوظ: " .. KEONProfile.formatPlayTime(KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock))
+        end
+    end)
+
+    local tabs = Instance.new("Frame")
+    tabs.Size = UDim2.new(1, -4, 0, 38)
+    tabs.BackgroundTransparency = 1
+    tabs.ZIndex = 3
+    tabs.Parent = CenterScroll
+
+    local countryTab = Instance.new("TextButton")
+    countryTab.Size = UDim2.new(0.5, -4, 1, 0)
+    countryTab.Position = UDim2.new(0, 0, 0, 0)
+    countryTab.BackgroundColor3 = mode == "countries" and currentAccentColor or Color3.fromRGB(18, 34, 57)
+    countryTab.Text = "🌍 اختيار الدولة"
+    countryTab.TextColor3 = Color3.fromRGB(255,255,255)
+    countryTab.Font = Enum.Font.GothamBold
+    countryTab.TextSize = 11
+    countryTab.TextScaled = true
+    countryTab.ZIndex = 4
+    countryTab.Parent = tabs
+    Instance.new("UICorner", countryTab).CornerRadius = UDim.new(0, 10)
+
+    local topTab = Instance.new("TextButton")
+    topTab.Size = UDim2.new(0.5, -4, 1, 0)
+    topTab.Position = UDim2.new(0.5, 4, 0, 0)
+    topTab.BackgroundColor3 = mode == "top" and currentAccentColor or Color3.fromRGB(18, 34, 57)
+    topTab.Text = "🏆 توب 100"
+    topTab.TextColor3 = Color3.fromRGB(255,255,255)
+    topTab.Font = Enum.Font.GothamBold
+    topTab.TextSize = 11
+    topTab.TextScaled = true
+    topTab.ZIndex = 4
+    topTab.Parent = tabs
+    Instance.new("UICorner", topTab).CornerRadius = UDim.new(0, 10)
+
+    countryTab.MouseButton1Click:Connect(function() playUiSound(SOUND_CLICK,1,0.3); KEONProfile.showProfilePage("countries") end)
+    topTab.MouseButton1Click:Connect(function() playUiSound(SOUND_CLICK,1,0.3); KEONProfile.showProfilePage("top") end)
+    return hero
+end
+
+KEONProfile.showProfilePage = function(mode)
+    mode = mode or "countries"
+    playUiSound(SOUND_CLICK, 1, 0.3)
+    clearCenter()
+    addProfileHeader(mode)
+
+    local intro = Instance.new("TextLabel")
+    intro.Size = UDim2.new(1, -4, 0, 30)
+    intro.BackgroundTransparency = 1
+    intro.TextColor3 = currentAccentColor
+    intro.Font = Enum.Font.GothamBlack
+    intro.TextSize = 13
+    intro.TextXAlignment = Enum.TextXAlignment.Right
+    intro.ZIndex = 3
+    intro.Parent = CenterScroll
+
+    if mode == "countries" then
+        intro.Text = "اختر علم دولتك حتى يظهر بجانب اسمك بالشات وفوق شخصيتك"
+        intro.TextWrapped = true
+        local countryGrid = Instance.new("Frame")
+        countryGrid.Size = UDim2.new(1, -4, 0, 11 * 47 + 4)
+        countryGrid.BackgroundTransparency = 1
+        countryGrid.ZIndex = 3
+        countryGrid.Parent = CenterScroll
+        local gridLayout = Instance.new("UIGridLayout")
+        gridLayout.CellSize = UDim2.new(0.5, -5, 0, 42)
+        gridLayout.CellPadding = UDim2.new(0, 8, 0, 5)
+        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        gridLayout.Parent = countryGrid
+
+        for i, country in ipairs(KEONProfile.ARAB_COUNTRIES) do
+            local countryBtn = Instance.new("TextButton")
+            countryBtn.LayoutOrder = i
+            countryBtn.BackgroundColor3 = country.code == KEONProfile.selectedCountryCode and Color3.fromRGB(0, 91, 148) or Color3.fromRGB(12, 27, 48)
+            countryBtn.Text = country.flag .. "  " .. country.name
+            countryBtn.TextColor3 = Color3.fromRGB(245, 249, 255)
+            countryBtn.Font = Enum.Font.GothamBold
+            countryBtn.TextSize = 11.5
+            countryBtn.TextScaled = true
+            countryBtn.TextTruncate = Enum.TextTruncate.AtEnd
+            countryBtn.AutoButtonColor = false
+            countryBtn.ZIndex = 4
+            countryBtn.Parent = countryGrid
+            Instance.new("UICorner", countryBtn).CornerRadius = UDim.new(0, 10)
+            local border = Instance.new("UIStroke")
+            border.Color = country.code == KEONProfile.selectedCountryCode and Color3.fromRGB(108, 225, 255) or Color3.fromRGB(36, 72, 108)
+            border.Thickness = country.code == KEONProfile.selectedCountryCode and 1.7 or 1
+            border.Parent = countryBtn
+
+            countryBtn.MouseButton1Click:Connect(function()
+                KEONProfile.selectedCountryFlag = country.flag
+                KEONProfile.selectedCountryName = country.name
+                KEONProfile.selectedCountryCode = country.code
+                KEONProfile.publishProfileCountry()
+                local oldText = countryBtn.Text
+                countryBtn.Text = "✓ " .. country.flag .. " " .. country.name
+                task.wait(0.12)
+                KEONProfile.showProfilePage("countries")
+            end)
+        end
+
+        local note = Instance.new("TextLabel")
+        note.Size = UDim2.new(1, -4, 0, 40)
+        note.BackgroundTransparency = 1
+        note.Text = "🔒 ما نطلب كلمة مرور. اختيار العلم فقط يحفظ رمز الدولة مع ملفك."
+        note.TextColor3 = Color3.fromRGB(165, 195, 220)
+        note.Font = Enum.Font.Gotham
+        note.TextSize = 10
+        note.TextWrapped = true
+        note.TextXAlignment = Enum.TextXAlignment.Right
+        note.ZIndex = 3
+        note.Parent = CenterScroll
+    else
+        intro.Text = "أفضل 100 لاعب حسب وقت استخدام KEON المحفوظ"
+        local refreshBtn = Instance.new("TextButton")
+        refreshBtn.Size = UDim2.new(1, -4, 0, 32)
+        refreshBtn.BackgroundColor3 = Color3.fromRGB(12, 42, 68)
+        refreshBtn.Text = "↻ تحديث ترتيب التوب 100"
+        refreshBtn.TextColor3 = Color3.fromRGB(255,255,255)
+        refreshBtn.Font = Enum.Font.GothamBold
+        refreshBtn.TextSize = 11
+        refreshBtn.ZIndex = 4
+        refreshBtn.Parent = CenterScroll
+        Instance.new("UICorner", refreshBtn).CornerRadius = UDim.new(0, 9)
+        refreshBtn.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("top") end)
+
+        local loading = Instance.new("TextLabel")
+        loading.Size = UDim2.new(1, -4, 0, 44)
+        loading.BackgroundTransparency = 1
+        loading.Text = "⏳ جارٍ تحميل الترتيب من التخزين المشترك..."
+        loading.TextColor3 = Color3.fromRGB(180, 215, 245)
+        loading.Font = Enum.Font.GothamBold
+        loading.TextSize = 11
+        loading.TextWrapped = true
+        loading.ZIndex = 3
+        loading.Parent = CenterScroll
+
+        task.spawn(function()
+            local records = {}
+            local ok = pcall(function()
+                local res = customRequest({Url = KEONProfile.FIREBASE_USAGE_URL, Method = "GET"})
+                if res and res.StatusCode == 200 then
+                    local decoded = safeDecode(res.Body)
+                    if type(decoded) == "table" then
+                        for uid, record in pairs(decoded) do
+                            if type(record) == "table" and tonumber(record.userId or uid) then
+                                record.userId = tonumber(record.userId or uid)
+                                record.totalSeconds = math.max(0, tonumber(record.totalSeconds) or 0)
+                                table.insert(records, record)
+                            end
+                        end
+                    end
+                end
+            end)
+            table.sort(records, function(a,b) return (a.totalSeconds or 0) > (b.totalSeconds or 0) end)
+            if not CenterScroll or not CenterScroll.Parent or not loading.Parent then return end
+            loading:Destroy()
+            if #records == 0 then
+                local empty = Instance.new("TextLabel")
+                empty.Size = UDim2.new(1, -4, 0, 58)
+                empty.BackgroundTransparency = 1
+                empty.Text = ok and "ماكو بيانات ترتيب محفوظة لحد الآن." or "تعذّر الوصول إلى الترتيب؛ تحقق من اتصال قاعدة البيانات."
+                empty.TextColor3 = Color3.fromRGB(186, 206, 226)
+                empty.Font = Enum.Font.GothamBold
+                empty.TextSize = 11
+                empty.TextWrapped = true
+                empty.ZIndex = 3
+                empty.Parent = CenterScroll
+                return
+            end
+            for rank, record in ipairs(records) do
+                if rank > 100 then break end
+                local row = Instance.new("Frame")
+                row.Name = "TopPlayer_" .. tostring(rank)
+                row.Size = UDim2.new(1, -4, 0, 64)
+                row.BackgroundColor3 = rank <= 3 and Color3.fromRGB(14, 42, 65) or Color3.fromRGB(10, 21, 39)
+                row.BorderSizePixel = 0
+                row.ZIndex = 3
+                row.Parent = CenterScroll
+                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 12)
+                local rowStroke = Instance.new("UIStroke")
+                rowStroke.Color = rank == 1 and Color3.fromRGB(255, 204, 77) or (rank == 2 and Color3.fromRGB(194, 218, 241) or (rank == 3 and Color3.fromRGB(206, 139, 93) or Color3.fromRGB(30, 74, 112)))
+                rowStroke.Thickness = rank <= 3 and 1.4 or 0.8
+                rowStroke.Parent = row
+                table.insert(registeredOptionStrokes, rowStroke)
+
+                local avatar = Instance.new("ImageLabel")
+                avatar.Size = UDim2.new(0, 48, 0, 54)
+                avatar.Position = UDim2.new(0, 7, 0.5, -27)
+                avatar.BackgroundColor3 = Color3.fromRGB(18, 39, 62)
+                avatar.BorderSizePixel = 0
+                avatar.ScaleType = Enum.ScaleType.Fit
+                avatar.ZIndex = 4
+                avatar.Parent = row
+                Instance.new("UICorner", avatar).CornerRadius = UDim.new(0, 9)
+                KEONProfile.loadAvatarBodyThumbnail(record.userId, avatar)
+
+                local rankLabel = Instance.new("TextLabel")
+                rankLabel.Size = UDim2.new(0, 28, 0, 24)
+                rankLabel.Position = UDim2.new(1, -34, 0, 5)
+                rankLabel.BackgroundColor3 = rank <= 3 and rowStroke.Color or Color3.fromRGB(21, 54, 82)
+                rankLabel.Text = string.format("%02d", rank)
+                rankLabel.TextColor3 = rank <= 3 and Color3.fromRGB(7, 20, 33) or Color3.fromRGB(220, 240, 255)
+                rankLabel.Font = Enum.Font.GothamBlack
+                rankLabel.TextSize = 10
+                rankLabel.ZIndex = 4
+                rankLabel.Parent = row
+                Instance.new("UICorner", rankLabel).CornerRadius = UDim.new(0, 7)
+
+                local playerName = Instance.new("TextLabel")
+                playerName.Size = UDim2.new(1, -126, 0, 25)
+                playerName.Position = UDim2.new(0, 62, 0, 6)
+                playerName.BackgroundTransparency = 1
+                playerName.Text = tostring(record.countryFlag or "🌐") .. "  " .. tostring(record.displayName or record.name or ("User " .. tostring(record.userId)))
+                playerName.TextColor3 = Color3.fromRGB(245, 250, 255)
+                playerName.Font = Enum.Font.GothamBold
+                playerName.TextSize = 11.5
+                playerName.TextXAlignment = Enum.TextXAlignment.Right
+                playerName.TextTruncate = Enum.TextTruncate.AtEnd
+                playerName.ZIndex = 4
+                playerName.Parent = row
+
+                local timeLabel = Instance.new("TextLabel")
+                timeLabel.Size = UDim2.new(1, -126, 0, 22)
+                timeLabel.Position = UDim2.new(0, 62, 0, 33)
+                timeLabel.BackgroundTransparency = 1
+                timeLabel.Text = "⏱ " .. KEONProfile.formatPlayTime(record.totalSeconds)
+                timeLabel.TextColor3 = Color3.fromRGB(104, 207, 255)
+                timeLabel.Font = Enum.Font.GothamBold
+                timeLabel.TextSize = 10
+                timeLabel.TextXAlignment = Enum.TextXAlignment.Right
+                timeLabel.ZIndex = 4
+                timeLabel.Parent = row
+            end
+        end)
+    end
+    task.defer(function()
+        if CenterScroll and CenterScroll.Parent then CenterScroll.CanvasSize = UDim2.new(0,0,0,CenterLayout.AbsoluteContentSize.Y + 24) end
+    end)
+end
+
+KEONProfile.BtnProfile.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("countries") end)
 
 ---------------------------------------------------------
 -- تبويب "الميديا والصوتيات"
@@ -4229,6 +4858,13 @@ task.spawn(function()
                     for k, m in pairs(data) do
                         if type(m) == "table" and m.text and not renderedMsgs[k] then
                             renderedMsgs[k] = true
+                            local msgUid = tostring(m.userId or "")
+                            if msgUid ~= "" then
+                                KEONProfile.profileByUserId[msgUid] = KEONProfile.profileByUserId[msgUid] or {}
+                                if m.countryFlag then KEONProfile.profileByUserId[msgUid].countryFlag = m.countryFlag end
+                                if m.countryName then KEONProfile.profileByUserId[msgUid].countryName = m.countryName end
+                                if m.countryCode then KEONProfile.profileByUserId[msgUid].countryCode = m.countryCode end
+                            end
                             addChatMessage(tostring(m.sender or "مجهول"), tostring(m.text or ""), tonumber(m.userId), k, m.isSticker)
                         end
                     end
