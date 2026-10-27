@@ -1,4 +1,4 @@
--- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v57.0.0)
+-- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v58.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -21,7 +21,7 @@ if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Dest
 if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "KEON_Config_v57.json"
+local CONFIG_FILE = "KEON_Config_v58.json"
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1563126439434391643/KPBO62mv7x_5ubaobKt3W-YjYACbTCsY-iefrPNQ7x99Q4tndOrxwQX6ts9zSU1csjcT"
 
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
@@ -34,7 +34,6 @@ local FIREBASE_VOTE_BASE = FIREBASE_BASE_URL .. "/global_vote"
 local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
 
--- رابط السكربت الحالي لإعادة تشغيل نفسه بدقة
 local CURRENT_SCRIPT_URL = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"
 
 local function customRequest(options)
@@ -74,7 +73,7 @@ local function fetchAsset(url, fileName)
 end
 
 local wallUrls = {
-    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v57"),
+    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v58"),
     fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
     fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
     fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2"),
@@ -300,7 +299,6 @@ task.spawn(function()
                         if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
                         if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
                         
-                        -- إعادة تشغيل السكربت نفسه بدقة
                         task.spawn(function()
                             loadstring(game:HttpGet(CURRENT_SCRIPT_URL))()
                         end)
@@ -796,14 +794,14 @@ BgImage.ZIndex = 0
 BgImage.Parent = CenterBox
 Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 10)
 
--- دالة تطبيق خلفية السكربت مع معالجة الشفافية تماماً
+-- دالة تطبيق الخلفية المتحركة أو العادية بدقة وتجنب السواد تماماً للجوال
 local function applyScriptBackground(idx)
     selectedScriptBgIndex = idx
     saveUserSettings()
     if idx > 0 and wallUrls[idx] then
         BgImage.Image = wallUrls[idx]
         BgImage.Visible = true
-        CenterBox.BackgroundTransparency = 0.45 -- شفافية متوازنة لظهور الخلفية بوضوح تام دون سواد مزعج
+        CenterBox.BackgroundTransparency = 0.35 -- شفافية ممتازة لظهور الخلفية المتحركة بوضوح فائق وبدون شاشة سوداء
     else
         BgImage.Visible = false
         CenterBox.BackgroundTransparency = 0
@@ -1919,7 +1917,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesTitle.Size = UDim2.new(1, -10, 0, 22)
     updatesTitle.Position = UDim2.new(0, 5, 0, 4)
     updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر تحديثات السكربت (v57.0):"
+    updatesTitle.Text = "✨ آخر تحديثات السكربت (v58.0):"
     updatesTitle.TextColor3 = currentAccentColor
     updatesTitle.Font = Enum.Font.FredokaOne
     updatesTitle.TextSize = 14
@@ -1932,7 +1930,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Size = UDim2.new(1, -10, 0, 100)
     updatesDesc.Position = UDim2.new(0, 5, 0, 26)
     updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إضافة قسم (اسرق البيض) الجديد مع السكربت الخاص بكم والملاحظة الخاصة به.\n• رجوع نظام الأغاني القديم وإضافة روابط الأغاني الـ 8 الجديدة المطلوبة.\n• إصلاح زر إعادة تشغيل السكربت ليعيد تشغيل نفسه بدقة.\n• ضبط الشفافية والخلفيات المتحركة لتظهر بوضوح تام."
+    updatesDesc.Text = "• نقل قسم (اسرق البيض) وصار بالجانب الأيمن مباشرة بجانب الإعدادات.\n• إصلاح مشكلة الأغاني وربطها بشكل مباشر وسلس مع الصوت.\n• حل مشكلة الخلفية المتحركة والشفافية وتجنب الشاشة السوداء بالكامل.\n• تحسين الأداء العام وسرعة تصفح الواجهة."
     updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
     updatesDesc.Font = Enum.Font.FredokaOne
     updatesDesc.TextSize = 11.5
@@ -1942,88 +1940,6 @@ BtnMainHome.MouseButton1Click:Connect(function()
     updatesDesc.Parent = updatesFrame
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
-end)
-
----------------------------------------------------------
--- تبويب "اسرق البيض" الجديد كلياً
----------------------------------------------------------
-local BtnStealEgg = createProStyleBtn("اسرق البيض", "left")
-BtnStealEgg.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    local eggBanner = Instance.new("ImageLabel")
-    eggBanner.Size = UDim2.new(1, 0, 0, 110)
-    eggBanner.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-    eggBanner.Image = EGG_MAP_IMAGE
-    eggBanner.ScaleType = Enum.ScaleType.Crop
-    eggBanner.ZIndex = 3
-    eggBanner.Parent = CenterScroll
-    Instance.new("UICorner", eggBanner).CornerRadius = UDim.new(0, 10)
-
-    local eggCard = Instance.new("Frame")
-    eggCard.Size = UDim2.new(1, 0, 0, 160)
-    eggCard.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-    eggCard.ZIndex = 3
-    eggCard.Parent = CenterScroll
-    Instance.new("UICorner", eggCard).CornerRadius = UDim.new(0, 10)
-
-    local eggStroke = Instance.new("UIStroke")
-    eggStroke.Color = currentAccentColor
-    eggStroke.Thickness = 1.8
-    eggStroke.Parent = eggCard
-
-    local eggTitle = Instance.new("TextLabel")
-    eggTitle.Size = UDim2.new(1, -10, 0, 26)
-    eggTitle.Position = UDim2.new(0, 5, 0, 6)
-    eggTitle.BackgroundTransparency = 1
-    eggTitle.Text = "🥚 قسم اسرق البيض الحصري (KEON)"
-    eggTitle.TextColor3 = currentAccentColor
-    eggTitle.Font = Enum.Font.FredokaOne
-    eggTitle.TextSize = 14
-    eggTitle.TextXAlignment = Enum.TextXAlignment.Right
-    eggTitle.ZIndex = 4
-    eggTitle.Parent = eggCard
-    table.insert(activeNameLabels, eggTitle)
-
-    local eggDesc = Instance.new("TextLabel")
-    eggDesc.Size = UDim2.new(1, -10, 0, 65)
-    eggDesc.Position = UDim2.new(0, 5, 0, 34)
-    eggDesc.BackgroundTransparency = 1
-    eggDesc.Text = "• الوصف: سكربت حقنا من صنع مطورنا فقط يسرق بيض بسرعة خارقة ⚡.\n• ⚠️ ملاحظة هامة جداً: ممنوع تشغيل هذا السكربت مع سكربت فلفل 🌶️ نهائياً لمنع التعارض."
-    eggDesc.TextColor3 = Color3.fromRGB(255, 200, 100)
-    eggDesc.Font = Enum.Font.FredokaOne
-    eggDesc.TextSize = 11.5
-    eggDesc.TextXAlignment = Enum.TextXAlignment.Right
-    eggDesc.TextYAlignment = Enum.TextYAlignment.Top
-    eggDesc.ZIndex = 4
-    eggDesc.Parent = eggCard
-
-    local runEggScriptBtn = Instance.new("TextButton")
-    runEggScriptBtn.Size = UDim2.new(1, -16, 0, 38)
-    runEggScriptBtn.Position = UDim2.new(0, 8, 1, -44)
-    runEggScriptBtn.BackgroundColor3 = currentAccentColor
-    runEggScriptBtn.Text = "تشغيل سكربت اسرق البيض 🚀"
-    runEggScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    runEggScriptBtn.Font = Enum.Font.FredokaOne
-    runEggScriptBtn.TextSize = 13.5
-    runEggScriptBtn.ZIndex = 4
-    runEggScriptBtn.Parent = eggCard
-    Instance.new("UICorner", runEggScriptBtn).CornerRadius = UDim.new(0, 8)
-
-    runEggScriptBtn.MouseButton1Click:Connect(function()
-        playUiSound(SOUND_CLICK, 1, 0.35)
-        runEggScriptBtn.Text = "جاري تفعيل السكربت الخارق..."
-        pcall(function()
-            loadstring(game:HttpGet("https://orrxl4-protector.com/api/raw?id=oa3ryvhr"))()
-        end)
-        task.wait(1)
-        runEggScriptBtn.Text = "تم التشغيل بنجاح! ✅"
-        task.wait(2)
-        runEggScriptBtn.Text = "تشغيل سكربت اسرق البيض 🚀"
-    end)
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
 end)
 
 ---------------------------------------------------------
@@ -2420,7 +2336,7 @@ BtnScripts.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- تبويب "الميديا والصوتيات" (مع الـ 8 أغانٍ الجديدة المطلوبة ونظام الروابط المباشرة)
+-- تبويب "الميديا والصوتيات"
 ---------------------------------------------------------
 local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
 BtnMedia.MouseButton1Click:Connect(function()
@@ -2598,9 +2514,21 @@ BtnMedia.MouseButton1Click:Connect(function()
                 snd.Looped = true
                 snd.Parent = SoundService
                 
-                pcall(function() snd:Play() end)
-                _G.KEONActiveMediaSound = snd
-                playBtn.Text = "يعمل الآن ▶️"
+                local loaded = false
+                pcall(function()
+                    if not snd.IsLoaded then
+                        snd.Loaded:Wait()
+                    end
+                    snd:Play()
+                    loaded = true
+                end)
+                
+                if loaded then
+                    _G.KEONActiveMediaSound = snd
+                    playBtn.Text = "يعمل الآن ▶️"
+                else
+                    playBtn.Text = "خطأ بالتشغيل ❌"
+                end
 
                 task.wait(2)
                 playBtn.Text = "تشغيل 🎶"
@@ -2815,6 +2743,181 @@ BtnSuggestions.MouseButton1Click:Connect(function()
     end)
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
+end)
+
+---------------------------------------------------------
+-- زر "اسرق البيض" في الجانب الأيمن (مباشرة جنب الإعدادات)
+---------------------------------------------------------
+local BtnStealEggRight = createProStyleBtn("اسرق البيض 🥚", "right")
+BtnStealEggRight.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    clearCenter()
+
+    local eggBanner = Instance.new("ImageLabel")
+    eggBanner.Size = UDim2.new(1, 0, 0, 110)
+    eggBanner.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    eggBanner.Image = EGG_MAP_IMAGE
+    eggBanner.ScaleType = Enum.ScaleType.Crop
+    eggBanner.ZIndex = 3
+    eggBanner.Parent = CenterScroll
+    Instance.new("UICorner", eggBanner).CornerRadius = UDim.new(0, 10)
+
+    local eggCard = Instance.new("Frame")
+    eggCard.Size = UDim2.new(1, 0, 0, 160)
+    eggCard.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    eggCard.ZIndex = 3
+    eggCard.Parent = CenterScroll
+    Instance.new("UICorner", eggCard).CornerRadius = UDim.new(0, 10)
+
+    local eggStroke = Instance.new("UIStroke")
+    eggStroke.Color = currentAccentColor
+    eggStroke.Thickness = 1.8
+    eggStroke.Parent = eggCard
+
+    local eggTitle = Instance.new("TextLabel")
+    eggTitle.Size = UDim2.new(1, -10, 0, 26)
+    eggTitle.Position = UDim2.new(0, 5, 0, 6)
+    eggTitle.BackgroundTransparency = 1
+    eggTitle.Text = "🥚 قسم اسرق البيض الحصري (KEON)"
+    eggTitle.TextColor3 = currentAccentColor
+    eggTitle.Font = Enum.Font.FredokaOne
+    eggTitle.TextSize = 14
+    eggTitle.TextXAlignment = Enum.TextXAlignment.Right
+    eggTitle.ZIndex = 4
+    eggTitle.Parent = eggCard
+    table.insert(activeNameLabels, eggTitle)
+
+    local eggDesc = Instance.new("TextLabel")
+    eggDesc.Size = UDim2.new(1, -10, 0, 65)
+    eggDesc.Position = UDim2.new(0, 5, 0, 34)
+    eggDesc.BackgroundTransparency = 1
+    eggDesc.Text = "• الوصف: سكربت حقنا من صنع مطورنا فقط يسرق بيض بسرعة خارقة ⚡.\n• ⚠️ ملاحظة هامة جداً: ممنوع تشغيل هذا السكربت مع سكربت فلفل 🌶️ نهائياً لمنع التعارض."
+    eggDesc.TextColor3 = Color3.fromRGB(255, 200, 100)
+    eggDesc.Font = Enum.Font.FredokaOne
+    eggDesc.TextSize = 11.5
+    eggDesc.TextXAlignment = Enum.TextXAlignment.Right
+    eggDesc.TextYAlignment = Enum.TextYAlignment.Top
+    eggDesc.ZIndex = 4
+    eggDesc.Parent = eggCard
+
+    local runEggScriptBtn = Instance.new("TextButton")
+    runEggScriptBtn.Size = UDim2.new(1, -16, 0, 38)
+    runEggScriptBtn.Position = UDim2.new(0, 8, 1, -44)
+    runEggScriptBtn.BackgroundColor3 = currentAccentColor
+    runEggScriptBtn.Text = "تشغيل سكربت اسرق البيض 🚀"
+    runEggScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    runEggScriptBtn.Font = Enum.Font.FredokaOne
+    runEggScriptBtn.TextSize = 13.5
+    runEggScriptBtn.ZIndex = 4
+    runEggScriptBtn.Parent = eggCard
+    Instance.new("UICorner", runEggScriptBtn).CornerRadius = UDim.new(0, 8)
+
+    runEggScriptBtn.MouseButton1Click:Connect(function()
+        playUiSound(SOUND_CLICK, 1, 0.35)
+        runEggScriptBtn.Text = "جاري تفعيل السكربت الخارق..."
+        pcall(function()
+            loadstring(game:HttpGet("https://orrxl4-protector.com/api/raw?id=oa3ryvhr"))()
+        end)
+        task.wait(1)
+        runEggScriptBtn.Text = "تم التشغيل بنجاح! ✅"
+        task.wait(2)
+        runEggScriptBtn.Text = "تشغيل سكربت اسرق البيض 🚀"
+    end)
+
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
+end)
+
+---------------------------------------------------------
+-- زر الإعدادات في الجانب الأيمن (بجانب اسرق البيض مباشرة)
+---------------------------------------------------------
+local BtnSettings = createProStyleBtn("الإعدادات", "right")
+BtnSettings.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    clearCenter()
+
+    addChilliAccordion("تخصيص الثيمات والألوان الكثيرة 🎨", function(addToggle, addAction)
+        local function updateTheme(accent, headerCol)
+            currentAccentColor = accent
+            currentHeaderColor = headerCol
+            saveUserSettings()
+
+            centerStroke.Color = accent
+            Header.BackgroundColor3 = headerCol
+            floatStroke.Color = accent
+            chatStroke.Color = accent
+            loadStroke.Color = accent
+            BarFill.BackgroundColor3 = accent
+            minBoxStroke.Color = accent
+            voteStroke.Color = accent
+            eventFloatStroke.Color = Color3.fromRGB(255, 215, 0)
+
+            ChatHeaderBtn1.BackgroundColor3 = accent
+            ChatHeaderBtn2.BackgroundColor3 = accent
+            ChatHeaderBtn3.BackgroundColor3 = accent
+            SendBtn.BackgroundColor3 = accent
+
+            for _, stroke in ipairs(registeredWingStrokes) do
+                if stroke and stroke.Parent then stroke.Color = accent end
+            end
+            for _, stroke in ipairs(registeredOptionStrokes) do
+                if stroke and stroke.Parent then stroke.Color = accent end
+            end
+            for _, lbl in ipairs(activeNameLabels) do
+                if lbl and lbl.Parent then lbl.TextColor3 = accent end
+            end
+        end
+
+        addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
+        addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
+        addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
+        addAction("الثيم الذهبي الفاخر 🟡", function() updateTheme(Color3.fromRGB(255, 200, 50), Color3.fromRGB(180, 130, 10)) end)
+        addAction("الثيم الأزرق نيون 🩵", function() updateTheme(Color3.fromRGB(0, 170, 255), Color3.fromRGB(0, 90, 180)) end)
+        addAction("الثيم الأرجواني الملكي 💜", function() updateTheme(Color3.fromRGB(160, 40, 255), Color3.fromRGB(100, 20, 180)) end)
+        addAction("الثيم الأخضر الزمردي 🟢", function() updateTheme(Color3.fromRGB(40, 230, 100), Color3.fromRGB(20, 130, 50)) end)
+        addAction("الثيم البرتقالي الناري 🟠", function() updateTheme(Color3.fromRGB(255, 120, 20), Color3.fromRGB(180, 70, 10)) end)
+        addAction("الثيم الوردي الساطع 🩷", function() updateTheme(Color3.fromRGB(255, 80, 180), Color3.fromRGB(180, 40, 120)) end)
+        addAction("الثيم السماوي الفاتح 🌐", function() updateTheme(Color3.fromRGB(100, 220, 255), Color3.fromRGB(40, 120, 180)) end)
+        addAction("الثيم الأصفر الليموني 🍋", function() updateTheme(Color3.fromRGB(230, 255, 0), Color3.fromRGB(140, 150, 0)) end)
+        addAction("الثيم البنفسجي الغامق 🔮", function() updateTheme(Color3.fromRGB(120, 0, 255), Color3.fromRGB(60, 0, 140)) end)
+        addAction("الثيم الوردي الباستيل 💕", function() updateTheme(Color3.fromRGB(255, 150, 200), Color3.fromRGB(180, 80, 130)) end)
+        addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
+    end)
+
+    addChilliAccordion("تخصيص خلفيات واجهة السكربت Pro", function(addToggle, addAction, contentHolder)
+        addAction("❌ إغلاق خلفية السكربت", function()
+            applyScriptBackground(0)
+        end)
+
+        local gridHolder = Instance.new("Frame")
+        gridHolder.Size = UDim2.new(1, 0, 0, 240)
+        gridHolder.BackgroundTransparency = 1
+        gridHolder.ZIndex = 3
+        gridHolder.Parent = contentHolder
+
+        local gridLayout = Instance.new("UIGridLayout")
+        gridLayout.CellSize = UDim2.new(0, 150, 0, 85)
+        gridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        gridLayout.Parent = gridHolder
+
+        for i, url in ipairs(wallUrls) do
+            local cardBtn = Instance.new("ImageButton")
+            cardBtn.Size = UDim2.new(0, 150, 0, 85)
+            cardBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+            cardBtn.Image = url
+            cardBtn.ScaleType = Enum.ScaleType.Crop
+            cardBtn.ZIndex = 4
+            cardBtn.Parent = gridHolder
+            Instance.new("UICorner", cardBtn).CornerRadius = UDim.new(0, 6)
+
+            cardBtn.MouseButton1Click:Connect(function()
+                playUiSound(SOUND_CLICK, 1, 0.35)
+                applyScriptBackground(i)
+            end)
+        end
+    end)
+
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 280)
 end)
 
 ---------------------------------------------------------
@@ -3274,96 +3377,6 @@ if LocalPlayer.Name == "Dms921" then
         CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
     end)
 end
-
-local BtnSettings = createProStyleBtn("الإعدادات", "right")
-BtnSettings.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    addChilliAccordion("تخصيص الثيمات والألوان الكثيرة 🎨", function(addToggle, addAction)
-        local function updateTheme(accent, headerCol)
-            currentAccentColor = accent
-            currentHeaderColor = headerCol
-            saveUserSettings()
-
-            centerStroke.Color = accent
-            Header.BackgroundColor3 = headerCol
-            floatStroke.Color = accent
-            chatStroke.Color = accent
-            loadStroke.Color = accent
-            BarFill.BackgroundColor3 = accent
-            minBoxStroke.Color = accent
-            voteStroke.Color = accent
-            eventFloatStroke.Color = Color3.fromRGB(255, 215, 0)
-
-            ChatHeaderBtn1.BackgroundColor3 = accent
-            ChatHeaderBtn2.BackgroundColor3 = accent
-            ChatHeaderBtn3.BackgroundColor3 = accent
-            SendBtn.BackgroundColor3 = accent
-
-            for _, stroke in ipairs(registeredWingStrokes) do
-                if stroke and stroke.Parent then stroke.Color = accent end
-            end
-            for _, stroke in ipairs(registeredOptionStrokes) do
-                if stroke and stroke.Parent then stroke.Color = accent end
-            end
-            for _, lbl in ipairs(activeNameLabels) do
-                if lbl and lbl.Parent then lbl.TextColor3 = accent end
-            end
-        end
-
-        addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
-        addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
-        addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
-        addAction("الثيم الذهبي الفاخر 🟡", function() updateTheme(Color3.fromRGB(255, 200, 50), Color3.fromRGB(180, 130, 10)) end)
-        addAction("الثيم الأزرق نيون 🩵", function() updateTheme(Color3.fromRGB(0, 170, 255), Color3.fromRGB(0, 90, 180)) end)
-        addAction("الثيم الأرجواني الملكي 💜", function() updateTheme(Color3.fromRGB(160, 40, 255), Color3.fromRGB(100, 20, 180)) end)
-        addAction("الثيم الأخضر الزمردي 🟢", function() updateTheme(Color3.fromRGB(40, 230, 100), Color3.fromRGB(20, 130, 50)) end)
-        addAction("الثيم البرتقالي الناري 🟠", function() updateTheme(Color3.fromRGB(255, 120, 20), Color3.fromRGB(180, 70, 10)) end)
-        addAction("الثيم الوردي الساطع 🩷", function() updateTheme(Color3.fromRGB(255, 80, 180), Color3.fromRGB(180, 40, 120)) end)
-        addAction("الثيم السماوي الفاتح 🌐", function() updateTheme(Color3.fromRGB(100, 220, 255), Color3.fromRGB(40, 120, 180)) end)
-        addAction("الثيم الأصفر الليموني 🍋", function() updateTheme(Color3.fromRGB(230, 255, 0), Color3.fromRGB(140, 150, 0)) end)
-        addAction("الثيم البنفسجي الغامق 🔮", function() updateTheme(Color3.fromRGB(120, 0, 255), Color3.fromRGB(60, 0, 140)) end)
-        addAction("الثيم الوردي الباستيل 💕", function() updateTheme(Color3.fromRGB(255, 150, 200), Color3.fromRGB(180, 80, 130)) end)
-        addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
-    end)
-
-    addChilliAccordion("تخصيص خلفيات واجهة السكربت Pro", function(addToggle, addAction, contentHolder)
-        addAction("❌ إغلاق خلفية السكربت", function()
-            applyScriptBackground(0)
-        end)
-
-        local gridHolder = Instance.new("Frame")
-        gridHolder.Size = UDim2.new(1, 0, 0, 240)
-        gridHolder.BackgroundTransparency = 1
-        gridHolder.ZIndex = 3
-        gridHolder.Parent = contentHolder
-
-        local gridLayout = Instance.new("UIGridLayout")
-        gridLayout.CellSize = UDim2.new(0, 150, 0, 85)
-        gridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
-        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        gridLayout.Parent = gridHolder
-
-        for i, url in ipairs(wallUrls) do
-            local cardBtn = Instance.new("ImageButton")
-            cardBtn.Size = UDim2.new(0, 150, 0, 85)
-            cardBtn.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-            cardBtn.Image = url
-            cardBtn.ScaleType = Enum.ScaleType.Crop
-            cardBtn.ZIndex = 4
-            cardBtn.Parent = gridHolder
-            Instance.new("UICorner", cardBtn).CornerRadius = UDim.new(0, 6)
-
-            cardBtn.MouseButton1Click:Connect(function()
-                playUiSound(SOUND_CLICK, 1, 0.35)
-                applyScriptBackground(i)
-            end)
-        end
-    end)
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 280)
-end)
 
 ---------------------------------------------------------
 -- الاستماع للرسائل والبرودكاست المباشر
