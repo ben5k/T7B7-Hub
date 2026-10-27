@@ -148,10 +148,10 @@ globalMediaVolume = 5.0
 responsiveState = {
     narrow = false,
     mainSize = UDim2.new(0, 560, 0, 360),
-    mainPosition = UDim2.new(0.5, 0, 0.5, 0)
+    mainPosition = UDim2.new(0.5, -280, 0.5, -180)
 }
-applyResponsiveMain = nil
-applyResponsiveChat = nil
+applyResponsiveMain
+applyResponsiveChat
 
 selectedScriptBgIndex = 0
 selectedChatBgIndex = 0
@@ -1142,7 +1142,7 @@ ScreenGui.Parent = parent
 MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 560, 0, 360)
-MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.Position = UDim2.new(0.5, -280, 0.5, -180)
 MainFrame.BackgroundTransparency = 1
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -1658,7 +1658,7 @@ function getHelpPanelSize()
     return width, height
 end
 
-applyResponsiveHelp = nil
+applyResponsiveHelp
 applyResponsiveHelp = function()
     local width, height = getHelpPanelSize()
     HelpPanel.Position = UDim2.new(0.5, -math.floor(width / 2), 0.5, -math.floor(height / 2))
@@ -3330,7 +3330,7 @@ end)
 ---------------------------------------------------------
 -- صفحات السكربتات التفصيلية
 ---------------------------------------------------------
-showScriptsPage = nil
+showScriptsPage
 function openScriptDetailsPage(mapName, scriptsList)
     clearCenter()
 
