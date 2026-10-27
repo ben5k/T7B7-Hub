@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Auto-Save Customization + Chat Redesign (v65.0.0)
+-- KEON Hub - PS5 Neon Pro UI + AutoSave + KEON AI Drawer (v66.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -177,7 +177,7 @@ local activeNameLabels = {}
 local function saveUserSettings()
     if writefile then
         local cfg = {
-            version = 65,
+            version = 66,
             scriptBg = selectedScriptBgIndex,
             chatBg = selectedChatBgIndex,
             showOwnCountryOverhead = showOwnCountryOverhead,
@@ -221,6 +221,12 @@ local function loadUserSettings()
 end
 
 loadUserSettings()
+-- حفظ تلقائي دوري كشبكة أمان، بالإضافة إلى الحفظ عند تغيير الإعدادات.
+task.spawn(function()
+    while task.wait(8) do
+        pcall(saveUserSettings)
+    end
+end)
 -- احتفظ بالألوان المحفوظة؛ لا تعِد ضبط الثيم بعد تحميل الإعدادات.
 
 local function playUiSound(soundId, pitch, volume)
@@ -1249,7 +1255,7 @@ HeaderAccentLine.Parent = Header
 Instance.new("UICorner", HeaderAccentLine).CornerRadius = UDim.new(1, 0)
 
 local TitleMain = Instance.new("TextLabel")
-TitleMain.Size = UDim2.new(1, -108, 1, 0)
+TitleMain.Size = UDim2.new(1, -142, 1, 0)
 TitleMain.Position = UDim2.new(0, 10, 0, 0)
 TitleMain.BackgroundTransparency = 1
 TitleMain.Text = "◈  PLAYSTATION  •  KEON HUB"
@@ -1306,6 +1312,23 @@ local helpBtnStroke = Instance.new("UIStroke")
 helpBtnStroke.Color = currentAccentColor
 helpBtnStroke.Thickness = 0.8
 helpBtnStroke.Parent = HelpBtn
+
+local ProDrawerBtn = Instance.new("TextButton")
+ProDrawerBtn.Name = "KEONProScriptsAIButton"
+ProDrawerBtn.Size = UDim2.new(0, 24, 0, 26)
+ProDrawerBtn.Position = UDim2.new(1, -120, 0, 8)
+ProDrawerBtn.BackgroundColor3 = Color3.fromRGB(18, 46, 82)
+ProDrawerBtn.Text = "🤖"
+ProDrawerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ProDrawerBtn.Font = Enum.Font.GothamBold
+ProDrawerBtn.TextSize = 14
+ProDrawerBtn.ZIndex = 5
+ProDrawerBtn.Parent = Header
+Instance.new("UICorner", ProDrawerBtn).CornerRadius = UDim.new(0, 8)
+local proDrawerBtnStroke = Instance.new("UIStroke")
+proDrawerBtnStroke.Color = currentAccentColor
+proDrawerBtnStroke.Thickness = 1
+proDrawerBtnStroke.Parent = ProDrawerBtn
 
 local FloatingMinBox = Instance.new("ImageButton")
 FloatingMinBox.Name = "KEONFloatingMinBox"
@@ -1674,6 +1697,178 @@ end)
 HelpCloseBtn.MouseButton1Click:Connect(closeHelpPanel)
 HelpDoneBtn.MouseButton1Click:Connect(closeHelpPanel)
 
+local showScriptsPage
+---------------------------------------------------------
+-- قائمة KEON PRO + مساعد ذكي محلي (بدون إرسال محادثات للخارج)
+---------------------------------------------------------
+local ProDrawer = Instance.new("Frame")
+ProDrawer.Name = "KEONProScriptsAIDrawer"
+ProDrawer.Size = UDim2.new(0, 205, 1, -48)
+ProDrawer.Position = UDim2.new(0, -214, 0, 48)
+ProDrawer.BackgroundColor3 = Color3.fromRGB(5, 13, 27)
+ProDrawer.BackgroundTransparency = 0.02
+ProDrawer.BorderSizePixel = 0
+ProDrawer.Visible = false
+ProDrawer.ZIndex = 70
+ProDrawer.Parent = MainFrame
+Instance.new("UICorner", ProDrawer).CornerRadius = UDim.new(0, 14)
+local proDrawerStroke = Instance.new("UIStroke")
+proDrawerStroke.Color = currentAccentColor
+proDrawerStroke.Thickness = 1.6
+proDrawerStroke.Parent = ProDrawer
+local proDrawerTitle = Instance.new("TextLabel")
+proDrawerTitle.Size = UDim2.new(1, -42, 0, 30)
+proDrawerTitle.Position = UDim2.new(0, 8, 0, 5)
+proDrawerTitle.BackgroundTransparency = 1
+proDrawerTitle.Text = "🤖 KEON PRO • AI"
+proDrawerTitle.TextColor3 = currentAccentColor
+proDrawerTitle.Font = Enum.Font.GothamBlack
+proDrawerTitle.TextSize = 13
+proDrawerTitle.TextXAlignment = Enum.TextXAlignment.Right
+proDrawerTitle.ZIndex = 71
+proDrawerTitle.Parent = ProDrawer
+local proDrawerClose = Instance.new("TextButton")
+proDrawerClose.Size = UDim2.new(0, 25, 0, 25)
+proDrawerClose.Position = UDim2.new(0, 7, 0, 7)
+proDrawerClose.BackgroundColor3 = Color3.fromRGB(100, 28, 52)
+proDrawerClose.Text = "✕"
+proDrawerClose.TextColor3 = Color3.new(1,1,1)
+proDrawerClose.Font = Enum.Font.GothamBold
+proDrawerClose.TextSize = 12
+proDrawerClose.ZIndex = 72
+proDrawerClose.Parent = ProDrawer
+Instance.new("UICorner", proDrawerClose).CornerRadius = UDim.new(0, 7)
+local proDrawerDivider = Instance.new("Frame")
+proDrawerDivider.Size = UDim2.new(1, -16, 0, 2)
+proDrawerDivider.Position = UDim2.new(0, 8, 0, 38)
+proDrawerDivider.BackgroundColor3 = currentAccentColor
+proDrawerDivider.BorderSizePixel = 0
+proDrawerDivider.ZIndex = 71
+proDrawerDivider.Parent = ProDrawer
+local proDrawerScroll = Instance.new("ScrollingFrame")
+proDrawerScroll.Size = UDim2.new(1, -12, 1, -48)
+proDrawerScroll.Position = UDim2.new(0, 6, 0, 44)
+proDrawerScroll.BackgroundTransparency = 1
+proDrawerScroll.BorderSizePixel = 0
+proDrawerScroll.ScrollBarThickness = 3
+proDrawerScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+proDrawerScroll.ZIndex = 71
+proDrawerScroll.Parent = ProDrawer
+local proDrawerLayout = Instance.new("UIListLayout")
+proDrawerLayout.Padding = UDim.new(0, 7)
+proDrawerLayout.SortOrder = Enum.SortOrder.LayoutOrder
+proDrawerLayout.Parent = proDrawerScroll
+local function makeDrawerButton(label, callback, height)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1, -4, 0, height or 34)
+    b.BackgroundColor3 = Color3.fromRGB(11, 29, 51)
+    b.Text = label
+    b.TextColor3 = Color3.fromRGB(238, 247, 255)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 11
+    b.TextWrapped = true
+    b.AutoButtonColor = false
+    b.ZIndex = 72
+    b.Parent = proDrawerScroll
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 9)
+    local st = Instance.new("UIStroke")
+    st.Color = currentAccentColor
+    st.Thickness = 0.8
+    st.Transparency = 0.25
+    st.Parent = b
+    b.MouseButton1Click:Connect(function()
+        playUiSound(SOUND_CLICK, 1, 0.3)
+        callback()
+    end)
+    return b
+end
+makeDrawerButton("🧩 فتح مكتبة سكربتات PRO", function()
+    ProDrawer.Visible = false
+    if showScriptsPage then showScriptsPage() end
+end, 38)
+makeDrawerButton("🥚 سكربتات سرقة البيض", function()
+    ProDrawer.Visible = false
+    if showScriptsPage then showScriptsPage() end
+end, 34)
+makeDrawerButton("🛡️ أدوات المراقبة والسيرفرات", function()
+    ProDrawer.Visible = false
+    if showScriptsPage then showScriptsPage() end
+end, 34)
+local aiCaption = Instance.new("TextLabel")
+aiCaption.Size = UDim2.new(1, -4, 0, 27)
+aiCaption.BackgroundTransparency = 1
+aiCaption.Text = "🧠 اسأل مساعد KEON الذكي"
+aiCaption.TextColor3 = currentAccentColor
+aiCaption.Font = Enum.Font.GothamBold
+aiCaption.TextSize = 11
+aiCaption.TextXAlignment = Enum.TextXAlignment.Right
+aiCaption.ZIndex = 72
+aiCaption.Parent = proDrawerScroll
+local aiQuestion = Instance.new("TextBox")
+aiQuestion.Size = UDim2.new(1, -4, 0, 56)
+aiQuestion.BackgroundColor3 = Color3.fromRGB(12, 24, 43)
+aiQuestion.TextColor3 = Color3.fromRGB(255,255,255)
+aiQuestion.PlaceholderColor3 = Color3.fromRGB(145,170,195)
+aiQuestion.PlaceholderText = "اكتب سؤالك عن السكربت..."
+aiQuestion.Text = ""
+aiQuestion.ClearTextOnFocus = false
+aiQuestion.TextWrapped = true
+aiQuestion.TextYAlignment = Enum.TextYAlignment.Top
+aiQuestion.Font = Enum.Font.Gotham
+aiQuestion.TextSize = 11
+aiQuestion.ZIndex = 72
+aiQuestion.Parent = proDrawerScroll
+Instance.new("UICorner", aiQuestion).CornerRadius = UDim.new(0, 9)
+local aiAnswer = Instance.new("TextLabel")
+aiAnswer.Size = UDim2.new(1, -4, 0, 92)
+aiAnswer.BackgroundColor3 = Color3.fromRGB(8, 21, 38)
+aiAnswer.TextColor3 = Color3.fromRGB(220, 239, 255)
+aiAnswer.Text = "أنا مساعد محلي داخل السكربت؛ أساعدك بإرشادات الواجهة، لكن ما أتصل بنموذج ذكاء اصطناعي خارجي."
+aiAnswer.TextWrapped = true
+aiAnswer.TextYAlignment = Enum.TextYAlignment.Top
+aiAnswer.TextXAlignment = Enum.TextXAlignment.Right
+aiAnswer.Font = Enum.Font.Gotham
+aiAnswer.TextSize = 10
+aiAnswer.ZIndex = 72
+aiAnswer.Parent = proDrawerScroll
+Instance.new("UICorner", aiAnswer).CornerRadius = UDim.new(0, 9)
+local aiAskBtn = makeDrawerButton("✨ تحليل السؤال", function()
+    local q = string.lower(aiQuestion.Text or "")
+    local answer = "جرّب وصف المشكلة بالتحديد، مثل: الخلفية لا تظهر، الحجم لا يُحفظ، أو الشات لا يفتح."
+    if string.find(q, "حفظ") or string.find(q, "save") or string.find(q, "إعداد") then
+        answer = "💾 الحفظ تلقائي عند تغيير الثيم والخلفية والحجم والعلم، مع حفظ دوري كل ٨ ثوانٍ. لازم Delta يدعم writefile/readfile حتى تبقى الإعدادات بعد إعادة التشغيل."
+    elseif string.find(q, "خلف") or string.find(q, "wallpaper") then
+        answer = "🖼️ افتح ⚙️ الإعدادات ثم 🖼️ خلفيات PS5، واختَر الخلفية. إذا ما ظهرت، تحقق من اتصالك وأن رابط الصورة يعمل داخل Roblox."
+    elseif string.find(q, "شات") or string.find(q, "chat") then
+        answer = "💬 اضغط زر 💬 العائم. من رأس الشات تقدر تتنقل بين الرسائل والدليل والمتواجدين. إذا لم يفتح، جرّب إعادة تشغيل الواجهة وتأكد ماكو نسخة قديمة منها."
+    elseif string.find(q, "بطء") or string.find(q, "لاق") or string.find(q, "lag") or string.find(q, "أداء") then
+        answer = "⚡ لتخفيف الحمل، قلل المؤثرات والخلفيات الثقيلة وأوقف الأدوات التي لا تستخدمها. لا تشغّل أكثر من سكربت يتحكم بنفس الماب بنفس الوقت."
+    elseif string.find(q, "سكربت") or string.find(q, "script") then
+        answer = "🧩 افتح مكتبة سكربتات PRO لاستعراض السكربتات. لا تشغّل روابط مجهولة أو ملفات تطلب بيانات حسابك؛ المساعد هنا لا ينفذ الأكواد ولا يتحقق من أمانها تلقائياً."
+    elseif string.find(q, "خطأ") or string.find(q, "error") or string.find(q, "مشكلة") then
+        answer = "🛠️ أرسل نص الخطأ كاملًا واذكر متى يظهر. لا أستطيع رؤية أخطاء Delta من داخل هذه الواجهة، لذلك التشخيص يعتمد على التفاصيل التي تكتبها."
+    end
+    aiAnswer.Text = answer
+    task.defer(function()
+        proDrawerScroll.CanvasSize = UDim2.new(0, 0, 0, proDrawerLayout.AbsoluteContentSize.Y + 10)
+    end)
+end, 34)
+proDrawerScroll.CanvasSize = UDim2.new(0, 0, 0, proDrawerLayout.AbsoluteContentSize.Y + 10)
+ProDrawerBtn.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.3)
+    ProDrawer.Visible = not ProDrawer.Visible
+    if ProDrawer.Visible then
+        if responsiveState.narrow then
+            ProDrawer.Position = UDim2.new(0, 8, 0, 48)
+            local cam = workspace.CurrentCamera; local vx = cam and cam.ViewportSize.X or 360; ProDrawer.Size = UDim2.new(0, math.max(190, math.min(230, vx - 28)), 1, -58)
+        else
+            ProDrawer.Position = UDim2.new(0, -214, 0, 48)
+            ProDrawer.Size = UDim2.new(0, 205, 1, -48)
+        end
+    end
+end)
+proDrawerClose.MouseButton1Click:Connect(function() ProDrawer.Visible = false end)
+
 ---------------------------------------------------------
 -- نافذة الشات المباشرة
 ---------------------------------------------------------
@@ -1685,17 +1880,17 @@ ChatScreenGui.Parent = parent
 
 local FloatingChatBtn = Instance.new("TextButton")
 FloatingChatBtn.Name = "FloatingChatBtn"
-FloatingChatBtn.Size = UDim2.new(0, 42, 0, 42)
-FloatingChatBtn.Position = UDim2.new(0, 115, 0, 10)
-FloatingChatBtn.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+FloatingChatBtn.Size = UDim2.new(0, 50, 0, 50)
+FloatingChatBtn.Position = UDim2.new(0, 112, 0, 10)
+FloatingChatBtn.BackgroundColor3 = Color3.fromRGB(5, 18, 38)
 FloatingChatBtn.Text = "💬"
 FloatingChatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 FloatingChatBtn.Font = Enum.Font.GothamBold
-FloatingChatBtn.TextSize = 20
+FloatingChatBtn.TextSize = 25
 FloatingChatBtn.Active = true
 FloatingChatBtn.Draggable = true
 FloatingChatBtn.Parent = ChatScreenGui
-Instance.new("UICorner", FloatingChatBtn).CornerRadius = UDim.new(0, 14)
+Instance.new("UICorner", FloatingChatBtn).CornerRadius = UDim.new(0, 17)
 
 local ChatWin = Instance.new("Frame")
 ChatWin.Name = "ChatWin"
@@ -1742,6 +1937,20 @@ local floatStroke = Instance.new("UIStroke")
 floatStroke.Color = currentAccentColor
 floatStroke.Thickness = 2
 floatStroke.Parent = FloatingChatBtn
+floatStroke.Thickness = 1.8
+local chatButtonGradient = Instance.new("UIGradient")
+chatButtonGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 170, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 13, 26))
+})
+chatButtonGradient.Rotation = 45
+chatButtonGradient.Parent = FloatingChatBtn
+FloatingChatBtn.MouseEnter:Connect(function()
+    TweenService:Create(FloatingChatBtn, TweenInfo.new(0.15), {Size = UDim2.new(0, 54, 0, 54)}):Play()
+end)
+FloatingChatBtn.MouseLeave:Connect(function()
+    TweenService:Create(FloatingChatBtn, TweenInfo.new(0.15), {Size = UDim2.new(0, 50, 0, 50)}):Play()
+end)
 
 local chatStroke = Instance.new("UIStroke")
 chatStroke.Color = currentAccentColor
@@ -2149,7 +2358,7 @@ applyResponsiveChat = function()
     else
         ChatWin.Size = UDim2.new(0, 390, 0, 320)
         ChatWin.Position = UDim2.new(0, 160, 0, 10)
-        FloatingChatBtn.Position = UDim2.new(0, 115, 0, 10)
+        FloatingChatBtn.Position = UDim2.new(0, 112, 0, 10)
         ChatHeaderBtn1.Size = UDim2.new(0, 110, 0, 26)
         ChatHeaderBtn1.Position = UDim2.new(0, 6, 0, 25)
         ChatHeaderBtn2.Size = UDim2.new(0, 110, 0, 26)
@@ -2605,6 +2814,19 @@ end)
 -- القوائم الأساسية وأزرار الواجهة
 ---------------------------------------------------------
 local function createProStyleBtn(text, side)
+    local sectionIcon = "✨"
+    if string.find(text, "الرئيسية") then sectionIcon = "🎮"
+    elseif string.find(text, "موعد") then sectionIcon = "⏰"
+    elseif string.find(text, "سكربتات") then sectionIcon = "🧩"
+    elseif string.find(text, "تسجيل") then sectionIcon = "🌍"
+    elseif string.find(text, "توب") then sectionIcon = "🏆"
+    elseif string.find(text, "الميديا") then sectionIcon = "🎵"
+    elseif string.find(text, "تفعيلات") then sectionIcon = "⚡"
+    elseif string.find(text, "اقتراحات") then sectionIcon = "💡"
+    elseif string.find(text, "اسرق") then sectionIcon = "🥚"
+    elseif string.find(text, "الإعدادات") then sectionIcon = "⚙️"
+    elseif string.find(text, "الأدمن") then sectionIcon = "🛡️" end
+    text = "✦ " .. sectionIcon .. " " .. text .. " ✦"
     local btn = Instance.new("TextButton")
     btn.Size = responsiveState.narrow and UDim2.new(0, 108, 0, 34) or UDim2.new(1, -4, 0, 40)
     btn.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
@@ -2876,2399 +3098,4 @@ local function showHomePage()
     updatesDesc.Font = Enum.Font.GothamBold
     updatesDesc.TextSize = 11
     updatesDesc.TextXAlignment = Enum.TextXAlignment.Right
-    updatesDesc.TextYAlignment = Enum.TextYAlignment.Top
-    updatesDesc.ZIndex = 4
-    updatesDesc.Parent = updatesFrame
-
-    local guideFrame = Instance.new("Frame")
-    guideFrame.Name = "HomeInstructionsCard"
-    guideFrame.Size = UDim2.new(1, 0, 0, 150)
-    guideFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
-    guideFrame.BackgroundTransparency = 0
-    guideFrame.ZIndex = 3
-    guideFrame.Parent = CenterScroll
-    Instance.new("UICorner", guideFrame).CornerRadius = UDim.new(0, 14)
-    local guideStroke = Instance.new("UIStroke")
-    guideStroke.Color = currentAccentColor
-    guideStroke.Thickness = 1.6
-    guideStroke.Parent = guideFrame
-    table.insert(registeredOptionStrokes, guideStroke)
-
-    local guideTitle = Instance.new("TextLabel")
-    guideTitle.Size = UDim2.new(1, -20, 0, 28)
-    guideTitle.Position = UDim2.new(0, 10, 0, 8)
-    guideTitle.BackgroundTransparency = 1
-    guideTitle.Text = "📘 التعليمات • اقرأ قبل الاستخدام"
-    guideTitle.TextColor3 = currentAccentColor
-    guideTitle.Font = Enum.Font.GothamBold
-    guideTitle.TextSize = 14
-    guideTitle.TextXAlignment = Enum.TextXAlignment.Right
-    guideTitle.ZIndex = 4
-    guideTitle.Parent = guideFrame
-    table.insert(activeNameLabels, guideTitle)
-
-    local guideDesc = Instance.new("TextLabel")
-    guideDesc.Size = UDim2.new(1, -20, 0, 108)
-    guideDesc.Position = UDim2.new(0, 10, 0, 37)
-    guideDesc.BackgroundTransparency = 1
-    guideDesc.Text = "١) اختر القسم من القائمة الجانبية.\n٢) من (سكربتات) اختر الماب ثم افتح تفاصيل السكربت.\n٣) الخلفيات قابلة للتغيير من الإعدادات، وستبقى معتمة وواضحة.\n٤) الملصقات تعمل عبر الشات العام عند تحميل صورها بنجاح.\n٥) قسم الموسيقى يحتوي على ٨ أغنيات مع زر إعجاب.\n٦) قسم تسجيل الدخول يحفظ العلم ووقت الاستخدام ويعرض التوب 100."
-    guideDesc.TextColor3 = Color3.fromRGB(245, 248, 255)
-    guideDesc.Font = Enum.Font.Gotham
-    guideDesc.TextSize = 11
-    guideDesc.TextXAlignment = Enum.TextXAlignment.Right
-    guideDesc.TextYAlignment = Enum.TextYAlignment.Top
-    guideDesc.TextWrapped = true
-    guideDesc.ZIndex = 4
-    guideDesc.Parent = guideFrame
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 25)
-end
-BtnMainHome.MouseButton1Click:Connect(showHomePage)
-
----------------------------------------------------------
--- تبويب "موعد حدث"
----------------------------------------------------------
-local EventWidgetGui = Instance.new("ScreenGui")
-EventWidgetGui.Name = "KEONEventWidgetGui"
-EventWidgetGui.ResetOnSpawn = false
-EventWidgetGui.Parent = parent
-
-local EventFloatBox = Instance.new("Frame")
-EventFloatBox.Name = "EventFloatBox"
-EventFloatBox.Size = UDim2.new(0, 260, 0, 95)
-EventFloatBox.Position = UDim2.new(0.5, -130, 0, 10)
-EventFloatBox.BackgroundColor3 = Color3.fromRGB(17, 25, 46)
-EventFloatBox.BackgroundTransparency = 0.15
-EventFloatBox.Visible = false
-EventFloatBox.Active = true
-EventFloatBox.Draggable = true
-EventFloatBox.ZIndex = 700
-EventFloatBox.Parent = EventWidgetGui
-Instance.new("UICorner", EventFloatBox).CornerRadius = UDim.new(0, 14)
-
-local eventFloatStroke = Instance.new("UIStroke")
-eventFloatStroke.Color = Color3.fromRGB(255, 215, 0)
-eventFloatStroke.Thickness = 2.5
-eventFloatStroke.Parent = EventFloatBox
-
-local DevAvatarWidgetImg = Instance.new("ImageLabel")
-DevAvatarWidgetImg.Size = UDim2.new(0, 42, 0, 42)
-DevAvatarWidgetImg.Position = UDim2.new(0, 8, 0, 8)
-DevAvatarWidgetImg.BackgroundColor3 = Color3.fromRGB(29, 40, 68)
-DevAvatarWidgetImg.ZIndex = 701
-DevAvatarWidgetImg.Parent = EventFloatBox
-Instance.new("UICorner", DevAvatarWidgetImg).CornerRadius = UDim.new(0, 21)
-loadAvatarThumbnail(LocalPlayer.UserId, DevAvatarWidgetImg)
-
-local DevNameWidgetLbl = Instance.new("TextLabel")
-DevNameWidgetLbl.Size = UDim2.new(1, -60, 0, 20)
-DevNameWidgetLbl.Position = UDim2.new(0, 55, 0, 8)
-DevNameWidgetLbl.BackgroundTransparency = 1
-DevNameWidgetLbl.Text = "✦ KEON • موعد الحدث"
-DevNameWidgetLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
-DevNameWidgetLbl.Font = Enum.Font.GothamBold
-DevNameWidgetLbl.TextSize = 12
-DevNameWidgetLbl.TextXAlignment = Enum.TextXAlignment.Left
-DevNameWidgetLbl.ZIndex = 701
-DevNameWidgetLbl.Parent = EventFloatBox
-
-local EventCountdownLbl = Instance.new("TextLabel")
-EventCountdownLbl.Size = UDim2.new(1, -16, 0, 26)
-EventCountdownLbl.Position = UDim2.new(0, 8, 0, 32)
-EventCountdownLbl.BackgroundTransparency = 1
-EventCountdownLbl.Text = "⏳ يتم تحديث العدّاد…"
-EventCountdownLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-EventCountdownLbl.Font = Enum.Font.GothamBold
-EventCountdownLbl.TextSize = 12
-EventCountdownLbl.TextXAlignment = Enum.TextXAlignment.Center
-EventCountdownLbl.ZIndex = 701
-EventCountdownLbl.Parent = EventFloatBox
-
-local CloseEventWidgetBtn = Instance.new("TextButton")
-CloseEventWidgetBtn.Size = UDim2.new(1, 0, 0, 26)
-CloseEventWidgetBtn.Position = UDim2.new(0, 0, 1, -26)
-CloseEventWidgetBtn.BackgroundColor3 = Color3.fromRGB(61, 112, 184)
-CloseEventWidgetBtn.Text = "إخفاء التنبيه ×"
-CloseEventWidgetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseEventWidgetBtn.Font = Enum.Font.GothamBold
-CloseEventWidgetBtn.TextSize = 11
-CloseEventWidgetBtn.ZIndex = 701
-CloseEventWidgetBtn.Parent = EventFloatBox
-Instance.new("UICorner", CloseEventWidgetBtn).CornerRadius = UDim.new(0, 11)
-
-CloseEventWidgetBtn.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    EventFloatBox.Visible = false
-end)
-
-task.spawn(function()
-    while true do
-        pcall(function()
-            local now = os.time()
-            local dateTable = os.date("!*t", now + 10800) -- UTC+3
-            local wday = dateTable.wday
-            local daysUntilSaturday = (7 - wday) % 7
-            if daysUntilSaturday == 0 then
-                if dateTable.hour >= 18 then
-                    daysUntilSaturday = 7
-                end
-            end
-            
-            local targetDaySecs = (dateTable.hour * 3600) + (dateTable.min * 60) + dateTable.sec
-            local targetSecsToday = 18 * 3600
-            local diffSecs = 0
-            if daysUntilSaturday > 0 then
-                diffSecs = (daysUntilSaturday * 86400) + (targetSecsToday - targetDaySecs)
-            else
-                diffSecs = targetSecsToday - targetDaySecs
-            end
-
-            local d = math.floor(diffSecs / 86400)
-            local h = math.floor((diffSecs % 86400) / 3600)
-            local m = math.floor((diffSecs % 3600) / 60)
-            local s = diffSecs % 60
-
-            EventCountdownLbl.Text = string.format("⏳ المتبقي: %d يوم %02d:%02d:%02d", d, h, m, s)
-        end)
-        task.wait(1)
-    end
-end)
-
-local BtnEvent = createProStyleBtn("موعد حدث", "left")
-BtnEvent.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    local eventImg = Instance.new("ImageLabel")
-    eventImg.Size = UDim2.new(1, 0, 0, 130)
-    eventImg.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    eventImg.Image = EVENT_MAP_IMAGE
-    eventImg.ScaleType = Enum.ScaleType.Crop
-    eventImg.ZIndex = 3
-    eventImg.Parent = CenterScroll
-    Instance.new("UICorner", eventImg).CornerRadius = UDim.new(0, 14)
-
-    local infoCard = Instance.new("Frame")
-    infoCard.Size = UDim2.new(1, 0, 0, 135)
-    infoCard.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    infoCard.ZIndex = 3
-    infoCard.Parent = CenterScroll
-    Instance.new("UICorner", infoCard).CornerRadius = UDim.new(0, 14)
-
-    local infoStroke = Instance.new("UIStroke")
-    infoStroke.Color = currentAccentColor
-    infoStroke.Thickness = 1.8
-    infoStroke.Parent = infoCard
-
-    local infoTitle = Instance.new("TextLabel")
-    infoTitle.Size = UDim2.new(1, -10, 0, 28)
-    infoTitle.Position = UDim2.new(0, 5, 0, 6)
-    infoTitle.BackgroundTransparency = 1
-    infoTitle.Text = "🗓️ جدول الحدث الأسبوعي"
-    infoTitle.TextColor3 = currentAccentColor
-    infoTitle.Font = Enum.Font.GothamBold
-    infoTitle.TextSize = 13.5
-    infoTitle.TextXAlignment = Enum.TextXAlignment.Right
-    infoTitle.ZIndex = 4
-    infoTitle.Parent = infoCard
-    table.insert(activeNameLabels, infoTitle)
-
-    local infoDesc = Instance.new("TextLabel")
-    infoDesc.Size = UDim2.new(1, -10, 0, 55)
-    infoDesc.Position = UDim2.new(0, 5, 0, 36)
-    infoDesc.BackgroundTransparency = 1
-    infoDesc.Text = "• الموعد: كل أسبوع يوم السبت.\n• الوقت: الساعة 6:00 مساءً (18:00) بتوقيت العراق والسعودية.\n• يرجى التواجد قبل الموعد بـ 10 دقائق."
-    infoDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
-    infoDesc.Font = Enum.Font.GothamBold
-    infoDesc.TextSize = 12
-    infoDesc.TextXAlignment = Enum.TextXAlignment.Right
-    infoDesc.TextYAlignment = Enum.TextYAlignment.Top
-    infoDesc.ZIndex = 4
-    infoDesc.Parent = infoCard
-
-    local toggleWidgetBtn = Instance.new("TextButton")
-    toggleWidgetBtn.Size = UDim2.new(1, -16, 0, 34)
-    toggleWidgetBtn.Position = UDim2.new(0, 8, 1, -40)
-    toggleWidgetBtn.BackgroundColor3 = currentAccentColor
-    toggleWidgetBtn.Text = "🔔 إظهار عدّاد الحدث"
-    toggleWidgetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleWidgetBtn.Font = Enum.Font.GothamBold
-    toggleWidgetBtn.TextSize = 12.5
-    toggleWidgetBtn.ZIndex = 4
-    toggleWidgetBtn.Parent = infoCard
-    Instance.new("UICorner", toggleWidgetBtn).CornerRadius = UDim.new(0, 9)
-
-    toggleWidgetBtn.MouseButton1Click:Connect(function()
-        playUiSound(SOUND_CLICK, 1, 0.35)
-        EventFloatBox.Visible = not EventFloatBox.Visible
-    end)
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
-end)
-
----------------------------------------------------------
--- صفحات السكربتات التفصيلية
----------------------------------------------------------
-local showScriptsPage
-local function openScriptDetailsPage(mapName, scriptsList)
-    clearCenter()
-
-    local backBtn = Instance.new("TextButton")
-    backBtn.Size = UDim2.new(1, 0, 0, 32)
-    backBtn.BackgroundColor3 = Color3.fromRGB(31, 44, 73)
-    backBtn.Text = "← العودة إلى الخرائط"
-    backBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    backBtn.Font = Enum.Font.GothamBold
-    backBtn.TextSize = 13
-    backBtn.ZIndex = 3
-    backBtn.Parent = CenterScroll
-    Instance.new("UICorner", backBtn).CornerRadius = UDim.new(0, 9)
-
-    backBtn.MouseButton1Click:Connect(function()
-        playUiSound(SOUND_CLICK, 1, 0.35)
-        if showScriptsPage then showScriptsPage() end
-    end)
-
-    local searchBox = Instance.new("TextBox")
-    searchBox.Size = UDim2.new(1, 0, 0, 34)
-    searchBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    searchBox.PlaceholderText = "⌕ ابحث عن سكربت…"
-    searchBox.Text = ""
-    searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    searchBox.Font = Enum.Font.GothamBold
-    searchBox.TextSize = 13
-    searchBox.TextXAlignment = Enum.TextXAlignment.Right
-    searchBox.ZIndex = 3
-    searchBox.Parent = CenterScroll
-    Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 9)
-
-    local searchStroke = Instance.new("UIStroke")
-    searchStroke.Color = currentAccentColor
-    searchStroke.Thickness = 1.2
-    searchStroke.Parent = searchBox
-    table.insert(registeredOptionStrokes, searchStroke)
-
-    local cardsContainer = Instance.new("Frame")
-    cardsContainer.Size = UDim2.new(1, 0, 0, 0)
-    cardsContainer.BackgroundTransparency = 1
-    cardsContainer.ZIndex = 3
-    cardsContainer.Parent = CenterScroll
-
-    local cardsLayout = Instance.new("UIListLayout")
-    cardsLayout.Padding = UDim.new(0, 8)
-    cardsLayout.Parent = cardsContainer
-
-    local function renderFilteredCards(query)
-        for _, child in ipairs(cardsContainer:GetChildren()) do
-            if not child:IsA("UIListLayout") then child:Destroy() end
-        end
-
-        for _, sData in ipairs(scriptsList) do
-            if query == "" or string.find(string.lower(sData.name), string.lower(query)) then
-                local scriptCard = Instance.new("Frame")
-                scriptCard.Size = UDim2.new(1, -4, 0, 108)
-                scriptCard.BackgroundColor3 = Color3.fromRGB(10, 20, 39)
-                scriptCard.BorderSizePixel = 0
-                scriptCard.ZIndex = 3
-                scriptCard.Parent = cardsContainer
-                Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 14)
-
-                local cardGradient = Instance.new("UIGradient")
-                cardGradient.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(16, 41, 72)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 15, 30))
-                })
-                cardGradient.Rotation = 18
-                cardGradient.Parent = scriptCard
-
-                local cardStroke = Instance.new("UIStroke")
-                cardStroke.Color = currentAccentColor
-                cardStroke.Thickness = 1.35
-                cardStroke.Transparency = 0.12
-                cardStroke.Parent = scriptCard
-                table.insert(registeredOptionStrokes, cardStroke)
-
-                local accentRail = Instance.new("Frame")
-                accentRail.Size = UDim2.new(0, 4, 1, -18)
-                accentRail.Position = UDim2.new(0, 6, 0, 9)
-                accentRail.BackgroundColor3 = currentAccentColor
-                accentRail.BorderSizePixel = 0
-                accentRail.ZIndex = 4
-                accentRail.Parent = scriptCard
-                Instance.new("UICorner", accentRail).CornerRadius = UDim.new(1, 0)
-
-                local scriptTitle = Instance.new("TextLabel")
-                scriptTitle.Size = UDim2.new(1, -24, 0, 26)
-                scriptTitle.Position = UDim2.new(0, 16, 0, 8)
-                scriptTitle.BackgroundTransparency = 1
-                scriptTitle.Text = sData.name
-                scriptTitle.TextColor3 = Color3.fromRGB(238, 248, 255)
-                scriptTitle.Font = Enum.Font.GothamBlack
-                scriptTitle.TextSize = 13
-                scriptTitle.TextTruncate = Enum.TextTruncate.AtEnd
-                scriptTitle.TextXAlignment = Enum.TextXAlignment.Right
-                scriptTitle.ZIndex = 4
-                scriptTitle.Parent = scriptCard
-                table.insert(activeNameLabels, scriptTitle)
-
-                local keyTag = Instance.new("TextLabel")
-                keyTag.Size = UDim2.new(1, -156, 0, 27)
-                keyTag.Position = UDim2.new(0, 16, 0, 47)
-                keyTag.BackgroundColor3 = Color3.fromRGB(7, 33, 51)
-                keyTag.BackgroundTransparency = 0.1
-                keyTag.Text = "🔑 " .. tostring(sData.keyState or "غير محدد")
-                keyTag.TextColor3 = Color3.fromRGB(143, 218, 255)
-                keyTag.Font = Enum.Font.GothamBold
-                keyTag.TextSize = 10.5
-                keyTag.TextTruncate = Enum.TextTruncate.AtEnd
-                keyTag.TextXAlignment = Enum.TextXAlignment.Center
-                keyTag.ZIndex = 4
-                keyTag.Parent = scriptCard
-                Instance.new("UICorner", keyTag).CornerRadius = UDim.new(0, 8)
-
-                local runBtn = Instance.new("TextButton")
-                runBtn.Size = UDim2.new(0, 126, 0, 33)
-                runBtn.Position = UDim2.new(1, -136, 0, 44)
-                runBtn.BackgroundColor3 = currentAccentColor
-                runBtn.Text = "تشغيل  ➤"
-                runBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                runBtn.Font = Enum.Font.GothamBold
-                runBtn.TextSize = 12
-                runBtn.TextScaled = true
-                runBtn.ZIndex = 4
-                runBtn.Parent = scriptCard
-                Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 10)
-                local runStroke = Instance.new("UIStroke")
-                runStroke.Color = Color3.fromRGB(125, 220, 255)
-                runStroke.Thickness = 1
-                runStroke.Parent = runBtn
-
-                runBtn.MouseButton1Click:Connect(function()
-                    playUiSound(SOUND_CLICK, 1, 0.35)
-                    runBtn.Text = "جارٍ التحضير…"
-                    local ok = pcall(function()
-                        loadstring(game:HttpGet(sData.url))()
-                    end)
-                    task.wait(0.6)
-                    runBtn.Text = ok and "تم إرسال أمر التشغيل ✓" or "تعذر التشغيل — جرّب لاحقاً"
-                    task.wait(2)
-                    if runBtn and runBtn.Parent then runBtn.Text = "تشغيل السكربت  ➤" end
-                end)
-            end
-        end
-
-        task.defer(function()
-            if cardsContainer and cardsContainer.Parent then
-                cardsContainer.Size = UDim2.new(1, 0, 0, cardsLayout.AbsoluteContentSize.Y + 10)
-                CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 30)
-            end
-        end)
-    end
-
-    renderFilteredCards("")
-
-    searchBox:GetPropertyChangedSignal("Text"):Connect(function()
-        renderFilteredCards(searchBox.Text)
-    end)
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 30)
-end
-
----------------------------------------------------------
--- تبويب "سكربتات" الرئيسي
----------------------------------------------------------
-local BtnScripts = createProStyleBtn("سكربتات", "left")
-showScriptsPage = function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    local function addMapCard(mapTitle, mapImgUrl, scriptsList)
-        local mapCard = Instance.new("Frame")
-        mapCard.Size = UDim2.new(1, -4, 0, 202)
-        mapCard.BackgroundColor3 = Color3.fromRGB(7, 17, 33)
-        mapCard.BackgroundTransparency = 0
-        mapCard.BorderSizePixel = 0
-        mapCard.ZIndex = 3
-        mapCard.Parent = CenterScroll
-        Instance.new("UICorner", mapCard).CornerRadius = UDim.new(0, 16)
-
-        local mapCardStroke = Instance.new("UIStroke")
-        mapCardStroke.Color = currentAccentColor
-        mapCardStroke.Thickness = 1.45
-        mapCardStroke.Transparency = 0.1
-        mapCardStroke.Parent = mapCard
-        table.insert(registeredOptionStrokes, mapCardStroke)
-
-        local mapImg = Instance.new("ImageLabel")
-        mapImg.Size = UDim2.new(1, -16, 0, 106)
-        mapImg.Position = UDim2.new(0, 8, 0, 8)
-        mapImg.ImageTransparency = 0
-        mapImg.BackgroundColor3 = Color3.fromRGB(31, 44, 73)
-        mapImg.Image = mapImgUrl
-        mapImg.ScaleType = Enum.ScaleType.Crop
-        mapImg.ZIndex = 4
-        mapImg.Parent = mapCard
-        Instance.new("UICorner", mapImg).CornerRadius = UDim.new(0, 12)
-
-        local mapBannerShade = Instance.new("Frame")
-        mapBannerShade.Size = UDim2.new(1, -16, 0, 32)
-        mapBannerShade.Position = UDim2.new(0, 8, 0, 82)
-        mapBannerShade.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        mapBannerShade.BackgroundTransparency = 0.28
-        mapBannerShade.BorderSizePixel = 0
-        mapBannerShade.ZIndex = 5
-        mapBannerShade.Parent = mapCard
-        Instance.new("UICorner", mapBannerShade).CornerRadius = UDim.new(0, 8)
-        local mapBadge = Instance.new("TextLabel")
-        mapBadge.Size = UDim2.new(1, -12, 1, 0)
-        mapBadge.Position = UDim2.new(0, 6, 0, 0)
-        mapBadge.BackgroundTransparency = 1
-        mapBadge.Text = "✦  " .. tostring(#scriptsList) .. " سكربتات  •  KEON SELECTED"
-        mapBadge.TextColor3 = Color3.fromRGB(230, 245, 255)
-        mapBadge.Font = Enum.Font.GothamBold
-        mapBadge.TextSize = 10
-        mapBadge.TextXAlignment = Enum.TextXAlignment.Right
-        mapBadge.ZIndex = 6
-        mapBadge.Parent = mapBannerShade
-
-        local mapNameLbl = Instance.new("TextLabel")
-        mapNameLbl.Size = UDim2.new(1, -24, 0, 26)
-        mapNameLbl.Position = UDim2.new(0, 12, 0, 116)
-        mapNameLbl.BackgroundTransparency = 1
-        mapNameLbl.Text = mapTitle
-        mapNameLbl.TextColor3 = Color3.fromRGB(240, 249, 255)
-        mapNameLbl.Font = Enum.Font.GothamBlack
-        mapNameLbl.TextSize = 14
-        mapNameLbl.TextTruncate = Enum.TextTruncate.AtEnd
-        mapNameLbl.TextXAlignment = Enum.TextXAlignment.Right
-        mapNameLbl.ZIndex = 4
-        mapNameLbl.Parent = mapCard
-
-        local mapMeta = Instance.new("TextLabel")
-        mapMeta.Size = UDim2.new(1, -24, 0, 16)
-        mapMeta.Position = UDim2.new(0, 12, 0, 144)
-        mapMeta.BackgroundTransparency = 1
-        mapMeta.Text = "✦ " .. tostring(#scriptsList) .. " سكربتات متاحة  •  NEON LIBRARY"
-        mapMeta.TextColor3 = Color3.fromRGB(135, 186, 221)
-        mapMeta.Font = Enum.Font.GothamMedium
-        mapMeta.TextSize = 9.5
-        mapMeta.TextXAlignment = Enum.TextXAlignment.Right
-        mapMeta.ZIndex = 4
-        mapMeta.Parent = mapCard
-
-        local showBtn = Instance.new("TextButton")
-        showBtn.Size = UDim2.new(1, -20, 0, 32)
-        showBtn.Position = UDim2.new(0, 10, 0, 164)
-        showBtn.BackgroundColor3 = currentAccentColor
-        showBtn.Text = "استكشف السكربتات  ↗"
-        showBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        showBtn.Font = Enum.Font.GothamBold
-        showBtn.TextSize = 12
-        showBtn.TextScaled = true
-        showBtn.ZIndex = 4
-        showBtn.Parent = mapCard
-        Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 9)
-
-        showBtn.MouseButton1Click:Connect(function()
-            playUiSound(SOUND_CLICK, 1, 0.35)
-            openScriptDetailsPage(mapTitle, scriptsList)
-        end)
-    end
-
-    addMapCard("🥚 ماب سرقة البيض", EGG_MAP_IMAGE, {
-        {name = "🌶️ سكربت فلفل (الأصلي)", keyState = "بدون مفتاح", url = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"},
-        {name = "💧 سكربت الأزراق (PulseZax)", keyState = "بدون مفتاح", url = "https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"},
-        {name = "⭐ سكربت SENA V7", keyState = "بدون مفتاح (قوي جداً)", url = "https://senahub.xyz/senaloader"},
-        {name = "🍏 سكربت التفاح (ChulluHub)", keyState = "بدون مفتاح", url = "https://raw.githubusercontent.com/napun87/stealaneggv2/refs/heads/main/chulluHub.lua"}
-    })
-
-    addMapCard("💥 ماب كسر البيض", BREAK_EGG_MAP_IMAGE, {
-        {name = "⚡ سكربت كسر البيض الأساسي", keyState = "بدون مفتاح", url = "https://raw.githubusercontent.com/pooro885-droid/stealanegg/refs/heads/main/sae.lua"},
-        {name = "🔮 سكربت Serenity Hub", keyState = "بدون مفتاح", url = "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/loader.lua"}
-    })
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
-end
-BtnScripts.MouseButton1Click:Connect(showScriptsPage)
-
----------------------------------------------------------
--- ملف اللاعب: اختيار علم + توب 100 وقت استخدام السكربت
----------------------------------------------------------
-KEONProfile.ARAB_COUNTRIES = {
-    {flag="🇮🇶", name="العراق", code="IQ"}, {flag="🇸🇦", name="السعودية", code="SA"},
-    {flag="🇦🇪", name="الإمارات", code="AE"}, {flag="🇰🇼", name="الكويت", code="KW"},
-    {flag="🇶🇦", name="قطر", code="QA"}, {flag="🇧🇭", name="البحرين", code="BH"},
-    {flag="🇴🇲", name="عُمان", code="OM"}, {flag="🇯🇴", name="الأردن", code="JO"},
-    {flag="🇵🇸", name="فلسطين", code="PS"}, {flag="🇸🇾", name="سوريا", code="SY"},
-    {flag="🇱🇧", name="لبنان", code="LB"}, {flag="🇪🇬", name="مصر", code="EG"},
-    {flag="🇾🇪", name="اليمن", code="YE"}, {flag="🇲🇦", name="المغرب", code="MA"},
-    {flag="🇹🇳", name="تونس", code="TN"}, {flag="🇩🇿", name="الجزائر", code="DZ"},
-    {flag="🇱🇾", name="ليبيا", code="LY"}, {flag="🇸🇩", name="السودان", code="SD"},
-    {flag="🇸🇴", name="الصومال", code="SO"}, {flag="🇲🇷", name="موريتانيا", code="MR"},
-    {flag="🇩🇯", name="جيبوتي", code="DJ"}, {flag="🇰🇲", name="جزر القمر", code="KM"}
-}
-
--- اكتشاف الدولة تلقائياً عند توفرها من Roblox؛ إذا لم تتوفر أو لم تكن عربية، يبقى اختيار المستخدم محفوظاً.
-if not KEONCountryWasSaved then
-    pcall(function()
-        local LocalizationService = game:GetService("LocalizationService")
-        local detectedCode = LocalizationService:GetCountryRegionForPlayerAsync(LocalPlayer)
-        if type(detectedCode) == "string" then
-            detectedCode = string.upper(detectedCode)
-            for _, country in ipairs(KEONProfile.ARAB_COUNTRIES) do
-                if country.code == detectedCode then
-                    KEONProfile.selectedCountryFlag = country.flag
-                    KEONProfile.selectedCountryName = country.name
-                    KEONProfile.selectedCountryCode = country.code
-                    break
-                end
-            end
-        end
-    end)
-    saveUserSettings()
-end
-
-KEONProfile.BtnProfile = createProStyleBtn("تسجيل دخول", "right")
-
-local function addProfileHeader(mode)
-    local hero = Instance.new("Frame")
-    hero.Size = UDim2.new(1, -4, 0, 82)
-    hero.BackgroundColor3 = Color3.fromRGB(8, 23, 43)
-    hero.BorderSizePixel = 0
-    hero.ZIndex = 3
-    hero.Parent = CenterScroll
-    Instance.new("UICorner", hero).CornerRadius = UDim.new(0, 15)
-    local heroGradient = Instance.new("UIGradient")
-    heroGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(13, 59, 95)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 17, 34))
-    })
-    heroGradient.Rotation = 15
-    heroGradient.Parent = hero
-    local heroStroke = Instance.new("UIStroke")
-    heroStroke.Color = currentAccentColor
-    heroStroke.Thickness = 1.35
-    heroStroke.Parent = hero
-    table.insert(registeredOptionStrokes, heroStroke)
-
-    local avatar = Instance.new("ImageLabel")
-    avatar.Size = UDim2.new(0, 58, 0, 58)
-    avatar.Position = UDim2.new(0, 10, 0.5, -29)
-    avatar.BackgroundColor3 = Color3.fromRGB(18, 41, 68)
-    avatar.BorderSizePixel = 0
-    avatar.ZIndex = 4
-    avatar.Parent = hero
-    Instance.new("UICorner", avatar).CornerRadius = UDim.new(0, 12)
-    loadAvatarThumbnail(LocalPlayer.UserId, avatar)
-
-    local heroTitle = Instance.new("TextLabel")
-    heroTitle.Size = UDim2.new(1, -86, 0, 26)
-    heroTitle.Position = UDim2.new(0, 78, 0, 10)
-    heroTitle.BackgroundTransparency = 1
-    heroTitle.Text = "👤 " .. LocalPlayer.DisplayName .. "  •  @" .. LocalPlayer.Name
-    heroTitle.TextColor3 = Color3.fromRGB(245, 250, 255)
-    heroTitle.Font = Enum.Font.GothamBlack
-    heroTitle.TextSize = 12
-    heroTitle.TextXAlignment = Enum.TextXAlignment.Right
-    heroTitle.TextTruncate = Enum.TextTruncate.AtEnd
-    heroTitle.ZIndex = 4
-    heroTitle.Parent = hero
-
-    local heroMeta = Instance.new("TextLabel")
-    heroMeta.Size = UDim2.new(1, -86, 0, 38)
-    heroMeta.Position = UDim2.new(0, 78, 0, 36)
-    heroMeta.BackgroundTransparency = 1
-    heroMeta.Text = KEONProfile.selectedCountryFlag .. " " .. KEONProfile.selectedCountryName .. "\n⏱ وقت الاستخدام المحفوظ: " .. KEONProfile.formatPlayTime(KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock))
-    heroMeta.TextColor3 = Color3.fromRGB(153, 218, 255)
-    heroMeta.Font = Enum.Font.GothamBold
-    heroMeta.TextSize = 10.5
-    heroMeta.TextXAlignment = Enum.TextXAlignment.Right
-    heroMeta.TextYAlignment = Enum.TextYAlignment.Center
-    heroMeta.TextWrapped = true
-    heroMeta.ZIndex = 4
-    heroMeta.Parent = hero
-    task.spawn(function()
-        for _ = 1, 15 do
-            task.wait(1)
-            if not heroMeta.Parent then return end
-            heroMeta.Text = KEONProfile.selectedCountryFlag .. " " .. KEONProfile.selectedCountryName .. "\n⏱ وقت الاستخدام المحفوظ: " .. KEONProfile.formatPlayTime(KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock))
-        end
-    end)
-
-    local tabs = Instance.new("Frame")
-    tabs.Size = UDim2.new(1, -4, 0, 38)
-    tabs.BackgroundTransparency = 1
-    tabs.ZIndex = 3
-    tabs.Visible = mode == "countries"
-    tabs.Parent = CenterScroll
-
-    local countryTab = Instance.new("TextButton")
-    countryTab.Size = UDim2.new(1, 0, 1, 0)
-    countryTab.Position = UDim2.new(0, 0, 0, 0)
-    countryTab.BackgroundColor3 = mode == "countries" and currentAccentColor or Color3.fromRGB(18, 34, 57)
-    countryTab.Text = "🌍 اختيار الدولة"
-    countryTab.TextColor3 = Color3.fromRGB(255,255,255)
-    countryTab.Font = Enum.Font.GothamBold
-    countryTab.TextSize = 11
-    countryTab.TextScaled = true
-    countryTab.ZIndex = 4
-    countryTab.Parent = tabs
-    Instance.new("UICorner", countryTab).CornerRadius = UDim.new(0, 10)
-
-    countryTab.MouseButton1Click:Connect(function() playUiSound(SOUND_CLICK,1,0.3); KEONProfile.showProfilePage("countries") end)
-    return hero
-end
-
-local function addTopLeaderboardSwitch(activeMode)
-    local switch = Instance.new("Frame")
-    switch.Name = "KEONTopLeaderboardSwitch"
-    switch.Size = UDim2.new(1, -4, 0, 36)
-    switch.BackgroundTransparency = 1
-    switch.ZIndex = 3
-    switch.Parent = CenterScroll
-    local function makeSwitchButton(text, xScale, mode, active)
-        local b = Instance.new("TextButton")
-        b.Size = UDim2.new(0.5, -4, 1, 0)
-        b.Position = UDim2.new(xScale, xScale == 0 and 0 or 4, 0, 0)
-        b.BackgroundColor3 = active and currentAccentColor or Color3.fromRGB(13, 31, 52)
-        b.Text = text
-        b.TextColor3 = Color3.fromRGB(255,255,255)
-        b.Font = Enum.Font.GothamBold
-        b.TextSize = 11
-        b.TextScaled = true
-        b.ZIndex = 4
-        b.Parent = switch
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 9)
-        b.MouseButton1Click:Connect(function() KEONProfile.showProfilePage(mode) end)
-    end
-    makeSwitchButton("⏱️ توب وقت السكربت", 0, "top", activeMode == "top")
-    makeSwitchButton("🥚 توب سرقة البيض العالمي", 0.5, "egg_top", activeMode == "egg_top")
-end
-
-KEONProfile.showProfilePage = function(mode)
-    mode = mode or "countries"
-    playUiSound(SOUND_CLICK, 1, 0.3)
-    clearCenter()
-    addProfileHeader(mode)
-
-    local intro = Instance.new("TextLabel")
-    intro.Size = UDim2.new(1, -4, 0, 30)
-    intro.BackgroundTransparency = 1
-    intro.TextColor3 = currentAccentColor
-    intro.Font = Enum.Font.GothamBlack
-    intro.TextSize = 13
-    intro.TextXAlignment = Enum.TextXAlignment.Right
-    intro.ZIndex = 3
-    intro.Parent = CenterScroll
-
-    if mode == "countries" then
-        intro.Text = "اختر علم دولتك ليظهر بجانب اسمك بالشات. تظهر علامة KEON999 فوق مستخدمي السكربت"
-        intro.TextWrapped = true
-        local countryGrid = Instance.new("Frame")
-        countryGrid.Size = UDim2.new(1, -4, 0, 11 * 47 + 4)
-        countryGrid.BackgroundTransparency = 1
-        countryGrid.ZIndex = 3
-        countryGrid.Parent = CenterScroll
-        local gridLayout = Instance.new("UIGridLayout")
-        gridLayout.CellSize = UDim2.new(0.5, -5, 0, 42)
-        gridLayout.CellPadding = UDim2.new(0, 8, 0, 5)
-        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        gridLayout.Parent = countryGrid
-
-        for i, country in ipairs(KEONProfile.ARAB_COUNTRIES) do
-            local countryBtn = Instance.new("TextButton")
-            countryBtn.LayoutOrder = i
-            countryBtn.BackgroundColor3 = country.code == KEONProfile.selectedCountryCode and Color3.fromRGB(0, 91, 148) or Color3.fromRGB(12, 27, 48)
-            countryBtn.Text = country.flag .. "  " .. country.name
-            countryBtn.TextColor3 = Color3.fromRGB(245, 249, 255)
-            countryBtn.Font = Enum.Font.GothamBold
-            countryBtn.TextSize = 11.5
-            countryBtn.TextScaled = true
-            countryBtn.TextTruncate = Enum.TextTruncate.AtEnd
-            countryBtn.AutoButtonColor = false
-            countryBtn.ZIndex = 4
-            countryBtn.Parent = countryGrid
-            Instance.new("UICorner", countryBtn).CornerRadius = UDim.new(0, 10)
-            local border = Instance.new("UIStroke")
-            border.Color = country.code == KEONProfile.selectedCountryCode and Color3.fromRGB(108, 225, 255) or Color3.fromRGB(36, 72, 108)
-            border.Thickness = country.code == KEONProfile.selectedCountryCode and 1.7 or 1
-            border.Parent = countryBtn
-
-            countryBtn.MouseButton1Click:Connect(function()
-                KEONProfile.selectedCountryFlag = country.flag
-                KEONProfile.selectedCountryName = country.name
-                KEONProfile.selectedCountryCode = country.code
-                KEONProfile.publishProfileCountry()
-                local oldText = countryBtn.Text
-                countryBtn.Text = "✓ " .. country.flag .. " " .. country.name
-                task.wait(0.12)
-                KEONProfile.showProfilePage("countries")
-            end)
-        end
-
-        local note = Instance.new("TextLabel")
-        note.Size = UDim2.new(1, -4, 0, 40)
-        note.BackgroundTransparency = 1
-        note.Text = "🔒 ما نطلب كلمة مرور. اختيار العلم فقط يحفظ رمز الدولة مع ملفك."
-        note.TextColor3 = Color3.fromRGB(165, 195, 220)
-        note.Font = Enum.Font.Gotham
-        note.TextSize = 10
-        note.TextWrapped = true
-        note.TextXAlignment = Enum.TextXAlignment.Right
-        note.ZIndex = 3
-        note.Parent = CenterScroll
-    elseif mode == "egg_top" then
-        intro.Text = "🥚 توب سرقة البيض — مستخدمو KEON من كل الجلسات المحفوظة"
-        addTopLeaderboardSwitch("egg_top")
-        local refreshBtn = Instance.new("TextButton")
-        refreshBtn.Size = UDim2.new(1, -4, 0, 30)
-        refreshBtn.BackgroundColor3 = Color3.fromRGB(12, 42, 68)
-        refreshBtn.Text = "↻ تحديث توب سرقة البيض العالمي"
-        refreshBtn.TextColor3 = Color3.fromRGB(255,255,255)
-        refreshBtn.Font = Enum.Font.GothamBold
-        refreshBtn.TextSize = 11
-        refreshBtn.ZIndex = 4
-        refreshBtn.Parent = CenterScroll
-        Instance.new("UICorner", refreshBtn).CornerRadius = UDim.new(0, 9)
-        refreshBtn.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("egg_top") end)
-
-        local loadingEgg = Instance.new("TextLabel")
-        loadingEgg.Size = UDim2.new(1, -4, 0, 44)
-        loadingEgg.BackgroundTransparency = 1
-        loadingEgg.Text = "⏳ جارٍ تحميل بيانات مستخدمي السكربت..."
-        loadingEgg.TextColor3 = Color3.fromRGB(180, 215, 245)
-        loadingEgg.Font = Enum.Font.GothamBold
-        loadingEgg.TextSize = 11
-        loadingEgg.TextWrapped = true
-        loadingEgg.ZIndex = 3
-        loadingEgg.Parent = CenterScroll
-
-        task.spawn(function()
-            local statRecords = {}
-            local ok = pcall(function()
-                local res = customRequest({Url = KEONProfile.FIREBASE_USAGE_URL, Method = "GET"})
-                if res and res.StatusCode == 200 then
-                    local decoded = safeDecode(res.Body)
-                    if type(decoded) == "table" then
-                        for uid, record in pairs(decoded) do
-                            if type(record) == "table" and tonumber(record.userId or uid) then
-                                local speed = tonumber(record.eggSpeed)
-                                local money = tonumber(record.eggMoney)
-                                if speed ~= nil or money ~= nil then
-                                    table.insert(statRecords, {
-                                        userId = tonumber(record.userId or uid),
-                                        name = record.name,
-                                        displayName = record.displayName,
-                                        countryFlag = record.countryFlag or "🌐",
-                                        speed = speed or -1,
-                                        money = money or 0,
-                                        eggUpdatedAt = tonumber(record.eggUpdatedAt) or 0
-                                    })
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-            table.sort(statRecords, function(a,b)
-                if a.speed ~= b.speed then return a.speed > b.speed end
-                return a.money > b.money
-            end)
-            if not CenterScroll or not CenterScroll.Parent or not loadingEgg.Parent then return end
-            loadingEgg:Destroy()
-            if #statRecords == 0 then
-                local empty = Instance.new("TextLabel")
-                empty.Size = UDim2.new(1, -4, 0, 76)
-                empty.BackgroundTransparency = 1
-                empty.Text = ok and "ماكو بيانات سرقة البيض محفوظة بعد. لازم مستخدمو KEON يدخلون للماب وتكون قيم السرعة والفلوس ظاهرة في leaderstats حتى تنحفظ بالتوب." or "تعذّر تحميل التوب العالمي. تحقق من اتصال قاعدة البيانات."
-                empty.TextColor3 = Color3.fromRGB(186, 206, 226)
-                empty.Font = Enum.Font.GothamBold
-                empty.TextSize = 11
-                empty.TextWrapped = true
-                empty.ZIndex = 3
-                empty.Parent = CenterScroll
-                return
-            end
-            for rank, record in ipairs(statRecords) do
-                if rank > 100 then break end
-                local row = Instance.new("Frame")
-                row.Size = UDim2.new(1, -4, 0, 62)
-                row.BackgroundColor3 = rank <= 3 and Color3.fromRGB(14, 42, 65) or Color3.fromRGB(10, 21, 39)
-                row.BorderSizePixel = 0
-                row.ZIndex = 3
-                row.Parent = CenterScroll
-                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 11)
-                local stroke = Instance.new("UIStroke", row)
-                stroke.Color = rank == 1 and Color3.fromRGB(255,204,77) or currentAccentColor
-                stroke.Thickness = rank <= 3 and 1.4 or 0.8
-                local avatar = Instance.new("ImageLabel")
-                avatar.Size = UDim2.new(0, 46, 0, 50)
-                avatar.Position = UDim2.new(0, 7, 0.5, -25)
-                avatar.BackgroundColor3 = Color3.fromRGB(18,39,62)
-                avatar.BorderSizePixel = 0
-                avatar.ScaleType = Enum.ScaleType.Fit
-                avatar.ZIndex = 4
-                avatar.Parent = row
-                Instance.new("UICorner", avatar).CornerRadius = UDim.new(0, 8)
-                KEONProfile.loadAvatarBodyThumbnail(record.userId, avatar)
-                local label = Instance.new("TextLabel")
-                label.Size = UDim2.new(1, -70, 0, 24)
-                label.Position = UDim2.new(0, 60, 0, 5)
-                label.BackgroundTransparency = 1
-                label.Text = string.format("%02d  %s %s", rank, tostring(record.countryFlag), tostring(record.displayName or record.name or record.userId))
-                label.TextColor3 = Color3.fromRGB(245,250,255)
-                label.Font = Enum.Font.GothamBold
-                label.TextSize = 11
-                label.TextXAlignment = Enum.TextXAlignment.Right
-                label.TextTruncate = Enum.TextTruncate.AtEnd
-                label.ZIndex = 4
-                label.Parent = row
-                local stats = Instance.new("TextLabel")
-                stats.Size = UDim2.new(1, -70, 0, 23)
-                stats.Position = UDim2.new(0, 60, 0, 31)
-                stats.BackgroundTransparency = 1
-                stats.Text = "⚡ " .. (record.speed >= 0 and KEONProfile.formatCompactNumber(record.speed) or "—") .. "  •  💰 " .. KEONProfile.formatCompactNumber(record.money)
-                stats.TextColor3 = Color3.fromRGB(104,207,255)
-                stats.Font = Enum.Font.GothamBold
-                stats.TextSize = 10
-                stats.TextXAlignment = Enum.TextXAlignment.Right
-                stats.ZIndex = 4
-                stats.Parent = row
-            end
-        end)
-    else
-        intro.Text = "أفضل 100 لاعب حسب وقت استخدام KEON المحفوظ"
-        addTopLeaderboardSwitch("top")
-        local refreshBtn = Instance.new("TextButton")
-        refreshBtn.Size = UDim2.new(1, -4, 0, 32)
-        refreshBtn.BackgroundColor3 = Color3.fromRGB(12, 42, 68)
-        refreshBtn.Text = "↻ تحديث ترتيب التوب 100"
-        refreshBtn.TextColor3 = Color3.fromRGB(255,255,255)
-        refreshBtn.Font = Enum.Font.GothamBold
-        refreshBtn.TextSize = 11
-        refreshBtn.ZIndex = 4
-        refreshBtn.Parent = CenterScroll
-        Instance.new("UICorner", refreshBtn).CornerRadius = UDim.new(0, 9)
-        refreshBtn.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("top") end)
-
-        local loading = Instance.new("TextLabel")
-        loading.Size = UDim2.new(1, -4, 0, 44)
-        loading.BackgroundTransparency = 1
-        loading.Text = "⏳ جارٍ تحميل الترتيب من التخزين المشترك..."
-        loading.TextColor3 = Color3.fromRGB(180, 215, 245)
-        loading.Font = Enum.Font.GothamBold
-        loading.TextSize = 11
-        loading.TextWrapped = true
-        loading.ZIndex = 3
-        loading.Parent = CenterScroll
-
-        task.spawn(function()
-            local records = {}
-            local ok = pcall(function()
-                local res = customRequest({Url = KEONProfile.FIREBASE_USAGE_URL, Method = "GET"})
-                if res and res.StatusCode == 200 then
-                    local decoded = safeDecode(res.Body)
-                    if type(decoded) == "table" then
-                        for uid, record in pairs(decoded) do
-                            if type(record) == "table" and tonumber(record.userId or uid) then
-                                record.userId = tonumber(record.userId or uid)
-                                record.totalSeconds = math.max(0, tonumber(record.totalSeconds) or 0)
-                                table.insert(records, record)
-                            end
-                        end
-                    end
-                end
-            end)
-            table.sort(records, function(a,b) return (a.totalSeconds or 0) > (b.totalSeconds or 0) end)
-            if not CenterScroll or not CenterScroll.Parent or not loading.Parent then return end
-            loading:Destroy()
-            if #records == 0 then
-                local empty = Instance.new("TextLabel")
-                empty.Size = UDim2.new(1, -4, 0, 58)
-                empty.BackgroundTransparency = 1
-                empty.Text = ok and "ماكو بيانات ترتيب محفوظة لحد الآن." or "تعذّر الوصول إلى الترتيب؛ تحقق من اتصال قاعدة البيانات."
-                empty.TextColor3 = Color3.fromRGB(186, 206, 226)
-                empty.Font = Enum.Font.GothamBold
-                empty.TextSize = 11
-                empty.TextWrapped = true
-                empty.ZIndex = 3
-                empty.Parent = CenterScroll
-                return
-            end
-            for rank, record in ipairs(records) do
-                if rank > 100 then break end
-                local row = Instance.new("Frame")
-                row.Name = "TopPlayer_" .. tostring(rank)
-                row.Size = UDim2.new(1, -4, 0, 64)
-                row.BackgroundColor3 = rank <= 3 and Color3.fromRGB(14, 42, 65) or Color3.fromRGB(10, 21, 39)
-                row.BorderSizePixel = 0
-                row.ZIndex = 3
-                row.Parent = CenterScroll
-                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 12)
-                local rowStroke = Instance.new("UIStroke")
-                rowStroke.Color = rank == 1 and Color3.fromRGB(255, 204, 77) or (rank == 2 and Color3.fromRGB(194, 218, 241) or (rank == 3 and Color3.fromRGB(206, 139, 93) or Color3.fromRGB(30, 74, 112)))
-                rowStroke.Thickness = rank <= 3 and 1.4 or 0.8
-                rowStroke.Parent = row
-                table.insert(registeredOptionStrokes, rowStroke)
-
-                local avatar = Instance.new("ImageLabel")
-                avatar.Size = UDim2.new(0, 48, 0, 54)
-                avatar.Position = UDim2.new(0, 7, 0.5, -27)
-                avatar.BackgroundColor3 = Color3.fromRGB(18, 39, 62)
-                avatar.BorderSizePixel = 0
-                avatar.ScaleType = Enum.ScaleType.Fit
-                avatar.ZIndex = 4
-                avatar.Parent = row
-                Instance.new("UICorner", avatar).CornerRadius = UDim.new(0, 9)
-                KEONProfile.loadAvatarBodyThumbnail(record.userId, avatar)
-
-                local rankLabel = Instance.new("TextLabel")
-                rankLabel.Size = UDim2.new(0, 28, 0, 24)
-                rankLabel.Position = UDim2.new(1, -34, 0, 5)
-                rankLabel.BackgroundColor3 = rank <= 3 and rowStroke.Color or Color3.fromRGB(21, 54, 82)
-                rankLabel.Text = string.format("%02d", rank)
-                rankLabel.TextColor3 = rank <= 3 and Color3.fromRGB(7, 20, 33) or Color3.fromRGB(220, 240, 255)
-                rankLabel.Font = Enum.Font.GothamBlack
-                rankLabel.TextSize = 10
-                rankLabel.ZIndex = 4
-                rankLabel.Parent = row
-                Instance.new("UICorner", rankLabel).CornerRadius = UDim.new(0, 7)
-
-                local playerName = Instance.new("TextLabel")
-                playerName.Size = UDim2.new(1, -126, 0, 25)
-                playerName.Position = UDim2.new(0, 62, 0, 6)
-                playerName.BackgroundTransparency = 1
-                playerName.Text = tostring(record.countryFlag or "🌐") .. "  " .. tostring(record.displayName or record.name or ("User " .. tostring(record.userId)))
-                playerName.TextColor3 = Color3.fromRGB(245, 250, 255)
-                playerName.Font = Enum.Font.GothamBold
-                playerName.TextSize = 11.5
-                playerName.TextXAlignment = Enum.TextXAlignment.Right
-                playerName.TextTruncate = Enum.TextTruncate.AtEnd
-                playerName.ZIndex = 4
-                playerName.Parent = row
-
-                local timeLabel = Instance.new("TextLabel")
-                timeLabel.Size = UDim2.new(1, -126, 0, 22)
-                timeLabel.Position = UDim2.new(0, 62, 0, 33)
-                timeLabel.BackgroundTransparency = 1
-                timeLabel.Text = "⏱ " .. KEONProfile.formatPlayTime(record.totalSeconds)
-                timeLabel.TextColor3 = Color3.fromRGB(104, 207, 255)
-                timeLabel.Font = Enum.Font.GothamBold
-                timeLabel.TextSize = 10
-                timeLabel.TextXAlignment = Enum.TextXAlignment.Right
-                timeLabel.ZIndex = 4
-                timeLabel.Parent = row
-            end
-            task.defer(function()
-                if CenterScroll and CenterScroll.Parent then
-                    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 24)
-                end
-            end)
-        end)
-    end
-    task.defer(function()
-        if CenterScroll and CenterScroll.Parent then CenterScroll.CanvasSize = UDim2.new(0,0,0,CenterLayout.AbsoluteContentSize.Y + 24) end
-    end)
-end
-
-KEONProfile.BtnProfile.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("countries") end)
-
-local BtnTopPlayers = createProStyleBtn("توب اللاعبين 🏆", "right")
-BtnTopPlayers.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("top") end)
-
----------------------------------------------------------
--- تبويب "الميديا والصوتيات"
----------------------------------------------------------
-local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
-BtnMedia.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    local mediaTracks = {
-        {name = "🎵 الأغنية الخاصة 1", url = "https://mp3tourl.com/audio/1793032510554-b02ecb64-2fdf-47af-b6ad-bdbefea3d145.mp3"},
-        {name = "🎵 الأغنية الخاصة 2", url = "https://mp3tourl.com/audio/1793032488141-ece44ee5-915c-4707-a9db-8ba6263ed1a0.mp3"},
-        {name = "🎵 الأغنية الخاصة 3", url = "https://mp3tourl.com/audio/1793032443036-1fe0f529-7470-4c4b-a58d-e0e6d96c156d.mp3"},
-        {name = "🎵 الأغنية الخاصة 4", url = "https://mp3tourl.com/audio/1793032387774-e053f4e5-992e-4d1a-a016-2759c5e10e79.mp3"},
-        {name = "🎵 الأغنية الخاصة 5", url = "https://mp3tourl.com/audio/1793032221389-d6cf2416-9ef0-4104-839a-09008976cf05.mp3"},
-        {name = "🎵 الأغنية الخاصة 6", url = "https://mp3tourl.com/audio/1793032196410-636d1b4e-60ed-40ee-8cc7-0c1e91cf54e2.mp3"},
-        {name = "🎵 الأغنية الخاصة 7", url = "https://mp3tourl.com/audio/1793032171399-2c8d35f6-7f4e-49f6-845d-52a7f357df09.mp3"},
-        {name = "🎵 الأغنية الخاصة 8", url = "https://mp3tourl.com/audio/1793031943899-e9d05e63-2c93-4d6a-bce2-8ed239dbad88.mp3"}
-    }
-
-    if not _G.KEONActiveMediaSound then
-        _G.KEONActiveMediaSound = nil
-    end
-
-    local volumeContainer = Instance.new("Frame")
-    volumeContainer.Size = UDim2.new(1, 0, 0, 52)
-    volumeContainer.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    volumeContainer.ZIndex = 3
-    volumeContainer.Parent = CenterScroll
-    Instance.new("UICorner", volumeContainer).CornerRadius = UDim.new(0, 11)
-
-    local volStroke = Instance.new("UIStroke")
-    volStroke.Color = currentAccentColor
-    volStroke.Thickness = 1.5
-    volStroke.Parent = volumeContainer
-
-    local volLabel = Instance.new("TextLabel")
-    volLabel.Size = UDim2.new(1, -20, 0, 20)
-    volLabel.Position = UDim2.new(0, 10, 0, 2)
-    volLabel.BackgroundTransparency = 1
-    volLabel.Text = "الصوت: " .. string.format("%.1f", globalMediaVolume)
-    volLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    volLabel.Font = Enum.Font.GothamBold
-    volLabel.TextSize = 12
-    volLabel.TextXAlignment = Enum.TextXAlignment.Right
-    volLabel.ZIndex = 4
-    volLabel.Parent = volumeContainer
-
-    local volDownBtn = Instance.new("TextButton")
-    volDownBtn.Size = UDim2.new(0, 90, 0, 22)
-    volDownBtn.Position = UDim2.new(0, 10, 0, 25)
-    volDownBtn.BackgroundColor3 = Color3.fromRGB(61, 112, 184)
-    volDownBtn.Text = "− خفض الصوت"
-    volDownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    volDownBtn.Font = Enum.Font.GothamBold
-    volDownBtn.TextSize = 10
-    volDownBtn.ZIndex = 4
-    volDownBtn.Parent = volumeContainer
-    Instance.new("UICorner", volDownBtn).CornerRadius = UDim.new(0, 7)
-
-    local volUpBtn = Instance.new("TextButton")
-    volUpBtn.Size = UDim2.new(0, 90, 0, 22)
-    volUpBtn.Position = UDim2.new(0, 108, 0, 25)
-    volUpBtn.BackgroundColor3 = currentAccentColor
-    volUpBtn.Text = "+ رفع الصوت"
-    volUpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    volUpBtn.Font = Enum.Font.GothamBold
-    volUpBtn.TextSize = 10
-    volUpBtn.ZIndex = 4
-    volUpBtn.Parent = volumeContainer
-    Instance.new("UICorner", volUpBtn).CornerRadius = UDim.new(0, 7)
-
-    volDownBtn.MouseButton1Click:Connect(function()
-        globalMediaVolume = math.max(1.0, globalMediaVolume - 1.0)
-        volLabel.Text = "الصوت: " .. string.format("%.1f", globalMediaVolume)
-        if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
-            _G.KEONActiveMediaSound.Volume = globalMediaVolume / 10
-        end
-    end)
-
-    volUpBtn.MouseButton1Click:Connect(function()
-        globalMediaVolume = math.min(10.0, globalMediaVolume + 1.0)
-        volLabel.Text = "الصوت: " .. string.format("%.1f", globalMediaVolume)
-        if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
-            _G.KEONActiveMediaSound.Volume = globalMediaVolume / 10
-        end
-    end)
-
-    local stopAllMediaBtn = Instance.new("TextButton")
-    stopAllMediaBtn.Size = UDim2.new(1, 0, 0, 36)
-    stopAllMediaBtn.BackgroundColor3 = Color3.fromRGB(61, 112, 184)
-    stopAllMediaBtn.Text = "إيقاف الموسيقى ■"
-    stopAllMediaBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    stopAllMediaBtn.Font = Enum.Font.GothamBold
-    stopAllMediaBtn.TextSize = 14
-    stopAllMediaBtn.ZIndex = 3
-    stopAllMediaBtn.Parent = CenterScroll
-    Instance.new("UICorner", stopAllMediaBtn).CornerRadius = UDim.new(0, 11)
-
-    stopAllMediaBtn.MouseButton1Click:Connect(function()
-        playUiSound(SOUND_CLICK, 1, 0.35)
-        if _G.KEONActiveMediaSound then
-            pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
-            _G.KEONActiveMediaSound = nil
-        end
-        local statusLabel = CenterScroll:FindFirstChild("KEONMusicStatus")
-        if statusLabel and statusLabel:IsA("TextLabel") then statusLabel.Text = "تم إيقاف الموسيقى." end
-        stopAllMediaBtn.Text = "تم الإيقاف ✓"
-        task.delay(1.2, function() if stopAllMediaBtn and stopAllMediaBtn.Parent then stopAllMediaBtn.Text = "إيقاف الموسيقى ■" end end)
-    end)
-
-    local musicHero = Instance.new("Frame")
-    musicHero.Size = UDim2.new(1, 0, 0, 92)
-    musicHero.BackgroundColor3 = Color3.fromRGB(9, 20, 42)
-    musicHero.ZIndex = 3
-    musicHero.Parent = CenterScroll
-    Instance.new("UICorner", musicHero).CornerRadius = UDim.new(0, 15)
-    local heroStroke = Instance.new("UIStroke")
-    heroStroke.Color = currentAccentColor
-    heroStroke.Thickness = 1.8
-    heroStroke.Parent = musicHero
-    local heroGradient = Instance.new("UIGradient")
-    heroGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(12, 45, 82)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(19, 25, 56)), ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 12, 68))})
-    heroGradient.Rotation = 0
-    heroGradient.Parent = musicHero
-    task.spawn(function()
-        while musicHero.Parent do
-            TweenService:Create(heroGradient, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Rotation = 180}):Play()
-            task.wait(3)
-            if not musicHero.Parent then break end
-            TweenService:Create(heroGradient, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Rotation = 360}):Play()
-            task.wait(3)
-        end
-    end)
-    local heroTitle = Instance.new("TextLabel")
-    heroTitle.Size = UDim2.new(1, -20, 0, 32)
-    heroTitle.Position = UDim2.new(0, 10, 0, 12)
-    heroTitle.BackgroundTransparency = 1
-    heroTitle.Text = "♫  KEON MUSIC • مكتبة الأغاني"
-    heroTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    heroTitle.Font = Enum.Font.GothamBlack
-    heroTitle.TextSize = 18
-    heroTitle.TextXAlignment = Enum.TextXAlignment.Right
-    heroTitle.ZIndex = 4
-    heroTitle.Parent = musicHero
-    local heroSub = Instance.new("TextLabel")
-    heroSub.Size = UDim2.new(1, -20, 0, 25)
-    heroSub.Position = UDim2.new(0, 10, 0, 48)
-    heroSub.BackgroundTransparency = 1
-    heroSub.Text = "٨ أغنيات • إعجابك يضيف محباً على جهازك"
-    heroSub.TextColor3 = Color3.fromRGB(170, 220, 255)
-    heroSub.Font = Enum.Font.GothamBold
-    heroSub.TextSize = 12
-    heroSub.TextXAlignment = Enum.TextXAlignment.Right
-    heroSub.ZIndex = 4
-    heroSub.Parent = musicHero
-
-    local musicStatus = Instance.new("TextLabel")
-    musicStatus.Name = "KEONMusicStatus"
-    musicStatus.Size = UDim2.new(1, 0, 0, 30)
-    musicStatus.BackgroundColor3 = Color3.fromRGB(10, 25, 46)
-    musicStatus.BackgroundTransparency = 0.05
-    musicStatus.Text = "جاهز • اضغط تشغيل لتحميل ملف الأغنية"
-    musicStatus.TextColor3 = Color3.fromRGB(170, 220, 255)
-    musicStatus.Font = Enum.Font.GothamBold
-    musicStatus.TextSize = 10
-    musicStatus.TextWrapped = true
-    musicStatus.ZIndex = 3
-    musicStatus.Parent = CenterScroll
-    Instance.new("UICorner", musicStatus).CornerRadius = UDim.new(0, 8)
-
-    local function prepareRemoteMp3(url, index)
-        local assetGetter = getcustomasset or getsynasset
-        if type(writefile) ~= "function" or type(assetGetter) ~= "function" then
-            return nil, "Delta لا يوفّر تحويل رابط MP3 إلى ملف محلي في هذه البيئة."
-        end
-        local localFile = string.format("KEON_Music_Cache_%02d.mp3", index)
-        local hasFile = false
-        if type(isfile) == "function" then
-            pcall(function() hasFile = isfile(localFile) end)
-        end
-        if not hasFile then
-            local response = customRequest({Url = url, Method = "GET"})
-            local body = response and response.Body
-            if not body or type(body) ~= "string" or #body < 1024 then
-                return nil, "تعذّر تنزيل الأغنية من رابط الاستضافة."
-            end
-            local sample = string.lower(body:sub(1, 256))
-            if sample:find("<html", 1, true) or sample:find("access denied", 1, true) then
-                return nil, "رابط الأغنية أعاد صفحة ويب بدل ملف MP3."
-            end
-            local writeOk = pcall(function() writefile(localFile, body) end)
-            if not writeOk then return nil, "فشل حفظ ملف الأغنية داخل Delta." end
-        end
-        local assetOk, assetPath = pcall(function() return assetGetter(localFile) end)
-        if assetOk and type(assetPath) == "string" and assetPath ~= "" then
-            return assetPath
-        end
-        return nil, "تعذّر تجهيز ملف الصوت محلياً."
-    end
-
-    local totalLocalLikes = 0
-    for idx, track in ipairs(mediaTracks) do
-        local mCard = Instance.new("Frame")
-        mCard.Name = "KEONMusicCard" .. tostring(idx)
-        mCard.Size = UDim2.new(1, 0, 0, 104)
-        mCard.BackgroundColor3 = Color3.fromRGB(12, 22, 43)
-        mCard.BackgroundTransparency = 0
-        mCard.ZIndex = 3
-        mCard.Parent = CenterScroll
-        Instance.new("UICorner", mCard).CornerRadius = UDim.new(0, 13)
-        local mStroke = Instance.new("UIStroke")
-        mStroke.Color = currentAccentColor
-        mStroke.Thickness = 1.35
-        mStroke.Parent = mCard
-        table.insert(registeredOptionStrokes, mStroke)
-
-        local cover = Instance.new("Frame")
-        cover.Size = UDim2.new(0, 54, 0, 54)
-        cover.Position = UDim2.new(1, -64, 0, 10)
-        cover.BackgroundColor3 = Color3.fromRGB(16, 75, 125)
-        cover.ZIndex = 4
-        cover.Parent = mCard
-        Instance.new("UICorner", cover).CornerRadius = UDim.new(0, 12)
-        local coverGrad = Instance.new("UIGradient")
-        coverGrad.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, currentAccentColor), ColorSequenceKeypoint.new(1, Color3.fromRGB(70, 30, 150))})
-        coverGrad.Rotation = 45
-        coverGrad.Parent = cover
-        local musicGlyph = Instance.new("TextLabel")
-        musicGlyph.Size = UDim2.new(1, 0, 1, 0)
-        musicGlyph.BackgroundTransparency = 1
-        musicGlyph.Text = "♫"
-        musicGlyph.TextColor3 = Color3.fromRGB(255, 255, 255)
-        musicGlyph.Font = Enum.Font.GothamBlack
-        musicGlyph.TextSize = 28
-        musicGlyph.ZIndex = 5
-        musicGlyph.Parent = cover
-
-        local mTitle = Instance.new("TextLabel")
-        mTitle.Size = UDim2.new(1, -84, 0, 24)
-        mTitle.Position = UDim2.new(0, 10, 0, 8)
-        mTitle.BackgroundTransparency = 1
-        mTitle.Text = "الأغنية " .. string.format("%02d", idx)
-        mTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-        mTitle.Font = Enum.Font.GothamBold
-        mTitle.TextSize = 13
-        mTitle.TextTruncate = Enum.TextTruncate.AtEnd
-        mTitle.TextXAlignment = Enum.TextXAlignment.Right
-        mTitle.ZIndex = 4
-        mTitle.Parent = mCard
-
-        local fansLabel = Instance.new("TextLabel")
-        fansLabel.Size = UDim2.new(1, -84, 0, 20)
-        fansLabel.Position = UDim2.new(0, 10, 0, 31)
-        fansLabel.BackgroundTransparency = 1
-        fansLabel.Text = "♥ محبين محليين: 0"
-        fansLabel.TextColor3 = Color3.fromRGB(170, 200, 230)
-        fansLabel.Font = Enum.Font.Gotham
-        fansLabel.TextSize = 10
-        fansLabel.TextXAlignment = Enum.TextXAlignment.Right
-        fansLabel.ZIndex = 4
-        fansLabel.Parent = mCard
-
-        local playBtn = Instance.new("TextButton")
-        playBtn.Name = "PlayTrackButton"
-        playBtn.Size = UDim2.new(0, 112, 0, 30)
-        playBtn.Position = UDim2.new(0, 10, 1, -38)
-        playBtn.BackgroundColor3 = currentAccentColor
-        playBtn.Text = "▶ تشغيل"
-        playBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        playBtn.Font = Enum.Font.GothamBold
-        playBtn.TextSize = 11
-        playBtn.ZIndex = 4
-        playBtn.Parent = mCard
-        Instance.new("UICorner", playBtn).CornerRadius = UDim.new(0, 9)
-
-        local likeBtn = Instance.new("TextButton")
-        likeBtn.Size = UDim2.new(0, 78, 0, 30)
-        likeBtn.Position = UDim2.new(0, 130, 1, -38)
-        likeBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 65)
-        likeBtn.Text = "♡ إعجاب"
-        likeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        likeBtn.Font = Enum.Font.GothamBold
-        likeBtn.TextSize = 10
-        likeBtn.ZIndex = 4
-        likeBtn.Parent = mCard
-        Instance.new("UICorner", likeBtn).CornerRadius = UDim.new(0, 9)
-
-        local isLiked = false
-        likeBtn.MouseButton1Click:Connect(function()
-            playUiSound(SOUND_CLICK, 1, 0.35)
-            isLiked = not isLiked
-            totalLocalLikes = math.max(0, totalLocalLikes + (isLiked and 1 or -1))
-            heroSub.Text = "٨ أغنيات • مجموع إعجاباتك المحلية: " .. tostring(totalLocalLikes)
-            likeBtn.Text = isLiked and "♥ أعجبني" or "♡ إعجاب"
-            likeBtn.BackgroundColor3 = isLiked and Color3.fromRGB(190, 45, 90) or Color3.fromRGB(35, 35, 65)
-            fansLabel.Text = isLiked and "♥ محبين محليين: 1 • أعجبتك" or "♥ محبين محليين: 0"
-            TweenService:Create(mStroke, TweenInfo.new(0.18, Enum.EasingStyle.Quad), {
-                Thickness = isLiked and 2.6 or 1.35,
-                Color = isLiked and Color3.fromRGB(255, 88, 140) or currentAccentColor
-            }):Play()
-        end)
-
-        playBtn.MouseButton1Click:Connect(function()
-            playUiSound(SOUND_CLICK, 1, 0.35)
-            if _G.KEONActiveMediaSound then
-                pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
-                _G.KEONActiveMediaSound = nil
-            end
-            for _, sibling in ipairs(CenterScroll:GetChildren()) do
-                if sibling:IsA("Frame") and sibling.Name:match("^KEONMusicCard") then
-                    local oldPlay = sibling:FindFirstChild("PlayTrackButton")
-                    if oldPlay and oldPlay:IsA("TextButton") then oldPlay.Text = "▶ تشغيل" end
-                end
-            end
-            playBtn.Text = "تحميل الملف…"
-            musicStatus.Text = "جاري تنزيل وتجهيز الأغنية " .. string.format("%02d", idx) .. "…"
-            task.spawn(function()
-                local assetPath, assetError = prepareRemoteMp3(track.url, idx)
-                if not assetPath then
-                    if playBtn and playBtn.Parent then playBtn.Text = "تعذّر التشغيل" end
-                    if musicStatus and musicStatus.Parent then musicStatus.Text = assetError or "تعذّر تشغيل هذه الأغنية." end
-                    return
-                end
-
-                local snd = Instance.new("Sound")
-                snd.Name = "KEONMusicTrack"
-                snd.SoundId = assetPath
-                snd.Volume = math.clamp(globalMediaVolume / 10, 0, 1)
-                snd.Looped = false
-                snd.Parent = SoundService
-
-                local playRequestOk = pcall(function() snd:Play() end)
-                local deadline = os.clock() + 12
-                while snd.Parent and not snd.IsLoaded and os.clock() < deadline do
-                    task.wait(0.12)
-                end
-
-                if snd.Parent and snd.IsLoaded then
-                    local playOk = playRequestOk and pcall(function()
-                        if not snd.IsPlaying then snd:Play() end
-                    end)
-                    if playOk then
-                        _G.KEONActiveMediaSound = snd
-                        if playBtn and playBtn.Parent then playBtn.Text = "♫ يعمل الآن" end
-                        if musicStatus and musicStatus.Parent then musicStatus.Text = "يعمل الآن • الأغنية " .. string.format("%02d", idx) end
-                        local pulse = TweenService:Create(cover, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation = 7})
-                        pulse:Play()
-                        snd.Ended:Connect(function()
-                            pcall(function() pulse:Cancel() end)
-                            if cover and cover.Parent then cover.Rotation = 0 end
-                            if playBtn and playBtn.Parent then playBtn.Text = "▶ تشغيل" end
-                            if musicStatus and musicStatus.Parent then musicStatus.Text = "انتهت الأغنية " .. string.format("%02d", idx) end
-                            if snd and snd.Parent then snd:Destroy() end
-                            if _G.KEONActiveMediaSound == snd then _G.KEONActiveMediaSound = nil end
-                        end)
-                    else
-                        snd:Destroy()
-                        if playBtn and playBtn.Parent then playBtn.Text = "تعذّر التشغيل" end
-                        if musicStatus and musicStatus.Parent then musicStatus.Text = "الملف المحلي موجود لكن Roblox/Delta رفض تشغيله." end
-                    end
-                else
-                    pcall(function() snd:Destroy() end)
-                    if playBtn and playBtn.Parent then playBtn.Text = "لم يتم التحميل" end
-                    if musicStatus and musicStatus.Parent then musicStatus.Text = "انتهت مهلة تحميل الصوت. قد لا يدعم Delta ملفات MP3 المحلية." end
-                end
-            end)
-        end)
-    end
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 35)
-end)
-
-local BtnActivations = createProStyleBtn("تفعيلات", "left")
-BtnActivations.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    addChilliAccordion("رادار المراقبة وكشف الأماكن (Pro ESP)", function(addToggle, addAction)
-        addToggle("تفعيل كشف أماكن اللاعبين (Box + Name ESP)", function(st)
-            espEnabled = st
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character then
-                    if espEnabled then
-                        if not p.Character:FindFirstChild("KEONProEsp") then
-                            local hl = Instance.new("Highlight")
-                            hl.Name = "KEONProEsp"
-                            hl.FillColor = currentAccentColor
-                            hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-                            hl.FillTransparency = 0.4
-                            hl.OutlineTransparency = 0
-                            hl.Parent = p.Character
-                        end
-                    else
-                        if p.Character:FindFirstChild("KEONProEsp") then p.Character.KEONProEsp:Destroy() end
-                    end
-                end
-            end
-        end)
-    end)
-
-    addChilliAccordion("مراقبة لاعبين السيرفر (Player Spectate)", function(addToggle, addAction, contentHolder)
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer then
-                local pRow = Instance.new("Frame")
-                pRow.Size = UDim2.new(1, 0, 0, 42)
-                pRow.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-                pRow.ZIndex = 3
-                pRow.Parent = contentHolder
-                Instance.new("UICorner", pRow).CornerRadius = UDim.new(0, 9)
-
-                local pImg = Instance.new("ImageLabel")
-                pImg.Size = UDim2.new(0, 32, 0, 32)
-                pImg.Position = UDim2.new(1, -38, 0.5, -16)
-                pImg.BackgroundColor3 = Color3.fromRGB(31, 44, 73)
-                pImg.ZIndex = 4
-                pImg.Parent = pRow
-                Instance.new("UICorner", pImg).CornerRadius = UDim.new(0, 16)
-
-                loadAvatarThumbnail(p.UserId, pImg)
-
-                local pNameLbl = Instance.new("TextLabel")
-                pNameLbl.Size = UDim2.new(1, -120, 1, 0)
-                pNameLbl.Position = UDim2.new(0, 80, 0, 0)
-                pNameLbl.BackgroundTransparency = 1
-                pNameLbl.Text = p.DisplayName
-                pNameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-                pNameLbl.Font = Enum.Font.GothamBold
-                pNameLbl.TextSize = 13
-                pNameLbl.TextXAlignment = Enum.TextXAlignment.Right
-                pNameLbl.ZIndex = 4
-                pNameLbl.Parent = pRow
-
-                local specBtn = Instance.new("TextButton")
-                specBtn.Size = UDim2.new(0, 65, 0, 26)
-                specBtn.Position = UDim2.new(0, 8, 0.5, -13)
-                specBtn.BackgroundColor3 = currentAccentColor
-                specBtn.Text = "مشاهدة"
-                specBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                specBtn.Font = Enum.Font.GothamBold
-                specBtn.TextSize = 11
-                specBtn.ZIndex = 4
-                specBtn.Parent = pRow
-                Instance.new("UICorner", specBtn).CornerRadius = UDim.new(0, 8)
-
-                local isCamSpectating = false
-                specBtn.MouseButton1Click:Connect(function()
-                    playUiSound(SOUND_CLICK, 1, 0.35)
-                    isCamSpectating = not isCamSpectating
-                    if isCamSpectating then
-                        specBtn.Text = "إيقاف ×"
-                        specBtn.BackgroundColor3 = Color3.fromRGB(190, 61, 92)
-                        if p.Character and p.Character:FindFirstChild("Humanoid") then
-                            workspace.CurrentCamera.CameraSubject = p.Character.Humanoid
-                        end
-                    else
-                        specBtn.Text = "مشاهدة"
-                        specBtn.BackgroundColor3 = currentAccentColor
-                        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                            workspace.CurrentCamera.CameraSubject = LocalPlayer.Character.Humanoid
-                        end
-                    end
-                end)
-            end
-        end
-    end)
-
-    addChilliAccordion("الانتقال لسيرفر فارغ حقيقي (Strict Empty Server Hop) 🌐", function(addToggle, addAction)
-        addAction("بحث والدخول حصرياً لسيرفر فيه لاعب واحد أو لاعبين (1 or 2 Players) ⚡", function()
-            local Http = game:GetService("HttpService")
-            local TPS = game:GetService("TeleportService")
-            local Api = "https://games.roblox.com/v1/games/"
-            local _place = game.PlaceId
-            
-            task.spawn(function()
-                local cursor = ""
-                local targetServerId = nil
-                
-                repeat
-                    local url = Api .. tostring(_place) .. "/servers/Public?sortOrder=Asc&limit=100"
-                    if cursor ~= "" then
-                        url = url .. "&cursor=" .. cursor
-                    end
-                    
-                    local success, raw = pcall(function() return game:HttpGet(url) end)
-                    if success and raw then
-                        local decoded = Http:JSONDecode(raw)
-                        if decoded and decoded.data then
-                            for _, s in ipairs(decoded.data) do
-                                if s.playing and (s.playing == 1 or s.playing == 2) and s.id ~= game.JobId then
-                                    targetServerId = s.id
-                                    break
-                                end
-                            end
-                            cursor = decoded.nextPageCursor
-                        else
-                            break
-                        end
-                    else
-                        break
-                    end
-                    task.wait(0.2)
-                until targetServerId or not cursor or cursor == ""
-                
-                if targetServerId then
-                    TPS:TeleportToPlaceInstance(_place, targetServerId, LocalPlayer)
-                else
-                    TPS:Teleport(_place, LocalPlayer)
-                end
-            end)
-        end)
-    end)
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
-end)
-
-local BtnSuggestions = createProStyleBtn("اقتراحات", "left")
-BtnSuggestions.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    local sugBox = Instance.new("TextBox")
-    sugBox.Size = UDim2.new(1, 0, 0, 120)
-    sugBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    sugBox.PlaceholderText = "شارك ملاحظتك أو اقتراحك هنا…"
-    sugBox.Text = ""
-    sugBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    sugBox.Font = Enum.Font.GothamBold
-    sugBox.TextSize = 13
-    sugBox.TextWrapped = true
-    sugBox.TextYAlignment = Enum.TextYAlignment.Top
-    sugBox.TextXAlignment = Enum.TextXAlignment.Right
-    sugBox.ZIndex = 3
-    sugBox.Parent = CenterScroll
-    Instance.new("UICorner", sugBox).CornerRadius = UDim.new(0, 11)
-
-    local sendSugBtn = Instance.new("TextButton")
-    sendSugBtn.Size = UDim2.new(1, 0, 0, 36)
-    sendSugBtn.BackgroundColor3 = currentAccentColor
-    sendSugBtn.Text = "إرسال الملاحظات ↗"
-    sendSugBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    sendSugBtn.Font = Enum.Font.GothamBold
-    sendSugBtn.TextSize = 15
-    sendSugBtn.ZIndex = 3
-    sendSugBtn.Parent = CenterScroll
-    Instance.new("UICorner", sendSugBtn).CornerRadius = UDim.new(0, 11)
-
-    sendSugBtn.MouseButton1Click:Connect(function()
-        if sugBox.Text ~= "" then
-            local textToSend = sugBox.Text
-            sugBox.Text = ""
-            if DISCORD_WEBHOOK_URL == "" then
-                sendSugBtn.Text = "تعذّر الإرسال: أضف Webhook جديداً"
-                task.wait(2)
-                sendSugBtn.Text = "إرسال الملاحظات ↗"
-                return
-            end
-            sendSugBtn.Text = "جارٍ الإرسال…"
-            local sentOk = pcall(function()
-                customRequest({
-                    Url = DISCORD_WEBHOOK_URL,
-                    Method = "POST",
-                    Headers = {["Content-Type"] = "application/json"},
-                    Body = HttpService:JSONEncode({
-                        embeds = {{
-                            title = "💡 اقتراح جديد من مستخدم KEON Hub",
-                            description = textToSend,
-                            color = 13107456,
-                            fields = {
-                                {name = "اللاعب", value = LocalPlayer.Name, inline = true},
-                                {name = "الـ ID", value = tostring(LocalPlayer.UserId), inline = true}
-                            }
-                        }}
-                    })
-                })
-            end)
-            sendSugBtn.Text = sentOk and "تم الإرسال ✓" or "فشل الإرسال"
-            task.wait(2)
-            sendSugBtn.Text = "إرسال الملاحظات ↗"
-        end
-    end)
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
-end)
-
----------------------------------------------------------
--- زر "اسرق البيض" في الجانب الأيمن (مباشرة جنب الإعدادات)
----------------------------------------------------------
-local BtnStealEggRight = createProStyleBtn("اسرق البيض 🥚", "right")
-BtnStealEggRight.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    local eggBanner = Instance.new("ImageLabel")
-    eggBanner.Size = UDim2.new(1, 0, 0, 110)
-    eggBanner.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    eggBanner.Image = EGG_MAP_IMAGE
-    eggBanner.ScaleType = Enum.ScaleType.Crop
-    eggBanner.ZIndex = 3
-    eggBanner.Parent = CenterScroll
-    Instance.new("UICorner", eggBanner).CornerRadius = UDim.new(0, 14)
-
-    local eggCard = Instance.new("Frame")
-    eggCard.Size = UDim2.new(1, 0, 0, 160)
-    eggCard.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    eggCard.ZIndex = 3
-    eggCard.Parent = CenterScroll
-    Instance.new("UICorner", eggCard).CornerRadius = UDim.new(0, 14)
-
-    local eggStroke = Instance.new("UIStroke")
-    eggStroke.Color = currentAccentColor
-    eggStroke.Thickness = 1.8
-    eggStroke.Parent = eggCard
-
-    local eggTitle = Instance.new("TextLabel")
-    eggTitle.Size = UDim2.new(1, -10, 0, 26)
-    eggTitle.Position = UDim2.new(0, 5, 0, 6)
-    eggTitle.BackgroundTransparency = 1
-    eggTitle.Text = "🥚 أدوات خريطة سرقة البيض"
-    eggTitle.TextColor3 = currentAccentColor
-    eggTitle.Font = Enum.Font.GothamBold
-    eggTitle.TextSize = 14
-    eggTitle.TextXAlignment = Enum.TextXAlignment.Right
-    eggTitle.ZIndex = 4
-    eggTitle.Parent = eggCard
-    table.insert(activeNameLabels, eggTitle)
-
-    local eggDesc = Instance.new("TextLabel")
-    eggDesc.Size = UDim2.new(1, -10, 0, 65)
-    eggDesc.Position = UDim2.new(0, 5, 0, 34)
-    eggDesc.BackgroundTransparency = 1
-    eggDesc.Text = "• أدوات مخصصة لخريطة سرقة البيض.\n• ⚠️ لا تشغّل هذه الأداة مع سكربت فلفل لتجنب التعارض."
-    eggDesc.TextColor3 = Color3.fromRGB(255, 200, 100)
-    eggDesc.Font = Enum.Font.GothamBold
-    eggDesc.TextSize = 11.5
-    eggDesc.TextXAlignment = Enum.TextXAlignment.Right
-    eggDesc.TextYAlignment = Enum.TextYAlignment.Top
-    eggDesc.ZIndex = 4
-    eggDesc.Parent = eggCard
-
-    local runEggScriptBtn = Instance.new("TextButton")
-    runEggScriptBtn.Size = UDim2.new(1, -16, 0, 38)
-    runEggScriptBtn.Position = UDim2.new(0, 8, 1, -44)
-    runEggScriptBtn.BackgroundColor3 = currentAccentColor
-    runEggScriptBtn.Text = "تشغيل الأداة ➤"
-    runEggScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    runEggScriptBtn.Font = Enum.Font.GothamBold
-    runEggScriptBtn.TextSize = 13.5
-    runEggScriptBtn.ZIndex = 4
-    runEggScriptBtn.Parent = eggCard
-    Instance.new("UICorner", runEggScriptBtn).CornerRadius = UDim.new(0, 11)
-
-    runEggScriptBtn.MouseButton1Click:Connect(function()
-        playUiSound(SOUND_CLICK, 1, 0.35)
-        runEggScriptBtn.Text = "جارٍ تشغيل الأداة…"
-        runEggScriptBtn.Text = "تم إيقاف رابط خارجي غير موثوق ⚠️"
-        task.wait(2.5)
-        runEggScriptBtn.Text = "تشغيل الأداة ➤"
-    end)
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
-end)
-
----------------------------------------------------------
--- زر الإعدادات في الجانب الأيمن (بجانب اسرق البيض مباشرة)
----------------------------------------------------------
-local BtnSettings = createProStyleBtn("الإعدادات", "right")
-BtnSettings.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    clearCenter()
-
-    addChilliAccordion("💾 الحفظ التلقائي للإعدادات", function(addToggle, addAction)
-        addAction("💾 حفظ كل التخصيصات الآن", function()
-            saveUserSettings()
-            playUiSound(SOUND_CLICK, 1.05, 0.4)
-        end)
-        addAction("♻️ إعادة الثيم الأزرق الافتراضي", function()
-            currentAccentColor = Color3.fromRGB(0, 170, 255)
-            currentHeaderColor = Color3.fromRGB(7, 22, 48)
-            saveUserSettings()
-            centerStroke.Color = currentAccentColor
-            Header.BackgroundColor3 = currentHeaderColor
-            floatStroke.Color = currentAccentColor
-            chatStroke.Color = currentAccentColor
-            loadStroke.Color = currentAccentColor
-            BarFill.BackgroundColor3 = currentAccentColor
-            minBoxStroke.Color = currentAccentColor
-            voteStroke.Color = currentAccentColor
-            ChatHeaderBtn1.BackgroundColor3 = currentAccentColor
-            ChatHeaderBtn2.BackgroundColor3 = currentAccentColor
-            ChatHeaderBtn3.BackgroundColor3 = currentAccentColor
-            SendBtn.BackgroundColor3 = currentAccentColor
-            for _, stroke in ipairs(registeredWingStrokes) do if stroke and stroke.Parent then stroke.Color = currentAccentColor end end
-            for _, stroke in ipairs(registeredOptionStrokes) do if stroke and stroke.Parent then stroke.Color = currentAccentColor end end
-            for _, lbl in ipairs(activeNameLabels) do if lbl and lbl.Parent then lbl.TextColor3 = currentAccentColor end end
-        end)
-    end)
-
-    addChilliAccordion("تخصيص الثيمات والألوان الكثيرة 🎨", function(addToggle, addAction)
-        local function updateTheme(accent, headerCol)
-            currentAccentColor = accent
-            currentHeaderColor = headerCol
-            saveUserSettings()
-
-            centerStroke.Color = accent
-            centerNeonGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)), ColorSequenceKeypoint.new(0.5, accent), ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))})
-            Header.BackgroundColor3 = headerCol
-            floatStroke.Color = accent
-            chatStroke.Color = accent
-            loadStroke.Color = accent
-            BarFill.BackgroundColor3 = accent
-            minBoxStroke.Color = accent
-            voteStroke.Color = accent
-            eventFloatStroke.Color = Color3.fromRGB(255, 215, 0)
-
-            ChatHeaderBtn1.BackgroundColor3 = accent
-            ChatHeaderBtn2.BackgroundColor3 = accent
-            ChatHeaderBtn3.BackgroundColor3 = accent
-            SendBtn.BackgroundColor3 = accent
-
-            for _, stroke in ipairs(registeredWingStrokes) do
-                if stroke and stroke.Parent then stroke.Color = accent end
-            end
-            for _, stroke in ipairs(registeredOptionStrokes) do
-                if stroke and stroke.Parent then stroke.Color = accent end
-            end
-            for _, lbl in ipairs(activeNameLabels) do
-                if lbl and lbl.Parent then lbl.TextColor3 = accent end
-            end
-        end
-
-        addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
-        addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
-        addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
-        addAction("الثيم الذهبي الفاخر 🟡", function() updateTheme(Color3.fromRGB(255, 200, 50), Color3.fromRGB(180, 130, 10)) end)
-        addAction("الثيم الأزرق نيون 🩵", function() updateTheme(Color3.fromRGB(0, 170, 255), Color3.fromRGB(0, 90, 180)) end)
-        addAction("الثيم الأرجواني الملكي 💜", function() updateTheme(Color3.fromRGB(160, 40, 255), Color3.fromRGB(100, 20, 180)) end)
-        addAction("الثيم الأخضر الزمردي 🟢", function() updateTheme(Color3.fromRGB(40, 230, 100), Color3.fromRGB(20, 130, 50)) end)
-        addAction("الثيم البرتقالي الناري 🟠", function() updateTheme(Color3.fromRGB(255, 120, 20), Color3.fromRGB(180, 70, 10)) end)
-        addAction("الثيم الوردي الساطع 🩷", function() updateTheme(Color3.fromRGB(255, 80, 180), Color3.fromRGB(180, 40, 120)) end)
-        addAction("الثيم السماوي الفاتح 🌐", function() updateTheme(Color3.fromRGB(100, 220, 255), Color3.fromRGB(40, 120, 180)) end)
-        addAction("الثيم الأصفر الليموني 🍋", function() updateTheme(Color3.fromRGB(230, 255, 0), Color3.fromRGB(140, 150, 0)) end)
-        addAction("الثيم البنفسجي الغامق 🔮", function() updateTheme(Color3.fromRGB(120, 0, 255), Color3.fromRGB(60, 0, 140)) end)
-        addAction("الثيم الوردي الباستيل 💕", function() updateTheme(Color3.fromRGB(255, 150, 200), Color3.fromRGB(180, 80, 130)) end)
-        addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
-    end)
-
-    addChilliAccordion("⚙️ حجم الواجهة وعلامة الرأس", function(addToggle, addAction)
-        local function updateUIScale(nextScale)
-            uiScaleValue = math.clamp(nextScale, 0.75, 1.2)
-            if mainUIScaleObject then mainUIScaleObject.Scale = uiScaleValue end
-            saveUserSettings()
-        end
-        addAction("➖ تصغير الواجهة", function()
-            updateUIScale(math.floor((uiScaleValue - 0.05) * 100 + 0.5) / 100)
-        end)
-        addAction("↩️ إعادة حجم الواجهة إلى 100%", function()
-            updateUIScale(1.0)
-        end)
-        addAction("➕ تكبير الواجهة", function()
-            updateUIScale(math.floor((uiScaleValue + 0.05) * 100 + 0.5) / 100)
-        end)
-        addAction("🔁 تبديل ظهور العلم فوق رأسي", function()
-            showOwnCountryOverhead = not showOwnCountryOverhead
-            saveUserSettings()
-            KEONProfile.refreshCountryTags()
-        end)
-    end)
-
-    addChilliAccordion("🖼️ خلفيات PS5 — معاينة واختيار", function(addToggle, addAction, contentHolder)
-        addAction("🌌 الرجوع للخلفية الافتراضية", function() applyScriptBackground(0) end)
-        for i, wallUrl in ipairs(wallUrls) do
-            local index = i
-            local preview = Instance.new("ImageButton")
-            preview.Name = "WallpaperPreview" .. tostring(index)
-            preview.Size = UDim2.new(1, 0, 0, 62)
-            preview.BackgroundColor3 = Color3.fromRGB(12, 23, 43)
-            preview.Image = wallUrl
-            preview.ImageTransparency = 0
-            preview.ScaleType = Enum.ScaleType.Crop
-            preview.ZIndex = 4
-            preview.Parent = contentHolder
-            Instance.new("UICorner", preview).CornerRadius = UDim.new(0, 10)
-            local outline = Instance.new("UIStroke")
-            outline.Color = currentAccentColor
-            outline.Thickness = (selectedScriptBgIndex == index) and 2.5 or 1.1
-            outline.Parent = preview
-            preview.MouseEnter:Connect(function()
-                if preview.Parent then
-                    outline.Thickness = 2.5
-                    preview.BackgroundColor3 = Color3.fromRGB(20, 42, 72)
-                end
-            end)
-            preview.MouseLeave:Connect(function()
-                if preview.Parent then
-                    outline.Thickness = (selectedScriptBgIndex == index) and 2.5 or 1.1
-                    preview.BackgroundColor3 = Color3.fromRGB(12, 23, 43)
-                end
-            end)
-            local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(1, -12, 0, 26)
-            label.Position = UDim2.new(0, 6, 1, -30)
-            label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            label.BackgroundTransparency = 0.18
-            label.Text = (wallNames[index] or ("خلفية " .. tostring(index))) .. "  •  اضغط للتطبيق"
-            label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            label.Font = Enum.Font.GothamBold
-            label.TextSize = 12
-            label.ZIndex = 5
-            label.Parent = preview
-            Instance.new("UICorner", label).CornerRadius = UDim.new(0, 7)
-            preview.MouseButton1Click:Connect(function()
-                applyScriptBackground(index)
-                playUiSound(SOUND_CLICK, 1, 0.35)
-                for _, other in ipairs(contentHolder:GetChildren()) do
-                    if other:IsA("ImageButton") and other.Name:match("^WallpaperPreview") then
-                        local otherStroke = other:FindFirstChildOfClass("UIStroke")
-                        if otherStroke then otherStroke.Thickness = (other == preview) and 2.5 or 1.1 end
-                    end
-                end
-                label.Text = "✓ " .. (wallNames[index] or ("خلفية " .. tostring(index)))
-            end)
-        end
-    end)
-
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 280)
-end)
-
----------------------------------------------------------
--- لوحة الأدمن الحصرية للمطور كـيـون
----------------------------------------------------------
-if LocalPlayer.Name == "Dms921" then
-    local BtnAdmin = createProStyleBtn("لوحة الأدمن", "right")
-    BtnAdmin.MouseButton1Click:Connect(function()
-        if LocalPlayer.Name ~= "Dms921" then return end
-        playUiSound(SOUND_CLICK, 1, 0.35)
-        clearCenter()
-
-        addChilliAccordion("🔄 نظام إعادة تشغيل السكربت للجميع", function(addToggle, addAction, contentHolder)
-            local reloadReasonBox = Instance.new("TextBox")
-            reloadReasonBox.Size = UDim2.new(1, 0, 0, 32)
-            reloadReasonBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            reloadReasonBox.PlaceholderText = "اكتب سبب التحديث هنا…"
-            reloadReasonBox.Text = ""
-            reloadReasonBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            reloadReasonBox.Font = Enum.Font.GothamBold
-            reloadReasonBox.TextSize = 12
-            reloadReasonBox.TextXAlignment = Enum.TextXAlignment.Right
-            reloadReasonBox.ZIndex = 3
-            reloadReasonBox.Parent = contentHolder
-            Instance.new("UICorner", reloadReasonBox).CornerRadius = UDim.new(0, 9)
-
-            local triggerReloadBtn = Instance.new("TextButton")
-            triggerReloadBtn.Size = UDim2.new(1, 0, 0, 34)
-            triggerReloadBtn.BackgroundColor3 = Color3.fromRGB(190, 61, 92)
-            triggerReloadBtn.Text = "إعادة تشغيل للجميع • 10 ثوانٍ"
-            triggerReloadBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            triggerReloadBtn.Font = Enum.Font.GothamBold
-            triggerReloadBtn.TextSize = 13.5
-            triggerReloadBtn.ZIndex = 3
-            triggerReloadBtn.Parent = contentHolder
-            Instance.new("UICorner", triggerReloadBtn).CornerRadius = UDim.new(0, 9)
-
-            triggerReloadBtn.MouseButton1Click:Connect(function()
-                if type(KEON_RESTART_SCRIPT_URL) ~= "string" or KEON_RESTART_SCRIPT_URL == "" then
-                    triggerReloadBtn.Text = "أضف رابط RAW لنسخة KEON أولاً"
-                    task.wait(2.5)
-                    triggerReloadBtn.Text = "إعادة تشغيل للجميع • 10 ثوانٍ"
-                    return
-                end
-                local reason = reloadReasonBox.Text ~= "" and reloadReasonBox.Text or "تحديث السكربت وتجهيز المميزات الحصرية."
-                triggerReloadBtn.Text = "جارٍ إرسال التنبيه…"
-                pcall(function()
-                    customRequest({
-                        Url = FIREBASE_RELOAD_URL,
-                        Method = "PUT",
-                        Headers = {["Content-Type"] = "application/json"},
-                        Body = HttpService:JSONEncode({
-                            active = true,
-                            reloadId = "reload_" .. tostring(os.time()),
-                            reason = reason,
-                            creatorUserId = LocalPlayer.UserId,
-                            startTime = os.time()
-                        })
-                    })
-                end)
-                triggerReloadBtn.Text = "تم بدء إعادة التشغيل ✓"
-                task.wait(2)
-                triggerReloadBtn.Text = "إعادة تشغيل للجميع • 10 ثوانٍ"
-            end)
-        end)
-
-        addChilliAccordion("🔇 نظام كتم مستخدمي السكربت وإدارتهم", function(addToggle, addAction, contentHolder)
-            local searchMuteBox = Instance.new("TextBox")
-            searchMuteBox.Size = UDim2.new(1, 0, 0, 32)
-            searchMuteBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            searchMuteBox.PlaceholderText = "ابحث عن مستخدم…"
-            searchMuteBox.Text = ""
-            searchMuteBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            searchMuteBox.Font = Enum.Font.GothamBold
-            searchMuteBox.TextSize = 12
-            searchMuteBox.TextXAlignment = Enum.TextXAlignment.Right
-            searchMuteBox.ZIndex = 3
-            searchMuteBox.Parent = contentHolder
-            Instance.new("UICorner", searchMuteBox).CornerRadius = UDim.new(0, 9)
-
-            local muteReasonBox = Instance.new("TextBox")
-            muteReasonBox.Size = UDim2.new(1, 0, 0, 32)
-            muteReasonBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            muteReasonBox.PlaceholderText = "سبب الإجراء…"
-            muteReasonBox.Text = ""
-            muteReasonBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            muteReasonBox.Font = Enum.Font.GothamBold
-            muteReasonBox.TextSize = 12
-            muteReasonBox.TextXAlignment = Enum.TextXAlignment.Right
-            muteReasonBox.ZIndex = 3
-            muteReasonBox.Parent = contentHolder
-            Instance.new("UICorner", muteReasonBox).CornerRadius = UDim.new(0, 9)
-
-            local muteDurationBox = Instance.new("TextBox")
-            muteDurationBox.Size = UDim2.new(1, 0, 0, 32)
-            muteDurationBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            muteDurationBox.PlaceholderText = "المدة (مثال: 10 دقائق / دائم)…"
-            muteDurationBox.Text = ""
-            muteDurationBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            muteDurationBox.Font = Enum.Font.GothamBold
-            muteDurationBox.TextSize = 12
-            muteDurationBox.TextXAlignment = Enum.TextXAlignment.Right
-            muteDurationBox.ZIndex = 3
-            muteDurationBox.Parent = contentHolder
-            Instance.new("UICorner", muteDurationBox).CornerRadius = UDim.new(0, 9)
-
-            local scriptUsersContainer = Instance.new("ScrollingFrame")
-            scriptUsersContainer.Size = UDim2.new(1, 0, 0, 140)
-            scriptUsersContainer.BackgroundTransparency = 1
-            scriptUsersContainer.ZIndex = 3
-            scriptUsersContainer.ScrollBarThickness = 3
-            scriptUsersContainer.Parent = contentHolder
-
-            local suLayout = Instance.new("UIListLayout")
-            suLayout.Padding = UDim.new(0, 6)
-            suLayout.Parent = scriptUsersContainer
-
-            local cachedScriptUsers = {}
-            local function renderScriptUsersList(filterQuery)
-                pcall(function()
-                    for _, child in ipairs(scriptUsersContainer:GetChildren()) do
-                        if not child:IsA("UIListLayout") then child:Destroy() end
-                    end
-
-                    for _, u in ipairs(cachedScriptUsers) do
-                        local userName = tostring(u.displayName or u.name)
-                        if filterQuery == "" or string.find(string.lower(userName), string.lower(filterQuery)) then
-                            local uRow = Instance.new("Frame")
-                            uRow.Size = UDim2.new(1, 0, 0, 38)
-                            uRow.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-                            uRow.ZIndex = 4
-                            uRow.Parent = scriptUsersContainer
-                            Instance.new("UICorner", uRow).CornerRadius = UDim.new(0, 9)
-
-                            local uNameLbl = Instance.new("TextLabel")
-                            uNameLbl.Size = UDim2.new(1, -95, 1, 0)
-                            uNameLbl.Position = UDim2.new(0, 90, 0, 0)
-                            uNameLbl.BackgroundTransparency = 1
-                            uNameLbl.Text = "★ " .. userName
-                            uNameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-                            uNameLbl.Font = Enum.Font.GothamBold
-                            uNameLbl.TextSize = 12
-                            uNameLbl.TextXAlignment = Enum.TextXAlignment.Right
-                            uNameLbl.ZIndex = 5
-                            uNameLbl.Parent = uRow
-
-                            local doMuteBtn = Instance.new("TextButton")
-                            doMuteBtn.Size = UDim2.new(0, 80, 0, 26)
-                            doMuteBtn.Position = UDim2.new(0, 6, 0.5, -13)
-                            doMuteBtn.BackgroundColor3 = Color3.fromRGB(168, 116, 52)
-                            doMuteBtn.Text = "كتم المستخدم"
-                            doMuteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                            doMuteBtn.Font = Enum.Font.GothamBold
-                            doMuteBtn.TextSize = 11
-                            doMuteBtn.ZIndex = 5
-                            doMuteBtn.Parent = uRow
-                            Instance.new("UICorner", doMuteBtn).CornerRadius = UDim.new(0, 7)
-
-                            doMuteBtn.MouseButton1Click:Connect(function()
-                                local reason = muteReasonBox.Text ~= "" and muteReasonBox.Text or "مخالفة القوانين"
-                                local duration = muteDurationBox.Text ~= "" and muteDurationBox.Text or "دائمي"
-                                pcall(function()
-                                    customRequest({
-                                        Url = FIREBASE_BASE_URL .. "/admin_actions/mutes/" .. tostring(u.userId) .. ".json",
-                                        Method = "PUT",
-                                        Headers = {["Content-Type"] = "application/json"},
-                                        Body = HttpService:JSONEncode({
-                                            muted = true,
-                                            reason = reason,
-                                            duration = duration,
-                                            name = userName
-                                        })
-                                    })
-                                end)
-                                doMuteBtn.Text = "تم الكتم ✓"
-                            end)
-                        end
-                    end
-                    scriptUsersContainer.CanvasSize = UDim2.new(0, 0, 0, suLayout.AbsoluteContentSize.Y + 10)
-                end)
-            end
-
-            task.spawn(function()
-                pcall(function()
-                    local res = customRequest({Url = FIREBASE_USERS_URL, Method = "GET"})
-                    if res and res.StatusCode == 200 then
-                        local data = safeDecode(res.Body)
-                        if data then
-                            cachedScriptUsers = {}
-                            for uid, u in pairs(data) do
-                                if type(u) == "table" and u.userId and tonumber(u.userId) ~= LocalPlayer.UserId then
-                                    table.insert(cachedScriptUsers, u)
-                                end
-                            end
-                            renderScriptUsersList("")
-                        end
-                    end
-                end)
-            end)
-
-            searchMuteBox:GetPropertyChangedSignal("Text"):Connect(function()
-                renderScriptUsersList(searchMuteBox.Text)
-            end)
-        end)
-
-        addChilliAccordion("📋 قائمة المكتومين حالياً وإلغاء الكتم", function(addToggle, addAction, contentHolder)
-            local activeMutesContainer = Instance.new("ScrollingFrame")
-            activeMutesContainer.Size = UDim2.new(1, 0, 0, 160)
-            activeMutesContainer.BackgroundTransparency = 1
-            activeMutesContainer.ZIndex = 3
-            activeMutesContainer.ScrollBarThickness = 3
-            activeMutesContainer.Parent = contentHolder
-
-            local amLayout = Instance.new("UIListLayout")
-            amLayout.Padding = UDim.new(0, 6)
-            amLayout.Parent = activeMutesContainer
-
-            local function fetchAndRenderActiveMutes()
-                pcall(function()
-                    local res = customRequest({Url = FIREBASE_ADMIN_ACTIONS_URL, Method = "GET"})
-                    if res and res.StatusCode == 200 then
-                        local data = safeDecode(res.Body)
-                        if data and data.mutes then
-                            for _, child in ipairs(activeMutesContainer:GetChildren()) do
-                                if not child:IsA("UIListLayout") then child:Destroy() end
-                            end
-
-                            for uIdStr, mInfo in pairs(data.mutes) do
-                                if type(mInfo) == "table" and mInfo.muted then
-                                    local mRow = Instance.new("Frame")
-                                    mRow.Size = UDim2.new(1, 0, 0, 42)
-                                    mRow.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-                                    mRow.ZIndex = 4
-                                    mRow.Parent = activeMutesContainer
-                                    Instance.new("UICorner", mRow).CornerRadius = UDim.new(0, 9)
-
-                                    local mNameLbl = Instance.new("TextLabel")
-                                    mNameLbl.Size = UDim2.new(1, -110, 0, 20)
-                                    mNameLbl.Position = UDim2.new(0, 100, 0, 2)
-                                    mNameLbl.BackgroundTransparency = 1
-                                    mNameLbl.Text = "🔇 " .. tostring(mInfo.name or uIdStr)
-                                    mNameLbl.TextColor3 = Color3.fromRGB(255, 100, 100)
-                                    mNameLbl.Font = Enum.Font.GothamBold
-                                    mNameLbl.TextSize = 12
-                                    mNameLbl.TextXAlignment = Enum.TextXAlignment.Right
-                                    mNameLbl.ZIndex = 5
-                                    mNameLbl.Parent = mRow
-
-                                    local mInfoLbl = Instance.new("TextLabel")
-                                    mInfoLbl.Size = UDim2.new(1, -110, 0, 18)
-                                    mInfoLbl.Position = UDim2.new(0, 100, 0, 20)
-                                    mInfoLbl.BackgroundTransparency = 1
-                                    mInfoLbl.Text = "التفاصيل: " .. tostring(mInfo.reason or "غير محدد") .. " | " .. tostring(mInfo.duration or "")
-                                    mInfoLbl.TextColor3 = Color3.fromRGB(190, 204, 226)
-                                    mInfoLbl.Font = Enum.Font.GothamBold
-                                    mInfoLbl.TextSize = 10
-                                    mInfoLbl.TextXAlignment = Enum.TextXAlignment.Right
-                                    mInfoLbl.ZIndex = 5
-                                    mInfoLbl.Parent = mRow
-
-                                    local unMuteBtn = Instance.new("TextButton")
-                                    unMuteBtn.Size = UDim2.new(0, 85, 0, 26)
-                                    unMuteBtn.Position = UDim2.new(0, 6, 0.5, -13)
-                                    unMuteBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
-                                    unMuteBtn.Text = "رفع الكتم 🔓"
-                                    unMuteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                                    unMuteBtn.Font = Enum.Font.GothamBold
-                                    unMuteBtn.TextSize = 11
-                                    unMuteBtn.ZIndex = 5
-                                    unMuteBtn.Parent = mRow
-                                    Instance.new("UICorner", unMuteBtn).CornerRadius = UDim.new(0, 7)
-
-                                    unMuteBtn.MouseButton1Click:Connect(function()
-                                        pcall(function()
-                                            customRequest({
-                                                Url = FIREBASE_BASE_URL .. "/admin_actions/mutes/" .. uIdStr .. ".json",
-                                                Method = "DELETE"
-                                            })
-                                        end)
-                                        mRow:Destroy()
-                                    end)
-                                end
-                            end
-                            activeMutesContainer.CanvasSize = UDim2.new(0, 0, 0, amLayout.AbsoluteContentSize.Y + 10)
-                        end
-                    end
-                end)
-            end
-            fetchAndRenderActiveMutes()
-        end)
-
-        addChilliAccordion("📊 نظام إطلاق التصويت المباشر", function(addToggle, addAction, contentHolder)
-            local vTitleBox = Instance.new("TextBox")
-            vTitleBox.Size = UDim2.new(1, 0, 0, 32)
-            vTitleBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            vTitleBox.PlaceholderText = "عنوان التصويت أو السؤال…"
-            vTitleBox.Text = ""
-            vTitleBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            vTitleBox.Font = Enum.Font.GothamBold
-            vTitleBox.TextSize = 12
-            vTitleBox.TextXAlignment = Enum.TextXAlignment.Right
-            vTitleBox.ZIndex = 3
-            vTitleBox.Parent = contentHolder
-            Instance.new("UICorner", vTitleBox).CornerRadius = UDim.new(0, 9)
-
-            local vOptABox = Instance.new("TextBox")
-            vOptABox.Size = UDim2.new(1, 0, 0, 32)
-            vOptABox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            vOptABox.PlaceholderText = "اسم الخيار A…"
-            vOptABox.Text = ""
-            vOptABox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            vOptABox.Font = Enum.Font.GothamBold
-            vOptABox.TextSize = 12
-            vOptABox.TextXAlignment = Enum.TextXAlignment.Right
-            vOptABox.ZIndex = 3
-            vOptABox.Parent = contentHolder
-            Instance.new("UICorner", vOptABox).CornerRadius = UDim.new(0, 9)
-
-            local vOptBBox = Instance.new("TextBox")
-            vOptBBox.Size = UDim2.new(1, 0, 0, 32)
-            vOptBBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            vOptBBox.PlaceholderText = "اسم الخيار B…"
-            vOptBBox.Text = ""
-            vOptBBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            vOptBBox.Font = Enum.Font.GothamBold
-            vOptBBox.TextSize = 12
-            vOptBBox.TextXAlignment = Enum.TextXAlignment.Right
-            vOptBBox.ZIndex = 3
-            vOptBBox.Parent = contentHolder
-            Instance.new("UICorner", vOptBBox).CornerRadius = UDim.new(0, 9)
-
-            local vDurationBox = Instance.new("TextBox")
-            vDurationBox.Size = UDim2.new(1, 0, 0, 32)
-            vDurationBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            vDurationBox.PlaceholderText = "المدة بالثواني (30 افتراضيًا)…"
-            vDurationBox.Text = ""
-            vDurationBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            vDurationBox.Font = Enum.Font.GothamBold
-            vDurationBox.TextSize = 12
-            vDurationBox.TextXAlignment = Enum.TextXAlignment.Right
-            vDurationBox.ZIndex = 3
-            vDurationBox.Parent = contentHolder
-            Instance.new("UICorner", vDurationBox).CornerRadius = UDim.new(0, 9)
-
-            local launchVoteBtn = Instance.new("TextButton")
-            launchVoteBtn.Size = UDim2.new(1, 0, 0, 34)
-            launchVoteBtn.BackgroundColor3 = currentAccentColor
-            launchVoteBtn.Text = "بدء التصويت للجميع ➤"
-            launchVoteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            launchVoteBtn.Font = Enum.Font.GothamBold
-            launchVoteBtn.TextSize = 13.5
-            launchVoteBtn.ZIndex = 3
-            launchVoteBtn.Parent = contentHolder
-            Instance.new("UICorner", launchVoteBtn).CornerRadius = UDim.new(0, 9)
-
-            local endVoteBtn = Instance.new("TextButton")
-            endVoteBtn.Size = UDim2.new(1, 0, 0, 34)
-            endVoteBtn.BackgroundColor3 = Color3.fromRGB(61, 112, 184)
-            endVoteBtn.Text = "إنهاء التصويت الآن ■"
-            endVoteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            endVoteBtn.Font = Enum.Font.GothamBold
-            endVoteBtn.TextSize = 13.5
-            endVoteBtn.ZIndex = 3
-            endVoteBtn.Parent = contentHolder
-            Instance.new("UICorner", endVoteBtn).CornerRadius = UDim.new(0, 9)
-
-            launchVoteBtn.MouseButton1Click:Connect(function()
-                if vTitleBox.Text ~= "" and vOptABox.Text ~= "" and vOptBBox.Text ~= "" then
-                    local duration = tonumber(vDurationBox.Text) or 30
-                    launchVoteBtn.Text = "جارٍ بدء التصويت…"
-                    
-                    pcall(function()
-                        customRequest({
-                            Url = FIREBASE_VOTE_URL,
-                            Method = "PUT",
-                            Headers = {["Content-Type"] = "application/json"},
-                            Body = HttpService:JSONEncode({
-                                active = true,
-                                voteId = "vote_" .. tostring(os.time()),
-                                title = vTitleBox.Text,
-                                optAName = vOptABox.Text,
-                                optBName = vOptBBox.Text,
-                                startTime = os.time(),
-                                endTime = os.time() + duration,
-                                creatorUserId = LocalPlayer.UserId,
-                                votes = {}
-                            })
-                        })
-                    end)
-                    
-                    launchVoteBtn.Text = "بدأ التصويت بنجاح ✓"
-                    task.wait(2)
-                    launchVoteBtn.Text = "بدء التصويت للجميع ➤"
-                end
-            end)
-
-            endVoteBtn.MouseButton1Click:Connect(function()
-                pcall(function()
-                    customRequest({
-                        Url = FIREBASE_VOTE_URL,
-                        Method = "PUT",
-                        Headers = {["Content-Type"] = "application/json"},
-                        Body = HttpService:JSONEncode({active = false})
-                    })
-                end)
-                endVoteBtn.Text = "انتهى التصويت ✓"
-                task.wait(2)
-                endVoteBtn.Text = "إنهاء التصويت الآن ■"
-            end)
-        end)
-
-        addChilliAccordion("📢 نظام إرسال برودكاست للجميع", function(addToggle, addAction, contentHolder)
-            local bcBox = Instance.new("TextBox")
-            bcBox.Size = UDim2.new(1, 0, 0, 60)
-            bcBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            bcBox.PlaceholderText = "اكتب الإعلان الذي سيظهر للجميع…"
-            bcBox.Text = ""
-            bcBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-            bcBox.Font = Enum.Font.GothamBold
-            bcBox.TextSize = 13
-            bcBox.TextWrapped = true
-            bcBox.TextYAlignment = Enum.TextYAlignment.Top
-            bcBox.TextXAlignment = Enum.TextXAlignment.Right
-            bcBox.ZIndex = 3
-            bcBox.Parent = contentHolder
-            Instance.new("UICorner", bcBox).CornerRadius = UDim.new(0, 9)
-
-            local sendBcBtn = Instance.new("TextButton")
-            sendBcBtn.Size = UDim2.new(1, 0, 0, 34)
-            sendBcBtn.BackgroundColor3 = currentAccentColor
-            sendBcBtn.Text = "إرسال إعلان للجميع ➤"
-            sendBcBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            sendBcBtn.Font = Enum.Font.GothamBold
-            sendBcBtn.TextSize = 14
-            sendBcBtn.ZIndex = 3
-            sendBcBtn.Parent = contentHolder
-            Instance.new("UICorner", sendBcBtn).CornerRadius = UDim.new(0, 9)
-
-            sendBcBtn.MouseButton1Click:Connect(function()
-                if bcBox.Text ~= "" then
-                    local msgText = bcBox.Text
-                    bcBox.Text = ""
-                    sendBcBtn.Text = "جارٍ الإرسال…"
-                    pcall(function()
-                        customRequest({
-                            Url = FIREBASE_BROADCAST_URL,
-                            Method = "POST",
-                            Headers = {["Content-Type"] = "application/json"},
-                            Body = HttpService:JSONEncode({
-                                sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
-                                userId = LocalPlayer.UserId,
-                                text = msgText,
-                                time = os.time()
-                            })
-                        })
-                    end)
-                    sendBcBtn.Text = "تم إرسال الإعلان ✓"
-                    task.wait(2)
-                    sendBcBtn.Text = "إرسال إعلان للجميع ➤"
-                end
-            end)
-        end)
-
-        CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 15)
-    end)
-end
-
----------------------------------------------------------
--- الاستماع للرسائل والبرودكاست المباشر
----------------------------------------------------------
-local renderedBroadcasts = {}
-task.spawn(function()
-    while true do
-        pcall(function()
-            local res = customRequest({Url = FIREBASE_BROADCAST_URL, Method = "GET"})
-            if res and res.StatusCode == 200 then
-                local data = safeDecode(res.Body)
-                if data then
-                    for k, b in pairs(data) do
-                        if type(b) == "table" and b.text and not renderedBroadcasts[k] then
-                            renderedBroadcasts[k] = true
-                            if (os.time() - (b.time or 0)) < 30 then
-                                showBroadcastBanner(tostring(b.sender or "كـيـون"), tostring(b.text or ""), tonumber(b.userId))
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-        task.wait(2)
-    end
-end)
-
-task.spawn(function()
-    while true do
-        pcall(function()
-            local res = customRequest({Url = FIREBASE_CHAT_URL, Method = "GET"})
-            if res and res.StatusCode == 200 then
-                local data = safeDecode(res.Body)
-                if data then
-                    for k, m in pairs(data) do
-                        if type(m) == "table" and m.text and not renderedMsgs[k] then
-                            renderedMsgs[k] = true
-                            local msgUid = tostring(m.userId or "")
-                            if msgUid ~= "" then
-                                KEONProfile.profileByUserId[msgUid] = KEONProfile.profileByUserId[msgUid] or {}
-                                if m.countryFlag then KEONProfile.profileByUserId[msgUid].countryFlag = m.countryFlag end
-                                if m.countryName then KEONProfile.profileByUserId[msgUid].countryName = m.countryName end
-                                if m.countryCode then KEONProfile.profileByUserId[msgUid].countryCode = m.countryCode end
-                            end
-                            addChatMessage(tostring(m.sender or "مجهول"), tostring(m.text or ""), tonumber(m.userId), k, m.isSticker)
-                        end
-                    end
-                end
-            end
-        end)
-        task.wait(2.5)
-    end
-end)
-
-task.spawn(function()
-    for i = 1, 100 do
-        BarFill.Size = UDim2.new(i / 100, 0, 1, 0)
-        task.wait(0.008)
-    end
-    LoadSub.Text = "اكتمل تجهيز الواجهة ✓"
-    task.wait(0.15)
-    TweenService:Create(LoadFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
-        Size = UDim2.new(0, 0, 0, 0)
-    }):Play()
-    task.wait(0.3)
-    LoadingGui:Destroy()
-
-    MainFrame.Visible = true
-    MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.Rotation = -2.5
-    TweenService:Create(MainFrame, TweenInfo.new(0.68, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
-        Size = responsiveState.mainSize,
-        Position = responsiveState.mainPosition,
-        Rotation = 0
-    }):Play()
-    task.spawn(function()
-        task.wait(0.68)
-        for _, amount in ipairs({1.2, -1.2, 0.65, -0.65, 0}) do
-            if not MainFrame or not MainFrame.Parent then break end
-            local shake = TweenService:Create(MainFrame, TweenInfo.new(0.045, Enum.EasingStyle.Linear), {Rotation = amount})
-            shake:Play()
-            shake.Completed:Wait()
-        end
-    end)
-    task.delay(0.62, function()
-        if MainFrame and MainFrame.Visible then
-            openHelpPanel()
-        end
-    end)
-end)
-
-CloseBtn.MouseButton1Click:Connect(function()
-    playUiSound(SOUND_CLICK, 1, 0.35)
-    TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
-        Size = UDim2.new(0, 0, 0, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0)
-    }):Play()
-    task.wait(0.3)
-    MainFrame.Visible = false
-    MainFrame.Size = responsiveState.mainSize
-    MainFrame.Position = responsiveState.mainPosition
-end)
-
-showHomePage()
+    updatesDesc.TextYAlignme
