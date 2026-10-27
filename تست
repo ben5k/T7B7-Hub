@@ -1,4 +1,3 @@
-
 -- KEON Hub - Ultimate Admin Panel, Self-Reload & Script Mute System (v58.0.0)
 -- Developer: كـيـون
 
@@ -73,18 +72,7 @@ local function fetchAsset(url, fileName)
     return url
 end
 
-local wallUrls = {
-    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v58"),
-    fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
-    fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
-    fetchAsset("https://e.top4top.io/p_394715j211.jpg", "bg_2"),
-    fetchAsset("https://l.top4top.io/p_3947ds5ic0.jpg", "bg_3"),
-    fetchAsset("https://a.top4top.io/p_3947hoh3p1.jpg", "bg_4"),
-    fetchAsset("https://b.top4top.io/p_3947wn78l2.jpg", "bg_5"),
-    fetchAsset("https://c.top4top.io/p_3947n55o83.jpg", "bg_6"),
-    fetchAsset("https://d.top4top.io/p_394754mmu4.jpg", "bg_7"),
-    fetchAsset("https://e.top4top.io/p_39475mm3q5.jpg", "bg_8"),
-}
+local wallUrls = {} -- PS5 clean mode: no large background images
 
 local stickerUrls = {
     fetchAsset("https://up6.cc/2026/10/179301030915811.jpg", "stk_1"),
@@ -105,9 +93,9 @@ local SOUND_CLICK = "rbxassetid://6895079853"
 local BROADCAST_SOUND_ID = "rbxassetid://17208361335"
 local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 
-local neonSpeed = 4.5
-local currentAccentColor = Color3.fromRGB(72, 194, 255)
-local currentHeaderColor = Color3.fromRGB(28, 38, 76)
+local neonSpeed = 3.2
+local currentAccentColor = Color3.fromRGB(0, 170, 255)
+local currentHeaderColor = Color3.fromRGB(7, 22, 48)
 local globalMediaVolume = 5.0
 
 local selectedScriptBgIndex = 0
@@ -153,6 +141,11 @@ local function loadUserSettings()
 end
 
 loadUserSettings()
+-- ثابت بصرياً على ثيم PS5 النظيف، مع تعطيل صور خلفيات الواجهة والشات.
+currentAccentColor = Color3.fromRGB(0, 170, 255)
+currentHeaderColor = Color3.fromRGB(7, 22, 48)
+selectedScriptBgIndex = 0
+selectedChatBgIndex = 0
 
 local function playUiSound(soundId, pitch, volume)
     task.spawn(function()
@@ -702,16 +695,25 @@ LoadingGui.ResetOnSpawn = false
 LoadingGui.Parent = parent
 
 local LoadFrame = Instance.new("Frame")
-LoadFrame.Size = UDim2.new(0, 320, 0, 190)
-LoadFrame.Position = UDim2.new(0.5, -160, 0.5, -95)
-LoadFrame.BackgroundColor3 = Color3.fromRGB(15, 22, 42)
+LoadFrame.Size = UDim2.new(0, 340, 0, 205)
+LoadFrame.Position = UDim2.new(0.5, -170, 0.5, -102)
+LoadFrame.BackgroundColor3 = Color3.fromRGB(8, 14, 28)
+LoadFrame.ClipsDescendants = true
 LoadFrame.BorderSizePixel = 0
 LoadFrame.Parent = LoadingGui
-Instance.new("UICorner", LoadFrame).CornerRadius = UDim.new(0, 14)
+Instance.new("UICorner", LoadFrame).CornerRadius = UDim.new(0, 18)
+local loadGradient = Instance.new("UIGradient")
+loadGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 18, 38)),
+    ColorSequenceKeypoint.new(0.55, Color3.fromRGB(12, 27, 52)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 10, 22))
+})
+loadGradient.Rotation = 35
+loadGradient.Parent = LoadFrame
 
 local loadStroke = Instance.new("UIStroke")
 loadStroke.Color = currentAccentColor
-loadStroke.Thickness = 2.5
+loadStroke.Thickness = 1.7
 loadStroke.Parent = LoadFrame
 
 local AvatarLoadImg = Instance.new("ImageLabel")
@@ -727,18 +729,18 @@ local LoadTitle = Instance.new("TextLabel")
 LoadTitle.Size = UDim2.new(1, 0, 0, 25)
 LoadTitle.Position = UDim2.new(0, 0, 0, 72)
 LoadTitle.BackgroundTransparency = 1
-LoadTitle.Text = "✦ DELTA • KEON HUB ✦"
+LoadTitle.Text = "PLAYSTATION STYLE  •  KEON"
 LoadTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-LoadTitle.Font = Enum.Font.GothamBold
-LoadTitle.TextSize = 20
+LoadTitle.Font = Enum.Font.GothamBlack
+LoadTitle.TextSize = 18
 LoadTitle.Parent = LoadFrame
 
 local LoadSub = Instance.new("TextLabel")
 LoadSub.Size = UDim2.new(1, 0, 0, 20)
 LoadSub.Position = UDim2.new(0, 0, 0, 98)
 LoadSub.BackgroundTransparency = 1
-LoadSub.Text = "مرحباً " .. LocalPlayer.DisplayName .. "! جاري إعداد السكربت..."
-LoadSub.TextColor3 = Color3.fromRGB(184, 204, 235)
+LoadSub.Text = "مرحباً " .. LocalPlayer.DisplayName .. " — جارٍ تجهيز التجربة"
+LoadSub.TextColor3 = Color3.fromRGB(170, 205, 235)
 LoadSub.Font = Enum.Font.GothamBold
 LoadSub.TextSize = 12
 LoadSub.Parent = LoadFrame
@@ -755,6 +757,24 @@ BarFill.Size = UDim2.new(0, 0, 1, 0)
 BarFill.BackgroundColor3 = currentAccentColor
 BarFill.Parent = BarBg
 Instance.new("UICorner", BarFill).CornerRadius = UDim.new(0, 8)
+
+local LoadFooter = Instance.new("TextLabel")
+LoadFooter.Size = UDim2.new(1, -20, 0, 18)
+LoadFooter.Position = UDim2.new(0, 10, 0, 154)
+LoadFooter.BackgroundTransparency = 1
+LoadFooter.Text = "PLAY  •  CONNECT  •  EXPLORE"
+LoadFooter.TextColor3 = Color3.fromRGB(95, 170, 235)
+LoadFooter.Font = Enum.Font.GothamBold
+LoadFooter.TextSize = 10
+LoadFooter.ZIndex = 2
+LoadFooter.Parent = LoadFrame
+
+LoadFrame.Size = UDim2.new(0, 0, 0, 0)
+LoadFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+TweenService:Create(LoadFrame, TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 340, 0, 205),
+    Position = UDim2.new(0.5, -170, 0.5, -102)
+}):Play()
 
 ---------------------------------------------------------
 -- الهيكل الرئيسي للواجهة
@@ -774,16 +794,35 @@ MainFrame.Draggable = true
 MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
 
+local CenterGlow = Instance.new("Frame")
+CenterGlow.Name = "PS5SoftGlow"
+CenterGlow.Size = UDim2.new(0, 350, 1, 8)
+CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
+CenterGlow.BackgroundColor3 = Color3.fromRGB(0, 126, 255)
+CenterGlow.BackgroundTransparency = 0.91
+CenterGlow.BorderSizePixel = 0
+CenterGlow.ZIndex = 0
+CenterGlow.Parent = MainFrame
+Instance.new("UICorner", CenterGlow).CornerRadius = UDim.new(0, 19)
+
 local CenterBox = Instance.new("Frame")
 CenterBox.Name = "CenterBox"
 CenterBox.Size = UDim2.new(0, 340, 1, 0)
 CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
-CenterBox.BackgroundColor3 = Color3.fromRGB(13, 19, 35)
+CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
 CenterBox.BackgroundTransparency = 0
 CenterBox.BorderSizePixel = 0
 CenterBox.ClipsDescendants = true
 CenterBox.Parent = MainFrame
-Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 14)
+Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 16)
+local centerSurfaceGradient = Instance.new("UIGradient")
+centerSurfaceGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 20, 42)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(7, 14, 28)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 10, 22))
+})
+centerSurfaceGradient.Rotation = 110
+centerSurfaceGradient.Parent = CenterBox
 
 local BgImage = Instance.new("ImageLabel")
 BgImage.Name = "BgImage"
@@ -797,23 +836,18 @@ Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 14)
 
 -- دالة تطبيق الخلفية المتحركة أو العادية بدقة وتجنب السواد تماماً للجوال
 local function applyScriptBackground(idx)
-    selectedScriptBgIndex = idx
+    selectedScriptBgIndex = 0
+    BgImage.Image = ""
+    BgImage.Visible = false
+    CenterBox.BackgroundTransparency = 0
+    CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
     saveUserSettings()
-    if idx > 0 and wallUrls[idx] then
-        BgImage.Image = wallUrls[idx]
-        BgImage.Visible = true
-        CenterBox.BackgroundTransparency = 0.35 -- شفافية ممتازة لظهور الخلفية المتحركة بوضوح فائق وبدون شاشة سوداء
-    else
-        BgImage.Visible = false
-        CenterBox.BackgroundTransparency = 0
-    end
 end
-
 applyScriptBackground(selectedScriptBgIndex)
 
 local centerStroke = Instance.new("UIStroke")
 centerStroke.Color = currentAccentColor
-centerStroke.Thickness = 2.5
+centerStroke.Thickness = 1.7
 centerStroke.Parent = CenterBox
 
 local centerNeonGradient = Instance.new("UIGradient")
@@ -839,16 +873,25 @@ Header.BackgroundColor3 = currentHeaderColor
 Header.BorderSizePixel = 0
 Header.ZIndex = 3
 Header.Parent = CenterBox
-Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 14)
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 16)
+local HeaderAccentLine = Instance.new("Frame")
+HeaderAccentLine.Name = "PS5AccentLine"
+HeaderAccentLine.Size = UDim2.new(1, -24, 0, 2)
+HeaderAccentLine.Position = UDim2.new(0, 12, 1, -3)
+HeaderAccentLine.BackgroundColor3 = currentAccentColor
+HeaderAccentLine.BorderSizePixel = 0
+HeaderAccentLine.ZIndex = 5
+HeaderAccentLine.Parent = Header
+Instance.new("UICorner", HeaderAccentLine).CornerRadius = UDim.new(1, 0)
 
 local TitleMain = Instance.new("TextLabel")
-TitleMain.Size = UDim2.new(1, -75, 1, 0)
+TitleMain.Size = UDim2.new(1, -108, 1, 0)
 TitleMain.Position = UDim2.new(0, 10, 0, 0)
 TitleMain.BackgroundTransparency = 1
-TitleMain.Text = "✦ DELTA HUB  •  KEON"
+TitleMain.Text = "◈  PLAYSTATION  •  KEON HUB"
 TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.GothamBold
-TitleMain.TextSize = 18
+TitleMain.TextSize = 15
 TitleMain.TextXAlignment = Enum.TextXAlignment.Center
 TitleMain.ZIndex = 4
 TitleMain.Parent = Header
@@ -857,14 +900,18 @@ local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Name = "MinimizeBtn"
 MinimizeBtn.Size = UDim2.new(0, 26, 0, 26)
 MinimizeBtn.Position = UDim2.new(1, -62, 0, 8)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(61, 112, 184)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(18, 86, 160)
 MinimizeBtn.Text = "–"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.TextSize = 20
 MinimizeBtn.ZIndex = 4
 MinimizeBtn.Parent = Header
-Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 9)
+Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 8)
+local minimizeStroke = Instance.new("UIStroke")
+minimizeStroke.Color = Color3.fromRGB(80, 180, 255)
+minimizeStroke.Thickness = 0.8
+minimizeStroke.Parent = MinimizeBtn
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
@@ -877,13 +924,30 @@ CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.TextSize = 16
 CloseBtn.ZIndex = 4
 CloseBtn.Parent = Header
-Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 9)
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+
+local HelpBtn = Instance.new("TextButton")
+HelpBtn.Name = "PS5HelpBtn"
+HelpBtn.Size = UDim2.new(0, 24, 0, 26)
+HelpBtn.Position = UDim2.new(1, -92, 0, 8)
+HelpBtn.BackgroundColor3 = Color3.fromRGB(12, 54, 96)
+HelpBtn.Text = "?"
+HelpBtn.TextColor3 = Color3.fromRGB(220, 244, 255)
+HelpBtn.Font = Enum.Font.GothamBlack
+HelpBtn.TextSize = 16
+HelpBtn.ZIndex = 4
+HelpBtn.Parent = Header
+Instance.new("UICorner", HelpBtn).CornerRadius = UDim.new(0, 8)
+local helpBtnStroke = Instance.new("UIStroke")
+helpBtnStroke.Color = currentAccentColor
+helpBtnStroke.Thickness = 0.8
+helpBtnStroke.Parent = HelpBtn
 
 local FloatingMinBox = Instance.new("ImageButton")
 FloatingMinBox.Name = "KEONFloatingMinBox"
 FloatingMinBox.Size = UDim2.new(0, 52, 0, 52)
 FloatingMinBox.Position = UDim2.new(0, 20, 0.5, -26)
-FloatingMinBox.BackgroundColor3 = Color3.fromRGB(15, 22, 42)
+FloatingMinBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
 FloatingMinBox.Image = MINIMIZE_ICON_IMAGE
 FloatingMinBox.ScaleType = Enum.ScaleType.Crop
 FloatingMinBox.Active = true
@@ -895,7 +959,7 @@ Instance.new("UICorner", FloatingMinBox).CornerRadius = UDim.new(0, 16)
 
 local minBoxStroke = Instance.new("UIStroke")
 minBoxStroke.Color = currentAccentColor
-minBoxStroke.Thickness = 2.5
+minBoxStroke.Thickness = 1.7
 minBoxStroke.Parent = FloatingMinBox
 
 local minNeonGradient = Instance.new("UIGradient")
@@ -914,7 +978,8 @@ end)
 MinimizeBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
-        Size = UDim2.new(0, 0, 0, 0)
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0)
     }):Play()
     task.wait(0.3)
     MainFrame.Visible = false
@@ -926,8 +991,10 @@ FloatingMinBox.MouseButton1Click:Connect(function()
     FloatingMinBox.Visible = false
     MainFrame.Visible = true
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 560, 0, 360)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TweenService:Create(MainFrame, TweenInfo.new(0.48, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 560, 0, 360),
+        Position = UDim2.new(0.5, -280, 0.5, -180)
     }):Play()
 end)
 
@@ -966,6 +1033,130 @@ CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
 
 ---------------------------------------------------------
+-- دليل سريع بتصميم PS5
+---------------------------------------------------------
+local HelpOverlay = Instance.new("Frame")
+HelpOverlay.Name = "PS5HelpOverlay"
+HelpOverlay.Size = UDim2.new(1, 0, 1, 0)
+HelpOverlay.Position = UDim2.new(0, 0, 0, 0)
+HelpOverlay.BackgroundColor3 = Color3.fromRGB(2, 7, 16)
+HelpOverlay.BackgroundTransparency = 0.22
+HelpOverlay.BorderSizePixel = 0
+HelpOverlay.Visible = false
+HelpOverlay.ZIndex = 50
+HelpOverlay.Parent = MainFrame
+
+local HelpPanel = Instance.new("Frame")
+HelpPanel.Name = "PS5HelpPanel"
+HelpPanel.Size = UDim2.new(0, 420, 0, 286)
+HelpPanel.Position = UDim2.new(0.5, -210, 0.5, -143)
+HelpPanel.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
+HelpPanel.BorderSizePixel = 0
+HelpPanel.ZIndex = 51
+HelpPanel.Parent = HelpOverlay
+Instance.new("UICorner", HelpPanel).CornerRadius = UDim.new(0, 17)
+local helpPanelStroke = Instance.new("UIStroke")
+helpPanelStroke.Color = currentAccentColor
+helpPanelStroke.Thickness = 1.5
+helpPanelStroke.Parent = HelpPanel
+
+local HelpTitle = Instance.new("TextLabel")
+HelpTitle.Size = UDim2.new(1, -60, 0, 34)
+HelpTitle.Position = UDim2.new(0, 14, 0, 10)
+HelpTitle.BackgroundTransparency = 1
+HelpTitle.Text = "PLAYSTATION STYLE  •  دليل الواجهة"
+HelpTitle.TextColor3 = Color3.fromRGB(240, 248, 255)
+HelpTitle.Font = Enum.Font.GothamBold
+HelpTitle.TextSize = 14
+HelpTitle.TextXAlignment = Enum.TextXAlignment.Right
+HelpTitle.ZIndex = 52
+HelpTitle.Parent = HelpPanel
+
+local HelpCloseBtn = Instance.new("TextButton")
+HelpCloseBtn.Size = UDim2.new(0, 28, 0, 28)
+HelpCloseBtn.Position = UDim2.new(1, -38, 0, 11)
+HelpCloseBtn.BackgroundColor3 = Color3.fromRGB(20, 54, 88)
+HelpCloseBtn.Text = "✕"
+HelpCloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+HelpCloseBtn.Font = Enum.Font.GothamBold
+HelpCloseBtn.TextSize = 13
+HelpCloseBtn.ZIndex = 53
+HelpCloseBtn.Parent = HelpPanel
+Instance.new("UICorner", HelpCloseBtn).CornerRadius = UDim.new(0, 8)
+
+local HelpAccentLine = Instance.new("Frame")
+HelpAccentLine.Size = UDim2.new(1, -28, 0, 2)
+HelpAccentLine.Position = UDim2.new(0, 14, 0, 48)
+HelpAccentLine.BackgroundColor3 = currentAccentColor
+HelpAccentLine.BorderSizePixel = 0
+HelpAccentLine.ZIndex = 52
+HelpAccentLine.Parent = HelpPanel
+
+local HelpBody = Instance.new("TextLabel")
+HelpBody.Size = UDim2.new(1, -32, 0, 150)
+HelpBody.Position = UDim2.new(0, 16, 0, 60)
+HelpBody.BackgroundTransparency = 1
+HelpBody.Text = "• استخدم الأزرار الجانبية للتنقّل بين أقسام الواجهة.\n\n• اضغط على عناصر القوائم لفتح الخيارات، ثم اتبع اسم كل خيار.\n\n• زر (–) يصغّر النافذة، والأيقونة العائمة تعيد فتحها.\n\n• زر (?) يعرض هذا الدليل، وزر ✕ يغلق النافذة.\n\n• الشات العائم يحتوي على الرسائل ودليل الشات وقائمة المتواجدين."
+HelpBody.TextColor3 = Color3.fromRGB(207, 226, 246)
+HelpBody.Font = Enum.Font.Gotham
+HelpBody.TextSize = 12
+HelpBody.TextWrapped = true
+HelpBody.TextXAlignment = Enum.TextXAlignment.Right
+HelpBody.TextYAlignment = Enum.TextYAlignment.Top
+HelpBody.ZIndex = 52
+HelpBody.Parent = HelpPanel
+
+local HelpFoot = Instance.new("TextLabel")
+HelpFoot.Size = UDim2.new(1, -28, 0, 18)
+HelpFoot.Position = UDim2.new(0, 14, 1, -58)
+HelpFoot.BackgroundTransparency = 1
+HelpFoot.Text = "CLEAN UI  •  ELECTRIC BLUE  •  NO WALLPAPER IMAGES"
+HelpFoot.TextColor3 = Color3.fromRGB(73, 173, 235)
+HelpFoot.Font = Enum.Font.GothamBold
+HelpFoot.TextSize = 9
+HelpFoot.ZIndex = 52
+HelpFoot.Parent = HelpPanel
+
+local HelpDoneBtn = Instance.new("TextButton")
+HelpDoneBtn.Size = UDim2.new(0, 154, 0, 32)
+HelpDoneBtn.Position = UDim2.new(0.5, -77, 1, -38)
+HelpDoneBtn.BackgroundColor3 = Color3.fromRGB(0, 105, 185)
+HelpDoneBtn.Text = "فهمت، ابدأ"
+HelpDoneBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+HelpDoneBtn.Font = Enum.Font.GothamBold
+HelpDoneBtn.TextSize = 12
+HelpDoneBtn.ZIndex = 53
+HelpDoneBtn.Parent = HelpPanel
+Instance.new("UICorner", HelpDoneBtn).CornerRadius = UDim.new(0, 9)
+
+local function closeHelpPanel()
+    TweenService:Create(HelpPanel, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+        Size = UDim2.new(0, 0, 0, 0)
+    }):Play()
+    task.delay(0.19, function()
+        if HelpOverlay and HelpOverlay.Parent then
+            HelpOverlay.Visible = false
+            HelpPanel.Size = UDim2.new(0, 420, 0, 286)
+        end
+    end)
+end
+
+local function openHelpPanel()
+    HelpOverlay.Visible = true
+    HelpPanel.Size = UDim2.new(0, 0, 0, 0)
+    TweenService:Create(HelpPanel, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 420, 0, 286)
+    }):Play()
+end
+
+HelpBtn.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    openHelpPanel()
+end)
+HelpCloseBtn.MouseButton1Click:Connect(closeHelpPanel)
+HelpDoneBtn.MouseButton1Click:Connect(closeHelpPanel)
+
+---------------------------------------------------------
 -- نافذة الشات المباشرة
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
@@ -977,7 +1168,7 @@ local FloatingChatBtn = Instance.new("TextButton")
 FloatingChatBtn.Name = "FloatingChatBtn"
 FloatingChatBtn.Size = UDim2.new(0, 42, 0, 42)
 FloatingChatBtn.Position = UDim2.new(0, 115, 0, 10)
-FloatingChatBtn.BackgroundColor3 = Color3.fromRGB(15, 22, 42)
+FloatingChatBtn.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
 FloatingChatBtn.Text = "💬"
 FloatingChatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 FloatingChatBtn.Font = Enum.Font.GothamBold
@@ -991,7 +1182,7 @@ local ChatWin = Instance.new("Frame")
 ChatWin.Name = "ChatWin"
 ChatWin.Size = UDim2.new(0, 370, 0, 300)
 ChatWin.Position = UDim2.new(0, 160, 0, 10)
-ChatWin.BackgroundColor3 = Color3.fromRGB(11, 17, 32)
+ChatWin.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
 ChatWin.ClipsDescendants = true
 ChatWin.Active = true
 ChatWin.Draggable = true
@@ -1015,7 +1206,7 @@ floatStroke.Parent = FloatingChatBtn
 
 local chatStroke = Instance.new("UIStroke")
 chatStroke.Color = currentAccentColor
-chatStroke.Thickness = 2.5
+chatStroke.Thickness = 1.7
 chatStroke.Parent = ChatWin
 
 local chatNeonGradient = Instance.new("UIGradient")
@@ -1059,7 +1250,7 @@ local ChatHeaderBtn2 = Instance.new("TextButton")
 ChatHeaderBtn2.Size = UDim2.new(0, 110, 0, 26)
 ChatHeaderBtn2.Position = UDim2.new(0, 122, 0, 25)
 ChatHeaderBtn2.BackgroundColor3 = currentAccentColor
-ChatHeaderBtn2.Text = "🎨 المظهر"
+ChatHeaderBtn2.Text = "ℹ️ الدليل"
 ChatHeaderBtn2.TextColor3 = Color3.fromRGB(255, 255, 255)
 ChatHeaderBtn2.Font = Enum.Font.GothamBold
 ChatHeaderBtn2.TextSize = 11
@@ -1240,81 +1431,67 @@ ChatHeaderBtn3.MouseButton1Click:Connect(function()
 end)
 
 local function applyChatBackground(idx)
-    selectedChatBgIndex = idx
+    selectedChatBgIndex = 0
+    ChatBgImage.Image = ""
+    ChatBgImage.Visible = false
+    ChatWin.BackgroundTransparency = 0
+    ChatWin.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
     saveUserSettings()
-    if idx > 0 and wallUrls[idx] then
-        ChatBgImage.Image = wallUrls[idx]
-        ChatBgImage.Visible = true
-        ChatWin.BackgroundTransparency = 0.45
-    else
-        ChatBgImage.Visible = false
-        ChatWin.BackgroundTransparency = 0
-    end
 end
-
 applyChatBackground(selectedChatBgIndex)
 
 local chatFeatTitle = Instance.new("TextLabel")
-chatFeatTitle.Size = UDim2.new(1, 0, 0, 25)
+chatFeatTitle.Size = UDim2.new(1, 0, 0, 28)
 chatFeatTitle.BackgroundTransparency = 1
-chatFeatTitle.Text = "🎨 تخصيص مظهر المحادثة"
+chatFeatTitle.Text = "ℹ️ دليل الشات • PS5"
 chatFeatTitle.TextColor3 = currentAccentColor
 chatFeatTitle.Font = Enum.Font.GothamBold
-chatFeatTitle.TextSize = 13
+chatFeatTitle.TextSize = 14
 chatFeatTitle.ZIndex = 3
 chatFeatTitle.Parent = ChatFeaturesContainer
-table.insert(activeNameLabels, chatFeatTitle)
 
-local removeChatBgBtn = Instance.new("TextButton")
-removeChatBgBtn.Size = UDim2.new(1, 0, 0, 32)
-removeChatBgBtn.BackgroundColor3 = Color3.fromRGB(76, 83, 157)
-removeChatBgBtn.Text = "↩️ استعادة الخلفية الافتراضية"
-removeChatBgBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-removeChatBgBtn.Font = Enum.Font.GothamBold
-removeChatBgBtn.TextSize = 12
-removeChatBgBtn.ZIndex = 3
-removeChatBgBtn.Parent = ChatFeaturesContainer
-Instance.new("UICorner", removeChatBgBtn).CornerRadius = UDim.new(0, 9)
+local chatGuideFrame = Instance.new("Frame")
+chatGuideFrame.Size = UDim2.new(1, 0, 0, 150)
+chatGuideFrame.BackgroundColor3 = Color3.fromRGB(12, 23, 43)
+chatGuideFrame.BorderSizePixel = 0
+chatGuideFrame.ZIndex = 3
+chatGuideFrame.Parent = ChatFeaturesContainer
+Instance.new("UICorner", chatGuideFrame).CornerRadius = UDim.new(0, 12)
+local chatGuideStroke = Instance.new("UIStroke")
+chatGuideStroke.Color = Color3.fromRGB(20, 90, 145)
+chatGuideStroke.Thickness = 0.8
+chatGuideStroke.Parent = chatGuideFrame
 
-local chatColHolder = Instance.new("Frame")
-chatColHolder.Size = UDim2.new(1, 0, 0, (#wallUrls * 75) + 20)
-chatColHolder.BackgroundTransparency = 1
-chatColHolder.ZIndex = 3
-chatColHolder.Parent = ChatFeaturesContainer
+local chatGuideText = Instance.new("TextLabel")
+chatGuideText.Size = UDim2.new(1, -22, 1, -18)
+chatGuideText.Position = UDim2.new(0, 11, 0, 9)
+chatGuideText.BackgroundTransparency = 1
+chatGuideText.Text = "• الرسائل: عرض المحادثة وإرسال رسالتك.\n\n• المتواجدون: عرض اللاعبين النشطين.\n\n• زر 💬 العائم: إظهار أو إخفاء نافذة الشات.\n\n• تم اعتماد خلفية داكنة ثابتة لإبقاء النص واضحاً."
+chatGuideText.TextColor3 = Color3.fromRGB(215, 231, 248)
+chatGuideText.Font = Enum.Font.Gotham
+chatGuideText.TextSize = 12
+chatGuideText.TextWrapped = true
+chatGuideText.TextXAlignment = Enum.TextXAlignment.Right
+chatGuideText.TextYAlignment = Enum.TextYAlignment.Top
+chatGuideText.ZIndex = 4
+chatGuideText.Parent = chatGuideFrame
 
-local chatColLayout = Instance.new("UIListLayout")
-chatColLayout.Padding = UDim.new(0, 10)
-chatColLayout.SortOrder = Enum.SortOrder.LayoutOrder
-chatColLayout.Parent = chatColHolder
-
-for i, url in ipairs(wallUrls) do
-    local cBtn = Instance.new("ImageButton")
-    cBtn.Size = UDim2.new(1, 0, 0, 65)
-    cBtn.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    cBtn.Image = url
-    cBtn.ScaleType = Enum.ScaleType.Crop
-    cBtn.ZIndex = 4
-    cBtn.Parent = chatColHolder
-    Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 11)
-
-    local cStroke = Instance.new("UIStroke")
-    cStroke.Color = currentAccentColor
-    cStroke.Thickness = 1.5
-    cStroke.Parent = cBtn
-    table.insert(registeredOptionStrokes, cStroke)
-
-    cBtn.MouseButton1Click:Connect(function()
-        playUiSound(SOUND_CLICK, 1, 0.35)
-        applyChatBackground(i)
-    end)
-end
-
-ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, chatColHolder.AbsolutePosition.Y + chatColHolder.AbsoluteSize.Y + 50)
-
-removeChatBgBtn.MouseButton1Click:Connect(function()
+local chatCleanBtn = Instance.new("TextButton")
+chatCleanBtn.Size = UDim2.new(1, 0, 0, 32)
+chatCleanBtn.BackgroundColor3 = Color3.fromRGB(0, 93, 160)
+chatCleanBtn.Text = "✓ تثبيت الخلفية النظيفة"
+chatCleanBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+chatCleanBtn.Font = Enum.Font.GothamBold
+chatCleanBtn.TextSize = 12
+chatCleanBtn.ZIndex = 3
+chatCleanBtn.Parent = ChatFeaturesContainer
+Instance.new("UICorner", chatCleanBtn).CornerRadius = UDim.new(0, 9)
+chatCleanBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     applyChatBackground(0)
 end)
+
+ChatFeaturesContainer.CanvasSize = UDim2.new(0, 0, 0, 230)
 
 local StickerModal = Instance.new("Frame")
 StickerModal.Name = "StickerModal"
@@ -1700,30 +1877,46 @@ end)
 local function createProStyleBtn(text, side)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 0, 36)
-    btn.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+    btn.BackgroundColor3 = Color3.fromRGB(12, 23, 43)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
+    btn.TextSize = 13
     btn.Parent = (side == "left") and LeftWing or RightWing
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 11)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
 
     local stroke = Instance.new("UIStroke")
     stroke.Color = currentAccentColor
-    stroke.Thickness = 1.8
+    stroke.Thickness = 1.15
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Parent = btn
 
     table.insert(registeredWingStrokes, stroke)
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(17, 48, 78)
+        }):Play()
+    end)
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(12, 23, 43)
+        }):Play()
+    end)
     return btn
 end
 
 local function addChilliAccordion(titleText, builderFunc)
     local folderFrame = Instance.new("Frame")
     folderFrame.Size = UDim2.new(1, 0, 0, 36)
-    folderFrame.BackgroundTransparency = 1
+    folderFrame.BackgroundColor3 = Color3.fromRGB(10, 19, 36)
+    folderFrame.BackgroundTransparency = 0
     folderFrame.ZIndex = 3
     folderFrame.Parent = CenterScroll
+    Instance.new("UICorner", folderFrame).CornerRadius = UDim.new(0, 10)
+    local folderStroke = Instance.new("UIStroke")
+    folderStroke.Color = Color3.fromRGB(24, 76, 120)
+    folderStroke.Thickness = 0.8
+    folderStroke.Parent = folderFrame
 
     local headBtn = Instance.new("TextButton")
     headBtn.Size = UDim2.new(1, 0, 0, 36)
@@ -1731,14 +1924,14 @@ local function addChilliAccordion(titleText, builderFunc)
     headBtn.Text = "  ›  " .. titleText
     headBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     headBtn.Font = Enum.Font.GothamBold
-    headBtn.TextSize = 18
+    headBtn.TextSize = 15
     headBtn.TextXAlignment = Enum.TextXAlignment.Center
     headBtn.ZIndex = 3
     headBtn.Parent = folderFrame
 
     local blackStroke = Instance.new("UIStroke")
-    blackStroke.Color = Color3.fromRGB(0, 0, 0)
-    blackStroke.Thickness = 2
+    blackStroke.Color = Color3.fromRGB(5, 12, 24)
+    blackStroke.Thickness = 0.35
     blackStroke.Parent = headBtn
 
     local contentHolder = Instance.new("Frame")
@@ -2884,38 +3077,10 @@ BtnSettings.MouseButton1Click:Connect(function()
         addAction("الثيم الفيروزي الساحر 🧊", function() updateTheme(Color3.fromRGB(0, 255, 200), Color3.fromRGB(0, 130, 100)) end)
     end)
 
-    addChilliAccordion("تخصيص خلفيات واجهة السكربت Pro", function(addToggle, addAction, contentHolder)
-        addAction("❌ إغلاق خلفية السكربت", function()
+    addChilliAccordion("خلفية الواجهة • PS5 Clean Mode", function(addToggle, addAction, contentHolder)
+        addAction("✓ الخلفية النظيفة مفعّلة — بدون صور مزعجة", function()
             applyScriptBackground(0)
         end)
-
-        local gridHolder = Instance.new("Frame")
-        gridHolder.Size = UDim2.new(1, 0, 0, 240)
-        gridHolder.BackgroundTransparency = 1
-        gridHolder.ZIndex = 3
-        gridHolder.Parent = contentHolder
-
-        local gridLayout = Instance.new("UIGridLayout")
-        gridLayout.CellSize = UDim2.new(0, 150, 0, 85)
-        gridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
-        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        gridLayout.Parent = gridHolder
-
-        for i, url in ipairs(wallUrls) do
-            local cardBtn = Instance.new("ImageButton")
-            cardBtn.Size = UDim2.new(0, 150, 0, 85)
-            cardBtn.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-            cardBtn.Image = url
-            cardBtn.ScaleType = Enum.ScaleType.Crop
-            cardBtn.ZIndex = 4
-            cardBtn.Parent = gridHolder
-            Instance.new("UICorner", cardBtn).CornerRadius = UDim.new(0, 9)
-
-            cardBtn.MouseButton1Click:Connect(function()
-                playUiSound(SOUND_CLICK, 1, 0.35)
-                applyScriptBackground(i)
-            end)
-        end
     end)
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 280)
@@ -3440,15 +3605,23 @@ task.spawn(function()
 
     MainFrame.Visible = true
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 560, 0, 360)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TweenService:Create(MainFrame, TweenInfo.new(0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 560, 0, 360),
+        Position = UDim2.new(0.5, -280, 0.5, -180)
     }):Play()
+    task.delay(0.62, function()
+        if MainFrame and MainFrame.Visible then
+            openHelpPanel()
+        end
+    end)
 end)
 
 CloseBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
-        Size = UDim2.new(0, 0, 0, 0)
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0)
     }):Play()
     task.wait(0.3)
     MainFrame.Visible = false
