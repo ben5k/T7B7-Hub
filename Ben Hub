@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.0.0)
+-- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.1.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -140,8 +140,8 @@ local BROADCAST_SOUND_ID = "rbxassetid://17208361335"
 local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 
 local neonSpeed = 3.2
-local currentAccentColor = Color3.fromRGB(0, 170, 255)
-local currentHeaderColor = Color3.fromRGB(7, 22, 48)
+local currentAccentColor = Color3.fromRGB(235, 35, 65)
+local currentHeaderColor = Color3.fromRGB(65, 8, 24)
 local globalMediaVolume = 5.0
 
 -- تخطيط متجاوب حتى لا تخرج الأزرار عن شاشة الهاتف
@@ -220,10 +220,15 @@ local function loadUserSettings()
 end
 
 loadUserSettings()
--- ثابت بصرياً على ثيم PS5 النظيف، مع تعطيل صور خلفيات الواجهة والشات.
-currentAccentColor = Color3.fromRGB(0, 170, 255)
-currentHeaderColor = Color3.fromRGB(7, 22, 48)
--- لا تصفّر اختيار الخلفية المحفوظ؛ اتركه ليستعيد آخر اختيار.
+-- حفظ تلقائي للإعدادات محلياً؛ لا يحتاج المستخدم إلى زر حفظ.
+task.spawn(function()
+    while true do
+        task.wait(5)
+        pcall(saveUserSettings)
+    end
+end)
+-- الإعدادات المحفوظة هي المرجع؛ لا تعِد ضبط اللون بعد التحميل.
+-- استرجاع الخلفية المختارة يتم عند إنشاء الواجهة عبر applyScriptBackground(selectedScriptBgIndex).
 
 local function playUiSound(soundId, pitch, volume)
     task.spawn(function()
@@ -1066,7 +1071,7 @@ local LoadTitle = Instance.new("TextLabel")
 LoadTitle.Size = UDim2.new(1, 0, 0, 25)
 LoadTitle.Position = UDim2.new(0, 0, 0, 72)
 LoadTitle.BackgroundTransparency = 1
-LoadTitle.Text = "PLAYSTATION STYLE  •  KEON"
+LoadTitle.Text = "⚡ KEON // OVERDRIVE"
 LoadTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 LoadTitle.Font = Enum.Font.GothamBlack
 LoadTitle.TextSize = 18
@@ -1076,7 +1081,7 @@ local LoadSub = Instance.new("TextLabel")
 LoadSub.Size = UDim2.new(1, -18, 0, 30)
 LoadSub.Position = UDim2.new(0, 9, 0, 96)
 LoadSub.BackgroundTransparency = 1
-LoadSub.Text = "🔥 تم تطوير وإطلاق هذا السكربت من أيادٍ عربية لكم وبس ❤️"
+LoadSub.Text = "نظام نيون قتالي • إصدار المطور KEON"
 LoadSub.TextColor3 = Color3.fromRGB(170, 205, 235)
 LoadSub.Font = Enum.Font.GothamBold
 LoadSub.TextWrapped = true
@@ -1101,7 +1106,7 @@ local LoadFooter = Instance.new("TextLabel")
 LoadFooter.Size = UDim2.new(1, -20, 0, 18)
 LoadFooter.Position = UDim2.new(0, 10, 0, 154)
 LoadFooter.BackgroundTransparency = 1
-LoadFooter.Text = "صناعة عربية • أهلاً بكم في KEON"
+LoadFooter.Text = "OVERDRIVE SYSTEM  //  ONLINE"
 LoadFooter.TextColor3 = Color3.fromRGB(95, 170, 235)
 LoadFooter.Font = Enum.Font.GothamBold
 LoadFooter.TextSize = 10
@@ -1343,11 +1348,11 @@ end)
 
 MinimizeBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
-    TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+    TweenService:Create(MainFrame, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
         Size = UDim2.new(0, 0, 0, 0),
         Position = UDim2.new(0.5, 0, 0.5, 0)
     }):Play()
-    task.wait(0.3)
+    task.wait(0.16)
     MainFrame.Visible = false
     FloatingMinBox.Visible = true
 end)
@@ -4539,6 +4544,23 @@ BtnSettings.MouseButton1Click:Connect(function()
             currentHeaderColor = headerCol
             saveUserSettings()
 
+            -- طبّق اللون على الأزرار الموجودة أيضاً، وليس فقط العناصر الرئيسية.
+            for _, ui in ipairs(ScreenGui:GetDescendants()) do
+                pcall(function()
+                    if ui:IsA("TextButton") then
+                        ui.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        ui.BackgroundColor3 = Color3.fromRGB(
+                            math.floor(accent.R * 255 * 0.30 + 8),
+                            math.floor(accent.G * 255 * 0.30 + 8),
+                            math.floor(accent.B * 255 * 0.30 + 8))
+                        local st = ui:FindFirstChildWhichIsA("UIStroke")
+                        if st then st.Color = accent end
+                    elseif ui:IsA("UIStroke") then
+                        ui.Color = accent
+                    end
+                end)
+            end
+
             centerStroke.Color = accent
             Header.BackgroundColor3 = headerCol
             floatStroke.Color = accent
@@ -4565,7 +4587,9 @@ BtnSettings.MouseButton1Click:Connect(function()
             end
         end
 
-        addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
+        addAction("🔴 الثيم الأحمر الافتراضي", function() updateTheme(Color3.fromRGB(235, 35, 65), Color3.fromRGB(90, 8, 24)) end)
+        addAction("🩸 الثيم القرمزي الملكي", function() updateTheme(Color3.fromRGB(190, 0, 55), Color3.fromRGB(75, 0, 24)) end)
+        addAction("🌸 الثيم قرمزي فاتح", function() updateTheme(Color3.fromRGB(255, 55, 115), Color3.fromRGB(100, 12, 42)) end)
         addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
         addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
         addAction("الثيم الذهبي الفاخر 🟡", function() updateTheme(Color3.fromRGB(255, 200, 50), Color3.fromRGB(180, 130, 10)) end)
@@ -5178,21 +5202,12 @@ task.spawn(function()
     MainFrame.Visible = true
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.Rotation = -2.5
-    TweenService:Create(MainFrame, TweenInfo.new(0.68, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
+    MainFrame.Rotation = 0
+    TweenService:Create(MainFrame, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
         Size = responsiveState.mainSize,
         Position = responsiveState.mainPosition,
         Rotation = 0
     }):Play()
-    task.spawn(function()
-        task.wait(0.68)
-        for _, amount in ipairs({1.2, -1.2, 0.65, -0.65, 0}) do
-            if not MainFrame or not MainFrame.Parent then break end
-            local shake = TweenService:Create(MainFrame, TweenInfo.new(0.045, Enum.EasingStyle.Linear), {Rotation = amount})
-            shake:Play()
-            shake.Completed:Wait()
-        end
-    end)
     task.delay(0.62, function()
         if MainFrame and MainFrame.Visible then
             openHelpPanel()
@@ -5202,14 +5217,94 @@ end)
 
 CloseBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
-    TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+    TweenService:Create(MainFrame, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
         Size = UDim2.new(0, 0, 0, 0),
         Position = UDim2.new(0.5, 0, 0.5, 0)
     }):Play()
-    task.wait(0.3)
+    task.wait(0.16)
     MainFrame.Visible = false
     MainFrame.Size = responsiveState.mainSize
     MainFrame.Position = responsiveState.mainPosition
+end)
+
+---------------------------------------------------------
+-- KEON OVERDRIVE: مظهر حاد وفخم، بدون زوايا ناعمة أو حركة مطاطية
+---------------------------------------------------------
+local function applyOverdriveTheme(root)
+    if not root then return end
+    local accent = currentAccentColor or Color3.fromRGB(235, 35, 65)
+    local panel = Color3.fromRGB(8, 10, 18)
+    local panel2 = Color3.fromRGB(18, 13, 23)
+    local white = Color3.fromRGB(245, 247, 255)
+    for _, obj in ipairs(root:GetDescendants()) do
+        pcall(function()
+            if obj:IsA("UICorner") then
+                obj.CornerRadius = UDim.new(0, 3)
+            elseif obj:IsA("UIStroke") then
+                -- لا تستبدل ألوان الحالات الخاصة؛ لون الثيم موحّد لبقية الإطارات.
+                if obj.Name == "KEONOverdriveStroke" or obj.Name == "KEONOverdriveEdge" or obj.Name == "VioletInnerEdge" then
+                    obj.Color = accent
+                elseif obj.Parent and obj.Parent:IsA("TextButton") then
+                    obj.Color = accent
+                end
+                obj.Thickness = math.max(obj.Thickness, 1.15)
+            elseif obj:IsA("TextButton") then
+                obj.AutoButtonColor = true
+                obj.BorderSizePixel = 0
+                obj.Font = Enum.Font.GothamBold
+                obj.TextColor3 = white
+                -- زر داكن بلمسة من لون الثيم، حتى تبقى الكتابة واضحة.
+                obj.BackgroundColor3 = Color3.new(
+                    math.clamp(accent.R * 0.24 + 0.035, 0, 1),
+                    math.clamp(accent.G * 0.24 + 0.025, 0, 1),
+                    math.clamp(accent.B * 0.24 + 0.035, 0, 1))
+                if not obj:FindFirstChild("KEONOverdriveStroke") then
+                    local st = Instance.new("UIStroke")
+                    st.Name = "KEONOverdriveStroke"
+                    st.Color = accent
+                    st.Thickness = 1.35
+                    st.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                    st.Parent = obj
+                else
+                    obj.KEONOverdriveStroke.Color = accent
+                end
+            elseif obj:IsA("TextBox") then
+                obj.BackgroundColor3 = panel
+                obj.BorderSizePixel = 0
+                obj.TextColor3 = white
+                obj.PlaceholderColor3 = Color3.fromRGB(145, 145, 165)
+                if not obj:FindFirstChild("KEONOverdriveStroke") then
+                    local st = Instance.new("UIStroke")
+                    st.Name = "KEONOverdriveStroke"
+                    st.Color = accent
+                    st.Thickness = 1.1
+                    st.Parent = obj
+                else
+                    obj.KEONOverdriveStroke.Color = accent
+                end
+            elseif obj:IsA("TextLabel") then
+                if obj.BackgroundTransparency < 1 and obj.Name ~= "BgImage" then obj.BorderSizePixel = 0 end
+                if obj.TextTransparency == 0 and obj.Text ~= "" then obj.Font = Enum.Font.GothamBold end
+            elseif obj:IsA("Frame") then
+                obj.BorderSizePixel = 0
+                if obj.Name == "CenterBox" then
+                    -- اترك صورة الخلفية التي اختارها المستخدم ظاهرة.
+                    if not BgImage or not BgImage.Visible then obj.BackgroundColor3 = panel end
+                elseif obj.Name == "Header" then
+                    obj.BackgroundColor3 = currentHeaderColor
+                end
+            end
+        end)
+    end
+end
+
+applyOverdriveTheme(MainFrame)
+-- الواجهة تنشئ بعض البطاقات أثناء التشغيل؛ طبّق الستايل عليها بدون لمس وظائف الأزرار.
+task.spawn(function()
+    while ScreenGui and ScreenGui.Parent do
+        task.wait(4)
+        pcall(function() applyOverdriveTheme(MainFrame) end)
+    end
 end)
 
 showHomePage()
