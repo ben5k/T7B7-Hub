@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.0.0)
+-- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.01.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -140,8 +140,8 @@ local BROADCAST_SOUND_ID = "rbxassetid://17208361335"
 local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 
 local neonSpeed = 3.2
-local currentAccentColor = Color3.fromRGB(0, 170, 255)
-local currentHeaderColor = Color3.fromRGB(7, 22, 48)
+local currentAccentColor = Color3.fromRGB(235, 35, 65)
+local currentHeaderColor = Color3.fromRGB(65, 8, 24)
 local globalMediaVolume = 5.0
 
 -- تخطيط متجاوب حتى لا تخرج الأزرار عن شاشة الهاتف
@@ -223,14 +223,12 @@ loadUserSettings()
 -- حفظ تلقائي للإعدادات محلياً؛ لا يحتاج المستخدم إلى زر حفظ.
 task.spawn(function()
     while true do
-        task.wait(12)
+        task.wait(5)
         pcall(saveUserSettings)
     end
 end)
--- ثابت بصرياً على ثيم PS5 النظيف، مع تعطيل صور خلفيات الواجهة والشات.
-currentAccentColor = Color3.fromRGB(0, 170, 255)
-currentHeaderColor = Color3.fromRGB(7, 22, 48)
--- لا تصفّر اختيار الخلفية المحفوظ؛ اتركه ليستعيد آخر اختيار.
+-- الإعدادات المحفوظة هي المرجع؛ لا تعِد ضبط اللون بعد التحميل.
+-- استرجاع الخلفية المختارة يتم عند إنشاء الواجهة عبر applyScriptBackground(selectedScriptBgIndex).
 
 local function playUiSound(soundId, pitch, volume)
     task.spawn(function()
@@ -4546,6 +4544,23 @@ BtnSettings.MouseButton1Click:Connect(function()
             currentHeaderColor = headerCol
             saveUserSettings()
 
+            -- طبّق اللون على الأزرار الموجودة أيضاً، وليس فقط العناصر الرئيسية.
+            for _, ui in ipairs(ScreenGui:GetDescendants()) do
+                pcall(function()
+                    if ui:IsA("TextButton") then
+                        ui.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        ui.BackgroundColor3 = Color3.fromRGB(
+                            math.floor(accent.R * 255 * 0.30 + 8),
+                            math.floor(accent.G * 255 * 0.30 + 8),
+                            math.floor(accent.B * 255 * 0.30 + 8))
+                        local st = ui:FindFirstChildWhichIsA("UIStroke")
+                        if st then st.Color = accent end
+                    elseif ui:IsA("UIStroke") then
+                        ui.Color = accent
+                    end
+                end)
+            end
+
             centerStroke.Color = accent
             Header.BackgroundColor3 = headerCol
             floatStroke.Color = accent
@@ -4572,7 +4587,9 @@ BtnSettings.MouseButton1Click:Connect(function()
             end
         end
 
-        addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
+        addAction("🔴 الثيم الأحمر الافتراضي", function() updateTheme(Color3.fromRGB(235, 35, 65), Color3.fromRGB(90, 8, 24)) end)
+        addAction("🩸 الثيم القرمزي الملكي", function() updateTheme(Color3.fromRGB(190, 0, 55), Color3.fromRGB(75, 0, 24)) end)
+        addAction("🌸 الثيم قرمزي فاتح", function() updateTheme(Color3.fromRGB(255, 55, 115), Color3.fromRGB(100, 12, 42)) end)
         addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
         addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
         addAction("الثيم الذهبي الفاخر 🟡", function() updateTheme(Color3.fromRGB(255, 200, 50), Color3.fromRGB(180, 130, 10)) end)
@@ -5215,109 +5232,69 @@ end)
 ---------------------------------------------------------
 local function applyOverdriveTheme(root)
     if not root then return end
-    local black = Color3.fromRGB(5, 7, 13)
-    local panel = Color3.fromRGB(10, 14, 25)
-    local panel2 = Color3.fromRGB(15, 20, 34)
-    local cyan = Color3.fromRGB(0, 225, 255)
-    local violet = Color3.fromRGB(142, 65, 255)
-    local white = Color3.fromRGB(238, 247, 255)
-
+    local accent = currentAccentColor or Color3.fromRGB(235, 35, 65)
+    local panel = Color3.fromRGB(8, 10, 18)
+    local panel2 = Color3.fromRGB(18, 13, 23)
+    local white = Color3.fromRGB(245, 247, 255)
     for _, obj in ipairs(root:GetDescendants()) do
         pcall(function()
             if obj:IsA("UICorner") then
                 obj.CornerRadius = UDim.new(0, 3)
-            elseif obj:IsA("UIGradient") then
-                obj.Rotation = 28
             elseif obj:IsA("UIStroke") then
-                obj.Thickness = math.max(obj.Thickness, 1.25)
-                if obj.Parent and (obj.Parent.Name:lower():find("header") or obj.Parent.Name:lower():find("title")) then
-                    obj.Color = violet
-                else
-                    obj.Color = cyan
+                -- لا تستبدل ألوان الحالات الخاصة؛ لون الثيم موحّد لبقية الإطارات.
+                if obj.Name == "KEONOverdriveStroke" or obj.Name == "KEONOverdriveEdge" or obj.Name == "VioletInnerEdge" then
+                    obj.Color = accent
+                elseif obj.Parent and obj.Parent:IsA("TextButton") then
+                    obj.Color = accent
                 end
-                obj.Transparency = math.min(obj.Transparency, 0.12)
+                obj.Thickness = math.max(obj.Thickness, 1.15)
             elseif obj:IsA("TextButton") then
                 obj.AutoButtonColor = true
-                obj.BackgroundColor3 = panel2
-                obj.BackgroundTransparency = 0
                 obj.BorderSizePixel = 0
-                obj.Font = Enum.Font.GothamBlack
+                obj.Font = Enum.Font.GothamBold
                 obj.TextColor3 = white
+                -- زر داكن بلمسة من لون الثيم، حتى تبقى الكتابة واضحة.
+                obj.BackgroundColor3 = Color3.new(
+                    math.clamp(accent.R * 0.24 + 0.035, 0, 1),
+                    math.clamp(accent.G * 0.24 + 0.025, 0, 1),
+                    math.clamp(accent.B * 0.24 + 0.035, 0, 1))
                 if not obj:FindFirstChild("KEONOverdriveStroke") then
                     local st = Instance.new("UIStroke")
                     st.Name = "KEONOverdriveStroke"
-                    st.Color = (obj.Name:lower():find("close") or obj.Name:lower():find("delete")) and Color3.fromRGB(255, 55, 88) or cyan
+                    st.Color = accent
                     st.Thickness = 1.35
                     st.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
                     st.Parent = obj
+                else
+                    obj.KEONOverdriveStroke.Color = accent
                 end
             elseif obj:IsA("TextBox") then
-                obj.BackgroundColor3 = black
-                obj.BackgroundTransparency = 0
+                obj.BackgroundColor3 = panel
                 obj.BorderSizePixel = 0
                 obj.TextColor3 = white
-                obj.PlaceholderColor3 = Color3.fromRGB(112, 132, 160)
+                obj.PlaceholderColor3 = Color3.fromRGB(145, 145, 165)
                 if not obj:FindFirstChild("KEONOverdriveStroke") then
                     local st = Instance.new("UIStroke")
                     st.Name = "KEONOverdriveStroke"
-                    st.Color = violet
-                    st.Thickness = 1.15
+                    st.Color = accent
+                    st.Thickness = 1.1
                     st.Parent = obj
+                else
+                    obj.KEONOverdriveStroke.Color = accent
                 end
             elseif obj:IsA("TextLabel") then
-                if obj.BackgroundTransparency < 1 and obj.Name ~= "BgImage" then
-                    obj.BorderSizePixel = 0
-                end
-                if obj.TextTransparency == 0 and obj.Text ~= "" then
-                    obj.Font = Enum.Font.GothamBold
-                end
+                if obj.BackgroundTransparency < 1 and obj.Name ~= "BgImage" then obj.BorderSizePixel = 0 end
+                if obj.TextTransparency == 0 and obj.Text ~= "" then obj.Font = Enum.Font.GothamBold end
             elseif obj:IsA("Frame") then
                 obj.BorderSizePixel = 0
                 if obj.Name == "CenterBox" then
-                    obj.BackgroundColor3 = black
+                    -- اترك صورة الخلفية التي اختارها المستخدم ظاهرة.
+                    if not BgImage or not BgImage.Visible then obj.BackgroundColor3 = panel end
                 elseif obj.Name == "Header" then
-                    obj.BackgroundColor3 = Color3.fromRGB(8, 11, 22)
-                elseif obj.BackgroundTransparency < 1 and obj.Name ~= "PS5SoftGlow" then
-                    -- Keep image holders and existing semantic status panels intact.
-                    if obj.Name:lower():find("container") or obj.Name:lower():find("panel") then
-                        obj.BackgroundColor3 = panel
-                    end
+                    obj.BackgroundColor3 = currentHeaderColor
                 end
             end
         end)
-    end
-
-    -- إطار خارجي بقطع حادّة ولمعة مزدوجة، مع إبقاء ترتيب الواجهة ووظائفها كما هي.
-    local shell = root:FindFirstChild("KEONOverdriveFrame")
-    if not shell then
-        shell = Instance.new("Frame")
-        shell.Name = "KEONOverdriveFrame"
-        shell.BackgroundTransparency = 1
-        shell.BorderSizePixel = 0
-        shell.Size = UDim2.new(1, 8, 1, 8)
-        shell.Position = UDim2.new(0, -4, 0, -4)
-        shell.ZIndex = 20
-        shell.Active = false
-        shell.Parent = root
-        local edge = Instance.new("UIStroke")
-        edge.Name = "KEONOverdriveEdge"
-        edge.Color = cyan
-        edge.Thickness = 2.2
-        edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        edge.Parent = shell
-        local inner = Instance.new("Frame")
-        inner.Name = "VioletInnerEdge"
-        inner.BackgroundTransparency = 1
-        inner.BorderSizePixel = 0
-        inner.Size = UDim2.new(1, -8, 1, -8)
-        inner.Position = UDim2.new(0, 4, 0, 4)
-        inner.ZIndex = 20
-        inner.Parent = shell
-        local innerStroke = Instance.new("UIStroke")
-        innerStroke.Color = violet
-        innerStroke.Thickness = 1
-        innerStroke.Transparency = 0.12
-        innerStroke.Parent = inner
     end
 end
 
