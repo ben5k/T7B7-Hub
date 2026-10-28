@@ -1,4 +1,4 @@
--- KEON Hub - Steal Panel inspired script library (v67.0.0)
+-- KEON Hub - Compact Reference Layout (v68.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -1149,8 +1149,8 @@ ScreenGui.Parent = parent
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 780, 0, 500)
-MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.Size = UDim2.new(0, 520, 0, 620)
+MainFrame.Position = UDim2.new(0.64, 0, 0.5, 0)
 MainFrame.BackgroundTransparency = 1
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -1177,7 +1177,7 @@ local CenterBox = Instance.new("Frame")
 CenterBox.Name = "CenterBox"
 CenterBox.Size = UDim2.new(1, 0, 1, 0)
 CenterBox.Position = UDim2.new(0, 0, 0, 0)
-CenterBox.BackgroundColor3 = Color3.fromRGB(20, 22, 28)
+CenterBox.BackgroundColor3 = Color3.fromRGB(17, 19, 24)
 CenterBox.BackgroundTransparency = 0
 CenterBox.BorderSizePixel = 0
 CenterBox.ClipsDescendants = true
@@ -1207,18 +1207,12 @@ Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 2)
 local function applyScriptBackground(idx)
     idx = tonumber(idx) or 0
     selectedScriptBgIndex = idx
-    if idx > 0 and wallUrls[idx] then
-        BgImage.Image = wallUrls[idx]
-        BgImage.Visible = true
-        CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
-        BgImage.ImageTransparency = 0
-    else
-        BgImage.Image = ""
-        BgImage.Visible = false
-        CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
-    end
+    -- Keep the main panel opaque like the reference image; don't let wallpaper cover its cards.
+    if idx > 0 and wallUrls[idx] then BgImage.Image = wallUrls[idx] else BgImage.Image = "" end
+    BgImage.Visible = false
+    BgImage.ImageTransparency = 1
+    CenterBox.BackgroundTransparency = 0
+    CenterBox.BackgroundColor3 = Color3.fromRGB(17, 19, 24)
     saveUserSettings()
 end
 applyScriptBackground(selectedScriptBgIndex)
@@ -1249,7 +1243,7 @@ end)
 local Header = Instance.new("Frame")
 Header.Name = "Header"
 Header.Size = UDim2.new(1, 0, 0, 52)
-Header.BackgroundColor3 = currentHeaderColor
+Header.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
 Header.BorderSizePixel = 0
 Header.ZIndex = 3
 Header.Parent = CenterBox
@@ -1268,7 +1262,7 @@ local TitleMain = Instance.new("TextLabel")
 TitleMain.Size = UDim2.new(1, -112, 1, 0)
 TitleMain.Position = UDim2.new(0, 12, 0, 0)
 TitleMain.BackgroundTransparency = 1
-TitleMain.Text = "KEON HUB  •  مكتبة السكربتات"
+TitleMain.Text = "KEON HUB  •  SCRIPT PANEL"
 TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.GothamBold
 TitleMain.TextSize = 15
@@ -1325,17 +1319,28 @@ helpBtnStroke.Parent = HelpBtn
 
 local FloatingMinBox = Instance.new("ImageButton")
 FloatingMinBox.Name = "KEONFloatingMinBox"
-FloatingMinBox.Size = UDim2.new(0, 52, 0, 52)
-FloatingMinBox.Position = UDim2.new(0, 20, 0.5, -26)
-FloatingMinBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
-FloatingMinBox.Image = MINIMIZE_ICON_IMAGE
+FloatingMinBox.Size = UDim2.new(0, 48, 0, 48)
+FloatingMinBox.Position = UDim2.new(0.34, 0, 0.5, -24)
+FloatingMinBox.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
+FloatingMinBox.Image = ""
+FloatingMinBox.ImageTransparency = 1
 FloatingMinBox.ScaleType = Enum.ScaleType.Crop
 FloatingMinBox.Active = true
 FloatingMinBox.Draggable = true
 FloatingMinBox.Visible = false
 FloatingMinBox.ZIndex = 100
 FloatingMinBox.Parent = ScreenGui
-Instance.new("UICorner", FloatingMinBox).CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", FloatingMinBox).CornerRadius = UDim.new(0, 3)
+local FloatingArrowText = Instance.new("TextLabel")
+FloatingArrowText.Name = "OpenArrow"
+FloatingArrowText.Size = UDim2.new(1, 0, 1, 0)
+FloatingArrowText.BackgroundTransparency = 1
+FloatingArrowText.Text = "❯"
+FloatingArrowText.TextColor3 = Color3.fromRGB(255, 255, 255)
+FloatingArrowText.Font = Enum.Font.GothamBlack
+FloatingArrowText.TextSize = 31
+FloatingArrowText.ZIndex = 101
+FloatingArrowText.Parent = FloatingMinBox
 
 local minBoxStroke = Instance.new("UIStroke")
 minBoxStroke.Color = currentAccentColor
@@ -1444,16 +1449,24 @@ applyResponsiveMain = function()
     local compact = viewport.X < 790 or viewport.Y < 520
     responsiveState.narrow = compact
 
-    if compact then
-        local width = math.max(280, math.floor(viewport.X - 16))
-        local height = math.max(300, math.min(560, math.floor(viewport.Y - 18)))
-        responsiveState.mainSize = UDim2.new(0, width, 0, height)
-    else
-        responsiveState.mainSize = UDim2.new(0, 780, 0, 620)
-    end
-    responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
+    -- Tall, compact floating panel positioned toward the right, like the supplied reference.
+    local width = math.floor(math.min(520, math.max(300, viewport.X * 0.56)))
+    if viewport.X < 430 then width = math.max(280, viewport.X - 18) end
+    local height = math.floor(math.min(650, math.max(360, viewport.Y - 36)))
+    responsiveState.mainSize = UDim2.new(0, width, 0, height)
+    local panelX = (viewport.X < 620) and 0.5 or 0.64
+    responsiveState.mainPosition = UDim2.new(panelX, 0, 0.5, 0)
     MainFrame.Size = responsiveState.mainSize
     MainFrame.Position = responsiveState.mainPosition
+    if FloatingMinBox then
+        local panelLeftScale = responsiveState.mainPosition.X.Scale
+        local panelWidth = responsiveState.mainSize.X.Offset
+        if viewport.X < 620 then
+            FloatingMinBox.Position = UDim2.new(0, 8, 0.5, -24)
+        else
+            FloatingMinBox.Position = UDim2.new(panelLeftScale, -math.floor(panelWidth / 2) - 56, 0.5, -24)
+        end
+    end
 
     -- One dark, full-width surface like the reference panel.
     CenterBox.Size = UDim2.new(1, 0, 1, 0)
@@ -2775,112 +2788,114 @@ local function showHomePage()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    local placeId = game.PlaceId
-    local placeName = "ماب روبلوكس الحالي"
-    pcall(function()
-        local info = MarketplaceService:GetProductInfo(placeId)
-        if info then placeName = info.Name end
-    end)
+    local intro = Instance.new("Frame")
+    intro.Name = "KEONPanelIntro"
+    intro.Size = UDim2.new(1, 0, 0, 64)
+    intro.BackgroundColor3 = Color3.fromRGB(31, 34, 41)
+    intro.BorderSizePixel = 0
+    intro.ZIndex = 3
+    intro.Parent = CenterScroll
+    Instance.new("UICorner", intro).CornerRadius = UDim.new(0, 3)
+    local introStroke = Instance.new("UIStroke")
+    introStroke.Color = Color3.fromRGB(218, 47, 57)
+    introStroke.Thickness = 1.5
+    introStroke.Parent = intro
 
-    local mapBanner = Instance.new("ImageLabel")
-    mapBanner.Size = UDim2.new(1, 0, 0, 95)
-    mapBanner.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    mapBanner.Image = "rbxthumb://type=Asset&id=" .. tostring(placeId) .. "&w=768&h=432"
-    mapBanner.ScaleType = Enum.ScaleType.Crop
-    mapBanner.ImageTransparency = 0
-    mapBanner.ZIndex = 3
-    mapBanner.Parent = CenterScroll
-    Instance.new("UICorner", mapBanner).CornerRadius = UDim.new(0, 11)
+    local introTitle = Instance.new("TextLabel")
+    introTitle.Size = UDim2.new(1, -16, 0, 28)
+    introTitle.Position = UDim2.new(0, 8, 0, 5)
+    introTitle.BackgroundTransparency = 1
+    introTitle.Text = "KEON HUB  •  لوحة السكربتات"
+    introTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    introTitle.Font = Enum.Font.GothamBlack
+    introTitle.TextSize = 16
+    introTitle.TextXAlignment = Enum.TextXAlignment.Right
+    introTitle.ZIndex = 4
+    introTitle.Parent = intro
 
-    local bannerTitle = Instance.new("TextLabel")
-    bannerTitle.Size = UDim2.new(1, -20, 0, 24)
-    bannerTitle.Position = UDim2.new(0, 10, 1, -28)
-    bannerTitle.BackgroundTransparency = 0.4
-    bannerTitle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    bannerTitle.Text = "🎮 " .. placeName
-    bannerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    bannerTitle.Font = Enum.Font.GothamBold
-    bannerTitle.TextSize = 14
-    bannerTitle.TextXAlignment = Enum.TextXAlignment.Center
-    bannerTitle.ZIndex = 4
-    bannerTitle.Parent = mapBanner
-    Instance.new("UICorner", bannerTitle).CornerRadius = UDim.new(0, 9)
+    local introSub = Instance.new("TextLabel")
+    introSub.Size = UDim2.new(1, -16, 0, 20)
+    introSub.Position = UDim2.new(0, 8, 0, 34)
+    introSub.BackgroundTransparency = 1
+    introSub.Text = "اختر القسم من الأزرار بالأعلى"
+    introSub.TextColor3 = Color3.fromRGB(190, 195, 205)
+    introSub.Font = Enum.Font.GothamBold
+    introSub.TextSize = 11
+    introSub.TextXAlignment = Enum.TextXAlignment.Right
+    introSub.ZIndex = 4
+    introSub.Parent = intro
 
-    local updatesFrame = Instance.new("Frame")
-    updatesFrame.Size = UDim2.new(1, 0, 0, 142)
-    updatesFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    updatesFrame.ZIndex = 3
-    updatesFrame.Parent = CenterScroll
-    Instance.new("UICorner", updatesFrame).CornerRadius = UDim.new(0, 11)
+    local cards = {
+        {icon = "⚡", title = "سكربتات المابات", desc = "تصفّح السكربتات والأدوات المتاحة", color = Color3.fromRGB(68, 132, 255)},
+        {icon = "🥚", title = "اسرق البيض", desc = "افتح أدوات القسم من الشريط العلوي", color = Color3.fromRGB(70, 210, 125)},
+        {icon = "♫", title = "الميديا والصوت", desc = "الموسيقى والوسائط وإعداداتها", color = Color3.fromRGB(173, 91, 255)},
+        {icon = "⚙", title = "الإعدادات والثيمات", desc = "الألوان والخلفية وخيارات الواجهة", color = Color3.fromRGB(218, 47, 57)},
+        {icon = "🏆", title = "توب اللاعبين", desc = "عرض قسم اللاعبين والترتيب", color = Color3.fromRGB(255, 184, 65)},
+    }
 
-    local updatesTitle = Instance.new("TextLabel")
-    updatesTitle.Size = UDim2.new(1, -10, 0, 22)
-    updatesTitle.Position = UDim2.new(0, 5, 0, 4)
-    updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر التحديثات • KEON v62"
-    updatesTitle.TextColor3 = currentAccentColor
-    updatesTitle.Font = Enum.Font.GothamBold
-    updatesTitle.TextSize = 14
-    updatesTitle.TextXAlignment = Enum.TextXAlignment.Right
-    updatesTitle.ZIndex = 4
-    updatesTitle.Parent = updatesFrame
-    table.insert(activeNameLabels, updatesTitle)
+    for i, item in ipairs(cards) do
+        local card = Instance.new("Frame")
+        card.Name = "KEONFeatureCard"
+        card.LayoutOrder = i
+        card.Size = UDim2.new(1, 0, 0, 78)
+        card.BackgroundColor3 = Color3.fromRGB(29, 32, 38)
+        card.BorderSizePixel = 0
+        card.ZIndex = 3
+        card.Parent = CenterScroll
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 3)
+        local edge = Instance.new("UIStroke")
+        edge.Color = Color3.fromRGB(76, 81, 91)
+        edge.Thickness = 1.2
+        edge.Parent = card
 
-    local updatesDesc = Instance.new("TextLabel")
-    updatesDesc.Size = UDim2.new(1, -18, 0, 110)
-    updatesDesc.Position = UDim2.new(0, 9, 0, 27)
-    updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إعادة تصميم الرئيسية وبطاقات عرض السكربتات.\n• جعل الخلفيات معتمة بالكامل لزيادة وضوح النصوص.\n• تحسين نافذة الملصقات وتوزيعها داخل الشات.\n• استبدال مشغل الفيديو بمكتبة موسيقى من 8 أغنيات.\n• إضافة إعجاب وعدّاد محبين محلي لكل أغنية.\n• اختيار العلم العربي وحفظ وقت الاستخدام وتوب 100."
-    updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
-    updatesDesc.Font = Enum.Font.GothamBold
-    updatesDesc.TextSize = 11
-    updatesDesc.TextXAlignment = Enum.TextXAlignment.Right
-    updatesDesc.TextYAlignment = Enum.TextYAlignment.Top
-    updatesDesc.ZIndex = 4
-    updatesDesc.Parent = updatesFrame
+        local iconTile = Instance.new("Frame")
+        iconTile.Name = "ScriptIconTile"
+        iconTile.Size = UDim2.new(0, 54, 0, 60)
+        iconTile.Position = UDim2.new(0, 7, 0.5, -30)
+        iconTile.BackgroundColor3 = Color3.fromRGB(48, 53, 63)
+        iconTile.BorderSizePixel = 0
+        iconTile.ZIndex = 4
+        iconTile.Parent = card
+        Instance.new("UICorner", iconTile).CornerRadius = UDim.new(0, 2)
 
-    local guideFrame = Instance.new("Frame")
-    guideFrame.Name = "HomeInstructionsCard"
-    guideFrame.Size = UDim2.new(1, 0, 0, 150)
-    guideFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
-    guideFrame.BackgroundTransparency = 0
-    guideFrame.ZIndex = 3
-    guideFrame.Parent = CenterScroll
-    Instance.new("UICorner", guideFrame).CornerRadius = UDim.new(0, 14)
-    local guideStroke = Instance.new("UIStroke")
-    guideStroke.Color = currentAccentColor
-    guideStroke.Thickness = 1.6
-    guideStroke.Parent = guideFrame
-    table.insert(registeredOptionStrokes, guideStroke)
+        local iconText = Instance.new("TextLabel")
+        iconText.Size = UDim2.new(1, 0, 1, 0)
+        iconText.BackgroundTransparency = 1
+        iconText.Text = item.icon
+        iconText.TextColor3 = item.color
+        iconText.Font = Enum.Font.GothamBlack
+        iconText.TextSize = 27
+        iconText.ZIndex = 5
+        iconText.Parent = iconTile
 
-    local guideTitle = Instance.new("TextLabel")
-    guideTitle.Size = UDim2.new(1, -20, 0, 28)
-    guideTitle.Position = UDim2.new(0, 10, 0, 8)
-    guideTitle.BackgroundTransparency = 1
-    guideTitle.Text = "📘 التعليمات • اقرأ قبل الاستخدام"
-    guideTitle.TextColor3 = currentAccentColor
-    guideTitle.Font = Enum.Font.GothamBold
-    guideTitle.TextSize = 14
-    guideTitle.TextXAlignment = Enum.TextXAlignment.Right
-    guideTitle.ZIndex = 4
-    guideTitle.Parent = guideFrame
-    table.insert(activeNameLabels, guideTitle)
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, -78, 0, 27)
+        title.Position = UDim2.new(0, 70, 0, 10)
+        title.BackgroundTransparency = 1
+        title.Text = item.title
+        title.TextColor3 = item.color
+        title.Font = Enum.Font.GothamBlack
+        title.TextSize = 14
+        title.TextXAlignment = Enum.TextXAlignment.Right
+        title.TextTruncate = Enum.TextTruncate.AtEnd
+        title.ZIndex = 4
+        title.Parent = card
 
-    local guideDesc = Instance.new("TextLabel")
-    guideDesc.Size = UDim2.new(1, -20, 0, 108)
-    guideDesc.Position = UDim2.new(0, 10, 0, 37)
-    guideDesc.BackgroundTransparency = 1
-    guideDesc.Text = "١) اختر القسم من القائمة الجانبية.\n٢) من (سكربتات) اختر الماب ثم افتح تفاصيل السكربت.\n٣) الخلفيات قابلة للتغيير من الإعدادات، وستبقى معتمة وواضحة.\n٤) الملصقات تعمل عبر الشات العام عند تحميل صورها بنجاح.\n٥) قسم الموسيقى يحتوي على ٨ أغنيات مع زر إعجاب.\n٦) قسم تسجيل الدخول يحفظ العلم ووقت الاستخدام ويعرض التوب 100."
-    guideDesc.TextColor3 = Color3.fromRGB(245, 248, 255)
-    guideDesc.Font = Enum.Font.Gotham
-    guideDesc.TextSize = 11
-    guideDesc.TextXAlignment = Enum.TextXAlignment.Right
-    guideDesc.TextYAlignment = Enum.TextYAlignment.Top
-    guideDesc.TextWrapped = true
-    guideDesc.ZIndex = 4
-    guideDesc.Parent = guideFrame
+        local desc = Instance.new("TextLabel")
+        desc.Size = UDim2.new(1, -78, 0, 28)
+        desc.Position = UDim2.new(0, 70, 0, 39)
+        desc.BackgroundTransparency = 1
+        desc.Text = item.desc
+        desc.TextColor3 = Color3.fromRGB(225, 228, 235)
+        desc.Font = Enum.Font.GothamBold
+        desc.TextSize = 10
+        desc.TextXAlignment = Enum.TextXAlignment.Right
+        desc.TextWrapped = true
+        desc.ZIndex = 4
+        desc.Parent = card
+    end
 
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 25)
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
 end
 BtnMainHome.MouseButton1Click:Connect(showHomePage)
 
@@ -5294,11 +5309,7 @@ task.spawn(function()
         Position = responsiveState.mainPosition,
         Rotation = 0
     }):Play()
-    task.delay(0.62, function()
-        if MainFrame and MainFrame.Visible then
-            openHelpPanel()
-        end
-    end)
+    -- Keep the panel unobstructed on launch; help remains available from the ? button.
 end)
 
 CloseBtn.MouseButton1Click:Connect(function()
@@ -5389,7 +5400,8 @@ local function applyOverdriveTheme(root)
             elseif obj:IsA("Frame") then
                 obj.BorderSizePixel = 0
                 if obj.Name == "CenterBox" then
-                    if not BgImage or not BgImage.Visible then obj.BackgroundColor3 = panel end
+                    obj.BackgroundColor3 = panel
+                    if BgImage then BgImage.Visible = false end
                 elseif obj.Name == "Header" then
                     obj.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
                 elseif obj.Name == "PS5SoftGlow" then
