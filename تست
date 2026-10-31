@@ -1,8 +1,7 @@
 
 --==================================================
---                REXEL HUB PRO V2
---             ARABIC UI | DELTA MOBILE
---                 UI ONLY
+--              REXEL HUB PRO V3
+--                MOBILE UI ONLY
 --==================================================
 
 local Players = game:GetService("Players")
@@ -11,42 +10,40 @@ local TweenService = game:GetService("TweenService")
 
 local Player = Players.LocalPlayer
 
---==================================================
 -- SETTINGS
---==================================================
-
 local CONFIG = {
     Name = "ريكسل هب",
-    Version = "2.0",
+    Version = "3.0",
     BackgroundURL = "https://d.top4top.io/p_3956imcxl0.jpg",
     ImageFile = "REXEL_BACKGROUND.jpg"
 }
 
+-- COLORS
 local RED = Color3.fromRGB(225, 25, 48)
 local DARK = Color3.fromRGB(12, 11, 14)
-local PANEL = Color3.fromRGB(22, 19, 23)
+local PANEL = Color3.fromRGB(23, 20, 24)
 local WHITE = Color3.fromRGB(245, 245, 245)
-local GRAY = Color3.fromRGB(155, 150, 155)
+local GRAY = Color3.fromRGB(165, 160, 165)
 local GREEN = Color3.fromRGB(75, 220, 135)
 
 --==================================================
--- BACKGROUND DOWNLOAD
+-- BACKGROUND LOADER
 --==================================================
 
-local function DownloadBackground()
+local function LoadBackground()
 
-    local requestFunc = request or http_request
+    local req = request or http_request
 
-    if not requestFunc and syn then
-        requestFunc = syn.request
+    if not req and syn then
+        req = syn.request
     end
 
-    if not requestFunc or not writefile then
+    if not req or not writefile then
         return nil
     end
 
     local success, response = pcall(function()
-        return requestFunc({
+        return req({
             Url = CONFIG.BackgroundURL,
             Method = "GET"
         })
@@ -56,8 +53,11 @@ local function DownloadBackground()
         return nil
     end
 
-    if response.Success == false
-        or (response.StatusCode and response.StatusCode ~= 200) then
+    if response.Success == false then
+        return nil
+    end
+
+    if response.StatusCode and response.StatusCode ~= 200 then
         return nil
     end
 
@@ -79,11 +79,11 @@ local function DownloadBackground()
         return nil
     end
 
-    local assetSuccess, asset = pcall(function()
+    local loaded, asset = pcall(function()
         return assetFunc(CONFIG.ImageFile)
     end)
 
-    if assetSuccess then
+    if loaded then
         return asset
     end
 
@@ -91,7 +91,7 @@ local function DownloadBackground()
 end
 
 --==================================================
--- GUI SETUP
+-- GUI
 --==================================================
 
 local Parent
@@ -125,29 +125,33 @@ GUI.Parent = Parent
 
 local function Create(class, properties, parent)
 
-    local object = Instance.new(class)
+    local obj = Instance.new(class)
 
     for key, value in pairs(properties) do
-        object[key] = value
+        obj[key] = value
     end
 
-    object.Parent = parent
+    obj.Parent = parent
 
-    return object
+    return obj
 end
 
-local function Corner(object, radius)
+local function Corner(obj, radius)
+
     Create("UICorner", {
         CornerRadius = UDim.new(0, radius)
-    }, object)
+    }, obj)
+
 end
 
-local function Border(object, color, thickness, transparency)
+local function Stroke(obj, color, transparency)
+
     Create("UIStroke", {
         Color = color,
-        Thickness = thickness or 1,
+        Thickness = 1,
         Transparency = transparency or 0.5
-    }, object)
+    }, obj)
+
 end
 
 --==================================================
@@ -156,7 +160,7 @@ end
 
 local Main = Create("Frame", {
     Name = "Main",
-    Size = UDim2.new(0.92, 0, 0.78, 0),
+    Size = UDim2.new(0.82, 0, 0.68, 0),
     Position = UDim2.new(0.5, 0, 0.5, 0),
     AnchorPoint = Vector2.new(0.5, 0.5),
     BackgroundColor3 = DARK,
@@ -165,11 +169,11 @@ local Main = Create("Frame", {
 }, GUI)
 
 Corner(Main, 15)
-Border(Main, RED, 1.2, 0.3)
+Stroke(Main, RED, 0.3)
 
 Create("UISizeConstraint", {
-    MinSize = Vector2.new(300, 250),
-    MaxSize = Vector2.new(850, 520)
+    MinSize = Vector2.new(280, 230),
+    MaxSize = Vector2.new(700, 440)
 }, Main)
 
 --==================================================
@@ -177,21 +181,27 @@ Create("UISizeConstraint", {
 --==================================================
 
 local Background = Create("ImageLabel", {
-    Name = "AnimeBackground",
+    Name = "Background",
     Size = UDim2.fromScale(1, 1),
-    Position = UDim2.fromScale(0, 0),
     BackgroundColor3 = DARK,
     BackgroundTransparency = 0,
     Image = "",
-    ImageTransparency = 0.38,
+    ImageTransparency = 0.10,
     ScaleType = Enum.ScaleType.Crop,
     ZIndex = 1
 }, Main)
 
--- تحميل الصورة
+local Overlay = Create("Frame", {
+    Size = UDim2.fromScale(1, 1),
+    BackgroundColor3 = Color3.fromRGB(15, 5, 9),
+    BackgroundTransparency = 0.48,
+    BorderSizePixel = 0,
+    ZIndex = 2
+}, Main)
+
 task.spawn(function()
 
-    local image = DownloadBackground()
+    local image = LoadBackground()
 
     if image and Background.Parent then
         Background.Image = image
@@ -199,121 +209,79 @@ task.spawn(function()
 
 end)
 
--- طبقة التعتيم
-local Overlay = Create("Frame", {
-    Size = UDim2.fromScale(1, 1),
-    BackgroundColor3 = Color3.fromRGB(18, 5, 9),
-    BackgroundTransparency = 0.20,
-    BorderSizePixel = 0,
-    ZIndex = 2
-}, Main)
-
 --==================================================
 -- HEADER
 --==================================================
 
 local Header = Create("Frame", {
-    Size = UDim2.new(1, 0, 0, 58),
+    Size = UDim2.new(1, 0, 0, 52),
     BackgroundColor3 = DARK,
-    BackgroundTransparency = 0.04,
+    BackgroundTransparency = 0.08,
     BorderSizePixel = 0,
     ZIndex = 5
 }, Main)
 
--- Logo
+-- LOGO
+
 local Logo = Create("TextLabel", {
-    Position = UDim2.fromOffset(12, 9),
-    Size = UDim2.fromOffset(40, 40),
+    Position = UDim2.fromOffset(9, 7),
+    Size = UDim2.fromOffset(37, 37),
     BackgroundColor3 = RED,
     Text = "R",
     TextColor3 = WHITE,
-    TextSize = 27,
+    TextSize = 25,
     Font = Enum.Font.GothamBlack,
     ZIndex = 7
 }, Header)
 
-Corner(Logo, 11)
+Corner(Logo, 10)
 
--- Brand
+-- NAME
+
 Create("TextLabel", {
-    Position = UDim2.fromOffset(60, 8),
-    Size = UDim2.fromOffset(115, 24),
+    Position = UDim2.fromOffset(53, 7),
+    Size = UDim2.fromOffset(100, 22),
     BackgroundTransparency = 1,
     Text = CONFIG.Name,
     TextColor3 = WHITE,
-    TextSize = 16,
+    TextSize = 14,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
     ZIndex = 7
 }, Header)
 
 Create("TextLabel", {
-    Position = UDim2.fromOffset(60, 31),
-    Size = UDim2.fromOffset(115, 16),
+    Position = UDim2.fromOffset(53, 27),
+    Size = UDim2.fromOffset(100, 14),
     BackgroundTransparency = 1,
-    Text = "واجهة احترافية",
+    Text = "الإصدار " .. CONFIG.Version,
     TextColor3 = GRAY,
-    TextSize = 10,
+    TextSize = 9,
     Font = Enum.Font.Gotham,
     TextXAlignment = Enum.TextXAlignment.Left,
     ZIndex = 7
 }, Header)
 
--- Header information
-local function Info(text, x, width, color)
+-- PRO
 
-    local label = Create("TextLabel", {
-        Position = UDim2.fromOffset(x, 14),
-        Size = UDim2.fromOffset(width, 30),
-        BackgroundColor3 = PANEL,
-        Text = text,
-        TextColor3 = color,
-        TextSize = 10,
-        Font = Enum.Font.GothamBold,
-        ZIndex = 7
-    }, Header)
-
-    Corner(label, 8)
-
-    return label
-end
-
-Info("◷  00:00", 190, 72, WHITE)
-Info("● جاهز", 270, 72, GREEN)
-Info("◆ PRO", 350, 67, RED)
-
--- Search
-local Search = Create("TextBox", {
-    Position = UDim2.new(1, -185, 0, 14),
-    Size = UDim2.fromOffset(105, 30),
+local Pro = Create("TextLabel", {
+    Position = UDim2.new(1, -113, 0, 11),
+    Size = UDim2.fromOffset(48, 29),
     BackgroundColor3 = PANEL,
-    PlaceholderText = "⌕ بحث...",
-    PlaceholderColor3 = GRAY,
-    Text = "",
-    TextColor3 = WHITE,
+    Text = "PRO",
+    TextColor3 = RED,
     TextSize = 11,
-    Font = Enum.Font.Gotham,
-    ClearTextOnFocus = false,
+    Font = Enum.Font.GothamBold,
     ZIndex = 7
 }, Header)
 
-Corner(Search, 8)
+Corner(Pro, 7)
 
--- Notification
-local Bell = Create("TextButton", {
-    Position = UDim2.new(1, -76, 0, 12),
-    Size = UDim2.fromOffset(30, 34),
-    BackgroundTransparency = 1,
-    Text = "♧",
-    TextColor3 = WHITE,
-    TextSize = 19,
-    ZIndex = 7
-}, Header)
+-- MINIMIZE
 
--- Minimize
 local Minimize = Create("TextButton", {
-    Position = UDim2.new(1, -43, 0, 12),
-    Size = UDim2.fromOffset(24, 34),
+    Position = UDim2.new(1, -59, 0, 8),
+    Size = UDim2.fromOffset(25, 34),
     BackgroundTransparency = 1,
     Text = "−",
     TextColor3 = WHITE,
@@ -321,10 +289,11 @@ local Minimize = Create("TextButton", {
     ZIndex = 7
 }, Header)
 
--- Close
+-- CLOSE
+
 local Close = Create("TextButton", {
-    Position = UDim2.new(1, -20, 0, 12),
-    Size = UDim2.fromOffset(20, 34),
+    Position = UDim2.new(1, -31, 0, 8),
+    Size = UDim2.fromOffset(25, 34),
     BackgroundTransparency = 1,
     Text = "×",
     TextColor3 = RED,
@@ -337,30 +306,33 @@ local Close = Create("TextButton", {
 --==================================================
 
 local Sidebar = Create("Frame", {
-    Position = UDim2.fromOffset(0, 58),
-    Size = UDim2.new(0, 145, 1, -58),
-    BackgroundColor3 = Color3.fromRGB(14, 13, 16),
-    BackgroundTransparency = 0.05,
+    Position = UDim2.fromOffset(0, 52),
+    Size = UDim2.new(0, 115, 1, -52),
+    BackgroundColor3 = Color3.fromRGB(13, 12, 15),
+    BackgroundTransparency = 0.12,
     BorderSizePixel = 0,
     ZIndex = 5
 }, Main)
 
+-- TITLE
+
 Create("TextLabel", {
-    Position = UDim2.fromOffset(12, 12),
-    Size = UDim2.new(1, -24, 0, 22),
+    Position = UDim2.fromOffset(5, 12),
+    Size = UDim2.new(1, -10, 0, 22),
     BackgroundTransparency = 1,
-    Text = "القائمة الرئيسية",
+    Text = "الأقسام",
     TextColor3 = GRAY,
-    TextSize = 10,
+    TextSize = 11,
     Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left,
+    TextXAlignment = Enum.TextXAlignment.Center,
     ZIndex = 7
 }, Sidebar)
 
--- Scrolling menu
+-- MENU
+
 local Menu = Create("ScrollingFrame", {
     Position = UDim2.fromOffset(7, 42),
-    Size = UDim2.new(1, -14, 1, -105),
+    Size = UDim2.new(1, -14, 1, -100),
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 2,
@@ -371,12 +343,33 @@ local Menu = Create("ScrollingFrame", {
 }, Sidebar)
 
 Create("UIListLayout", {
-    Padding = UDim.new(0, 7),
+    Padding = UDim.new(0, 6),
     SortOrder = Enum.SortOrder.LayoutOrder
 }, Menu)
 
 --==================================================
--- PAGES
+-- CONTENT
+--==================================================
+
+local Content = Create("ScrollingFrame", {
+    Position = UDim2.new(0, 125, 0, 52),
+    Size = UDim2.new(1, -132, 1, -60),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ScrollBarThickness = 2,
+    ScrollBarImageColor3 = RED,
+    CanvasSize = UDim2.new(0, 0, 0, 0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    ZIndex = 5
+}, Main)
+
+local PageArea = Create("Frame", {
+    Size = UDim2.new(1, -8, 0, 280),
+    BackgroundTransparency = 1
+}, Content)
+
+--==================================================
+-- SECTIONS
 --==================================================
 
 local Sections = {
@@ -392,27 +385,6 @@ local Sections = {
 local Buttons = {}
 
 --==================================================
--- CONTENT AREA
---==================================================
-
-local Content = Create("ScrollingFrame", {
-    Position = UDim2.new(0, 155, 0, 58),
-    Size = UDim2.new(1, -165, 1, -68),
-    BackgroundTransparency = 1,
-    BorderSizePixel = 0,
-    ScrollBarThickness = 2,
-    ScrollBarImageColor3 = RED,
-    CanvasSize = UDim2.new(0, 0, 0, 0),
-    AutomaticCanvasSize = Enum.AutomaticSize.Y,
-    ZIndex = 5
-}, Main)
-
-local PageArea = Create("Frame", {
-    Size = UDim2.new(1, -10, 0, 310),
-    BackgroundTransparency = 1
-}, Content)
-
---==================================================
 -- PAGE BUILDER
 --==================================================
 
@@ -424,140 +396,146 @@ local function ShowPage(name)
 
         TweenService:Create(
             button,
-            TweenInfo.new(0.18),
+            TweenInfo.new(0.16),
             {
                 BackgroundColor3 = selected
-                    and Color3.fromRGB(125, 18, 35)
+                    and Color3.fromRGB(145, 20, 40)
                     or PANEL
             }
         ):Play()
 
         button.TextColor3 = selected and WHITE or GRAY
+
     end
 
     PageArea:ClearAllChildren()
 
-    -- Title
+    -- PAGE TITLE
+
     Create("TextLabel", {
-        Position = UDim2.fromOffset(15, 15),
-        Size = UDim2.new(1, -30, 0, 35),
+        Position = UDim2.fromOffset(12, 13),
+        Size = UDim2.new(1, -24, 0, 30),
         BackgroundTransparency = 1,
         Text = name,
         TextColor3 = WHITE,
-        TextSize = 22,
+        TextSize = 20,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left
     }, PageArea)
 
-    -- Description
     Create("TextLabel", {
-        Position = UDim2.fromOffset(15, 52),
-        Size = UDim2.new(1, -30, 0, 27),
+        Position = UDim2.fromOffset(12, 45),
+        Size = UDim2.new(1, -24, 0, 24),
         BackgroundTransparency = 1,
         Text = "مرحباً بك في ريكسل هب",
         TextColor3 = GRAY,
-        TextSize = 12,
+        TextSize = 11,
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left
     }, PageArea)
 
-    -- Main card
+    -- MAIN CARD
+
     local Card = Create("Frame", {
-        Position = UDim2.fromOffset(15, 95),
-        Size = UDim2.new(1, -30, 0, 100),
+        Position = UDim2.fromOffset(12, 82),
+        Size = UDim2.new(1, -24, 0, 90),
         BackgroundColor3 = Color3.fromRGB(15, 12, 16),
-        BackgroundTransparency = 0.05,
+        BackgroundTransparency = 0.12,
         BorderSizePixel = 0
     }, PageArea)
 
-    Corner(Card, 13)
-    Border(Card, RED, 1, 0.4)
+    Corner(Card, 12)
+    Stroke(Card, RED, 0.35)
 
     Create("TextLabel", {
-        Position = UDim2.fromOffset(14, 18),
-        Size = UDim2.fromOffset(48, 55),
+        Position = UDim2.fromOffset(12, 15),
+        Size = UDim2.fromOffset(45, 55),
         BackgroundTransparency = 1,
         Text = "★",
         TextColor3 = RED,
-        TextSize = 39,
+        TextSize = 36,
         Font = Enum.Font.GothamBold
     }, Card)
 
     Create("TextLabel", {
-        Position = UDim2.fromOffset(72, 22),
-        Size = UDim2.new(1, -85, 0, 25),
+        Position = UDim2.fromOffset(65, 17),
+        Size = UDim2.new(1, -75, 0, 24),
         BackgroundTransparency = 1,
         Text = "ريكسل هب",
         TextColor3 = RED,
-        TextSize = 16,
+        TextSize = 15,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left
     }, Card)
 
     Create("TextLabel", {
-        Position = UDim2.fromOffset(72, 51),
-        Size = UDim2.new(1, -85, 0, 30),
+        Position = UDim2.fromOffset(65, 43),
+        Size = UDim2.new(1, -75, 0, 35),
         BackgroundTransparency = 1,
         Text = "واجهة تجريبية - ستتم إضافة الوظائف لاحقاً",
         TextColor3 = WHITE,
         TextSize = 10,
         TextWrapped = true,
-        Font = Enum.Font.Gotham
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left
     }, Card)
 
-    -- Status card
+    -- STATUS CARD
+
     local Status = Create("Frame", {
-        Position = UDim2.fromOffset(15, 210),
-        Size = UDim2.new(1, -30, 0, 68),
+        Position = UDim2.fromOffset(12, 185),
+        Size = UDim2.new(1, -24, 0, 62),
         BackgroundColor3 = PANEL,
+        BackgroundTransparency = 0.08,
         BorderSizePixel = 0
     }, PageArea)
 
-    Corner(Status, 12)
+    Corner(Status, 10)
 
     Create("TextLabel", {
-        Position = UDim2.fromOffset(14, 9),
-        Size = UDim2.new(1, -25, 0, 22),
+        Position = UDim2.fromOffset(12, 7),
+        Size = UDim2.new(1, -24, 0, 20),
         BackgroundTransparency = 1,
         Text = "حالة الواجهة",
         TextColor3 = WHITE,
-        TextSize = 12,
+        TextSize = 11,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left
     }, Status)
 
     Create("TextLabel", {
-        Position = UDim2.fromOffset(14, 34),
-        Size = UDim2.new(1, -25, 0, 20),
+        Position = UDim2.fromOffset(12, 31),
+        Size = UDim2.new(1, -24, 0, 18),
         BackgroundTransparency = 1,
         Text = "● الواجهة تعمل بنجاح",
         TextColor3 = GREEN,
         TextSize = 10,
-        Font = Enum.Font.Gotham
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left
     }, Status)
 
 end
 
 --==================================================
--- CREATE MENU BUTTONS
+-- CREATE SECTION BUTTONS
 --==================================================
 
 for index, item in ipairs(Sections) do
 
     local Button = Create("TextButton", {
         Name = item[2],
-        Size = UDim2.new(1, 0, 0, 39),
+        Size = UDim2.new(1, 0, 0, 35),
         BackgroundColor3 = PANEL,
-        Text = item[1] .. "   " .. item[2],
+        Text = item[2],
         TextColor3 = GRAY,
         TextSize = 11,
         Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
+        TextXAlignment = Enum.TextXAlignment.Center,
         AutoButtonColor = false,
         LayoutOrder = index
     }, Menu)
 
-    Corner(Button, 9)
+    Corner(Button, 8)
 
     Buttons[item[2]] = Button
 
@@ -572,43 +550,55 @@ end
 --==================================================
 
 local Profile = Create("Frame", {
-    Position = UDim2.new(0, 8, 1, -54),
-    Size = UDim2.new(1, -16, 0, 43),
+    Position = UDim2.new(0, 7, 1, -48),
+    Size = UDim2.new(1, -14, 0, 38),
     BackgroundColor3 = PANEL,
     BorderSizePixel = 0,
     ZIndex = 8
 }, Sidebar)
 
-Corner(Profile, 10)
+Corner(Profile, 8)
 
 Create("TextLabel", {
-    Position = UDim2.fromOffset(9, 5),
-    Size = UDim2.new(1, -18, 0, 18),
+    Size = UDim2.new(1, 0, 0, 19),
     BackgroundTransparency = 1,
     Text = "ريكسل هب",
     TextColor3 = WHITE,
-    TextSize = 11,
+    TextSize = 10,
     Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left
+    TextXAlignment = Enum.TextXAlignment.Center
 }, Profile)
 
 Create("TextLabel", {
-    Position = UDim2.fromOffset(9, 23),
-    Size = UDim2.new(1, -18, 0, 14),
+    Position = UDim2.fromOffset(0, 19),
+    Size = UDim2.new(1, 0, 0, 15),
     BackgroundTransparency = 1,
-    Text = "الإصدار : 2.0",
+    Text = "الإصدار 3.0",
     TextColor3 = GRAY,
-    TextSize = 9,
+    TextSize = 8,
     Font = Enum.Font.Gotham,
-    TextXAlignment = Enum.TextXAlignment.Left
+    TextXAlignment = Enum.TextXAlignment.Center
 }, Profile)
-
--- Default page
-ShowPage("الرئيسية")
 
 --==================================================
 -- SEARCH
 --==================================================
+
+local Search = Create("TextBox", {
+    Position = UDim2.new(1, -165, 0, 11),
+    Size = UDim2.fromOffset(90, 29),
+    BackgroundColor3 = PANEL,
+    PlaceholderText = "بحث...",
+    PlaceholderColor3 = GRAY,
+    Text = "",
+    TextColor3 = WHITE,
+    TextSize = 10,
+    Font = Enum.Font.Gotham,
+    ClearTextOnFocus = false,
+    ZIndex = 7
+}, Header)
+
+Corner(Search, 7)
 
 Search:GetPropertyChangedSignal("Text"):Connect(function()
 
@@ -624,7 +614,7 @@ Search:GetPropertyChangedSignal("Text"):Connect(function()
 end)
 
 --==================================================
--- DRAG SYSTEM
+-- DRAG
 --==================================================
 
 local dragging = false
@@ -680,19 +670,19 @@ end)
 --==================================================
 
 local Reopen = Create("TextButton", {
-    Size = UDim2.fromOffset(52, 52),
-    Position = UDim2.new(0, 15, 0.5, -26),
+    Size = UDim2.fromOffset(46, 46),
+    Position = UDim2.new(0, 12, 0.5, -23),
     BackgroundColor3 = DARK,
     Text = "R",
     TextColor3 = RED,
-    TextSize = 27,
-    Font = Enum.Font.GothamBold,
+    TextSize = 25,
+    Font = Enum.Font.GothamBlack,
     Visible = false,
     ZIndex = 20
 }, GUI)
 
-Corner(Reopen, 12)
-Border(Reopen, RED, 2, 0.2)
+Corner(Reopen, 11)
+Stroke(Reopen, RED, 0.2)
 
 Minimize.MouseButton1Click:Connect(function()
 
@@ -712,4 +702,10 @@ Close.MouseButton1Click:Connect(function()
     GUI:Destroy()
 end)
 
-print("REXEL HUB PRO V2 LOADED")
+--==================================================
+-- START
+--==================================================
+
+ShowPage("الرئيسية")
+
+print("REXEL HUB PRO V3 LOADED")
