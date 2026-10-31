@@ -1,4 +1,4 @@
--- REXEL - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.1.0)
+-- REXEL Hub - Dark Sidebar UI + Existing Features (v64.1.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -140,15 +140,15 @@ local BROADCAST_SOUND_ID = "rbxassetid://17208361335"
 local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 
 local neonSpeed = 3.2
-local currentAccentColor = Color3.fromRGB(235, 35, 65)
-local currentHeaderColor = Color3.fromRGB(65, 8, 24)
+local currentAccentColor = Color3.fromRGB(132, 132, 146)
+local currentHeaderColor = Color3.fromRGB(10, 10, 14)
 local globalMediaVolume = 5.0
 
 -- تخطيط متجاوب حتى لا تخرج الأزرار عن شاشة الهاتف
 local responsiveState = {
     narrow = false,
-    mainSize = UDim2.new(0, 560, 0, 360),
-    mainPosition = UDim2.new(0.5, -280, 0.5, -180)
+    mainSize = UDim2.new(0, 770, 0, 470),
+    mainPosition = UDim2.new(0.5, 0, 0.5, 0)
 }
 local applyResponsiveMain
 local applyResponsiveChat
@@ -1071,7 +1071,7 @@ local LoadTitle = Instance.new("TextLabel")
 LoadTitle.Size = UDim2.new(1, 0, 0, 25)
 LoadTitle.Position = UDim2.new(0, 0, 0, 72)
 LoadTitle.BackgroundTransparency = 1
-LoadTitle.Text = "⚡ KEON // OVERDRIVE"
+LoadTitle.Text = "⚡ REXEL // HUB"
 LoadTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 LoadTitle.Font = Enum.Font.GothamBlack
 LoadTitle.TextSize = 18
@@ -1081,7 +1081,7 @@ local LoadSub = Instance.new("TextLabel")
 LoadSub.Size = UDim2.new(1, -18, 0, 30)
 LoadSub.Position = UDim2.new(0, 9, 0, 96)
 LoadSub.BackgroundTransparency = 1
-LoadSub.Text = "نظام نيون قتالي • إصدار المطور KEON"
+LoadSub.Text = "واجهة REXEL • جميع الأقسام في مكان واحد"
 LoadSub.TextColor3 = Color3.fromRGB(170, 205, 235)
 LoadSub.Font = Enum.Font.GothamBold
 LoadSub.TextWrapped = true
@@ -1142,8 +1142,8 @@ ScreenGui.Parent = parent
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 560, 0, 360)
-MainFrame.Position = UDim2.new(0.5, -280, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 770, 0, 470)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainFrame.BackgroundTransparency = 1
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -1157,10 +1157,10 @@ mainUIScaleObject.Parent = MainFrame
 
 local CenterGlow = Instance.new("Frame")
 CenterGlow.Name = "PS5SoftGlow"
-CenterGlow.Size = UDim2.new(0, 350, 1, 8)
-CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
-CenterGlow.BackgroundColor3 = Color3.fromRGB(0, 126, 255)
-CenterGlow.BackgroundTransparency = 0.91
+CenterGlow.Size = UDim2.new(1, 0, 1, 0)
+CenterGlow.Position = UDim2.new(0, 0, 0, 0)
+CenterGlow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+CenterGlow.BackgroundTransparency = 1
 CenterGlow.BorderSizePixel = 0
 CenterGlow.ZIndex = 0
 CenterGlow.Parent = MainFrame
@@ -1168,9 +1168,9 @@ Instance.new("UICorner", CenterGlow).CornerRadius = UDim.new(0, 19)
 
 local CenterBox = Instance.new("Frame")
 CenterBox.Name = "CenterBox"
-CenterBox.Size = UDim2.new(0, 340, 1, 0)
-CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
-CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+CenterBox.Size = UDim2.new(1, 0, 1, 0)
+CenterBox.Position = UDim2.new(0, 0, 0, 0)
+CenterBox.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
 CenterBox.BackgroundTransparency = 0
 CenterBox.BorderSizePixel = 0
 CenterBox.ClipsDescendants = true
@@ -1178,9 +1178,9 @@ CenterBox.Parent = MainFrame
 Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 16)
 local centerSurfaceGradient = Instance.new("UIGradient")
 centerSurfaceGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 20, 42)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(7, 14, 28)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 10, 22))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(13, 13, 17)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(9, 9, 12)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(13, 13, 17))
 })
 centerSurfaceGradient.Rotation = 110
 centerSurfaceGradient.Parent = CenterBox
@@ -1204,21 +1204,21 @@ local function applyScriptBackground(idx)
         BgImage.Image = wallUrls[idx]
         BgImage.Visible = true
         CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+        CenterBox.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
         BgImage.ImageTransparency = 0
     else
         BgImage.Image = ""
         BgImage.Visible = false
         CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+        CenterBox.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
     end
     saveUserSettings()
 end
 applyScriptBackground(selectedScriptBgIndex)
 
 local centerStroke = Instance.new("UIStroke")
-centerStroke.Color = currentAccentColor
-centerStroke.Thickness = 1.7
+centerStroke.Color = Color3.fromRGB(42, 42, 50)
+centerStroke.Thickness = 1.1
 centerStroke.Parent = CenterBox
 
 local centerNeonGradient = Instance.new("UIGradient")
@@ -1239,39 +1239,146 @@ task.spawn(function()
 end)
 
 local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 44)
-Header.BackgroundColor3 = currentHeaderColor
+Header.Size = UDim2.new(1, 0, 0, 58)
+Header.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
 Header.BorderSizePixel = 0
 Header.ZIndex = 3
 Header.Parent = CenterBox
 Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 16)
 local HeaderAccentLine = Instance.new("Frame")
 HeaderAccentLine.Name = "PS5AccentLine"
-HeaderAccentLine.Size = UDim2.new(1, -24, 0, 2)
-HeaderAccentLine.Position = UDim2.new(0, 12, 1, -3)
-HeaderAccentLine.BackgroundColor3 = currentAccentColor
+HeaderAccentLine.Size = UDim2.new(1, -20, 0, 1)
+HeaderAccentLine.Position = UDim2.new(0, 10, 1, -1)
+HeaderAccentLine.BackgroundColor3 = Color3.fromRGB(39, 39, 46)
 HeaderAccentLine.BorderSizePixel = 0
 HeaderAccentLine.ZIndex = 5
 HeaderAccentLine.Parent = Header
 Instance.new("UICorner", HeaderAccentLine).CornerRadius = UDim.new(1, 0)
 
+local BrandBadge = Instance.new("Frame")
+BrandBadge.Name = "RexelBrandBadge"
+BrandBadge.Size = UDim2.new(0, 34, 0, 34)
+BrandBadge.Position = UDim2.new(0, 12, 0, 11)
+BrandBadge.BackgroundColor3 = Color3.fromRGB(29, 29, 36)
+BrandBadge.BorderSizePixel = 0
+BrandBadge.ZIndex = 5
+BrandBadge.Parent = Header
+Instance.new("UICorner", BrandBadge).CornerRadius = UDim.new(0, 9)
+local BrandBadgeStroke = Instance.new("UIStroke")
+BrandBadgeStroke.Color = Color3.fromRGB(64, 64, 74)
+BrandBadgeStroke.Thickness = 1
+BrandBadgeStroke.Parent = BrandBadge
+local BrandLetter = Instance.new("TextLabel")
+BrandLetter.Size = UDim2.new(1, 0, 1, 0)
+BrandLetter.BackgroundTransparency = 1
+BrandLetter.Text = "R"
+BrandLetter.TextColor3 = Color3.fromRGB(245, 245, 248)
+BrandLetter.Font = Enum.Font.GothamBlack
+BrandLetter.TextSize = 21
+BrandLetter.ZIndex = 6
+BrandLetter.Parent = BrandBadge
+
 local TitleMain = Instance.new("TextLabel")
-TitleMain.Size = UDim2.new(1, -108, 1, 0)
-TitleMain.Position = UDim2.new(0, 10, 0, 0)
+TitleMain.Size = UDim2.new(0, 100, 0, 25)
+TitleMain.Position = UDim2.new(0, 55, 0, 8)
 TitleMain.BackgroundTransparency = 1
-TitleMain.Text = "◈  PLAYSTATION  •  REXEL"
-TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleMain.Font = Enum.Font.GothamBold
-TitleMain.TextSize = 15
-TitleMain.TextXAlignment = Enum.TextXAlignment.Center
+TitleMain.Text = "REXEL"
+TitleMain.TextColor3 = Color3.fromRGB(246, 246, 249)
+TitleMain.Font = Enum.Font.GothamBlack
+TitleMain.TextSize = 17
+TitleMain.TextXAlignment = Enum.TextXAlignment.Left
 TitleMain.ZIndex = 4
 TitleMain.Parent = Header
+
+local BrandSubTitle = Instance.new("TextLabel")
+BrandSubTitle.Size = UDim2.new(0, 110, 0, 13)
+BrandSubTitle.Position = UDim2.new(0, 56, 0, 32)
+BrandSubTitle.BackgroundTransparency = 1
+BrandSubTitle.Text = "GAME HUB"
+BrandSubTitle.TextColor3 = Color3.fromRGB(130, 130, 143)
+BrandSubTitle.Font = Enum.Font.GothamBold
+BrandSubTitle.TextSize = 8
+BrandSubTitle.TextXAlignment = Enum.TextXAlignment.Left
+BrandSubTitle.ZIndex = 4
+BrandSubTitle.Parent = Header
+
+local function makeHeaderChip(name, x, width, textValue)
+    local chip = Instance.new("Frame")
+    chip.Name = name
+    chip.Size = UDim2.new(0, width, 0, 29)
+    chip.Position = UDim2.new(0, x, 0, 14)
+    chip.BackgroundColor3 = Color3.fromRGB(23, 23, 29)
+    chip.BorderSizePixel = 0
+    chip.ZIndex = 4
+    chip.Parent = Header
+    Instance.new("UICorner", chip).CornerRadius = UDim.new(0, 9)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(43, 43, 51)
+    stroke.Thickness = 1
+    stroke.Parent = chip
+    local label = Instance.new("TextLabel")
+    label.Name = "Value"
+    label.Size = UDim2.new(1, -8, 1, 0)
+    label.Position = UDim2.new(0, 4, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = textValue
+    label.TextColor3 = Color3.fromRGB(205, 205, 214)
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 10
+    label.TextXAlignment = Enum.TextXAlignment.Center
+    label.ZIndex = 5
+    label.Parent = chip
+    return chip, label
+end
+
+local SessionChip, SessionChipText = makeHeaderChip("SessionChip", 168, 78, "00:00")
+local PlayersChip, PlayersChipText = makeHeaderChip("PlayersChip", 253, 78, "● 0 online")
+PlayersChipText.TextColor3 = Color3.fromRGB(142, 208, 155)
+
+local SearchWrap = Instance.new("Frame")
+SearchWrap.Name = "SectionSearch"
+SearchWrap.Size = UDim2.new(0, 245, 0, 29)
+SearchWrap.Position = UDim2.new(0, 340, 0, 14)
+SearchWrap.BackgroundColor3 = Color3.fromRGB(23, 23, 29)
+SearchWrap.BorderSizePixel = 0
+SearchWrap.ZIndex = 4
+SearchWrap.Parent = Header
+Instance.new("UICorner", SearchWrap).CornerRadius = UDim.new(0, 9)
+local SearchStroke = Instance.new("UIStroke")
+SearchStroke.Color = Color3.fromRGB(43, 43, 51)
+SearchStroke.Thickness = 1
+SearchStroke.Parent = SearchWrap
+local SearchIcon = Instance.new("TextLabel")
+SearchIcon.Size = UDim2.new(0, 26, 1, 0)
+SearchIcon.Position = UDim2.new(0, 5, 0, 0)
+SearchIcon.BackgroundTransparency = 1
+SearchIcon.Text = "⌕"
+SearchIcon.TextColor3 = Color3.fromRGB(140, 140, 153)
+SearchIcon.Font = Enum.Font.GothamBold
+SearchIcon.TextSize = 20
+SearchIcon.ZIndex = 5
+SearchIcon.Parent = SearchWrap
+local SectionSearchBox = Instance.new("TextBox")
+SectionSearchBox.Name = "SearchBox"
+SectionSearchBox.Size = UDim2.new(1, -38, 1, 0)
+SectionSearchBox.Position = UDim2.new(0, 34, 0, 0)
+SectionSearchBox.BackgroundTransparency = 1
+SectionSearchBox.Text = ""
+SectionSearchBox.PlaceholderText = "Search sections"
+SectionSearchBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 132)
+SectionSearchBox.TextColor3 = Color3.fromRGB(240, 240, 244)
+SectionSearchBox.Font = Enum.Font.Gotham
+SectionSearchBox.TextSize = 11
+SectionSearchBox.TextXAlignment = Enum.TextXAlignment.Left
+SectionSearchBox.ClearTextOnFocus = false
+SectionSearchBox.ZIndex = 5
+SectionSearchBox.Parent = SearchWrap
 
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Name = "MinimizeBtn"
 MinimizeBtn.Size = UDim2.new(0, 26, 0, 26)
 MinimizeBtn.Position = UDim2.new(1, -62, 0, 8)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(18, 86, 160)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 39)
 MinimizeBtn.Text = "–"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeBtn.Font = Enum.Font.GothamBold
@@ -1280,7 +1387,7 @@ MinimizeBtn.ZIndex = 4
 MinimizeBtn.Parent = Header
 Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 8)
 local minimizeStroke = Instance.new("UIStroke")
-minimizeStroke.Color = Color3.fromRGB(80, 180, 255)
+minimizeStroke.Color = Color3.fromRGB(70, 70, 80)
 minimizeStroke.Thickness = 0.8
 minimizeStroke.Parent = MinimizeBtn
 
@@ -1288,7 +1395,7 @@ local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Size = UDim2.new(0, 26, 0, 26)
 CloseBtn.Position = UDim2.new(1, -32, 0, 8)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(190, 61, 92)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(43, 31, 34)
 CloseBtn.Text = "✕"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.Font = Enum.Font.GothamBold
@@ -1301,7 +1408,7 @@ local HelpBtn = Instance.new("TextButton")
 HelpBtn.Name = "PS5HelpBtn"
 HelpBtn.Size = UDim2.new(0, 24, 0, 26)
 HelpBtn.Position = UDim2.new(1, -92, 0, 8)
-HelpBtn.BackgroundColor3 = Color3.fromRGB(12, 54, 96)
+HelpBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 39)
 HelpBtn.Text = "?"
 HelpBtn.TextColor3 = Color3.fromRGB(220, 244, 255)
 HelpBtn.Font = Enum.Font.GothamBlack
@@ -1369,28 +1476,49 @@ FloatingMinBox.MouseButton1Click:Connect(function()
     }):Play()
 end)
 
+local SidebarPanel = Instance.new("Frame")
+SidebarPanel.Name = "RexelSidebar"
+SidebarPanel.Size = UDim2.new(0, 166, 1, -58)
+SidebarPanel.Position = UDim2.new(0, 0, 0, 58)
+SidebarPanel.BackgroundColor3 = Color3.fromRGB(13, 13, 17)
+SidebarPanel.BorderSizePixel = 0
+SidebarPanel.ZIndex = 4
+SidebarPanel.Parent = MainFrame
+
+local SidebarDivider = Instance.new("Frame")
+SidebarDivider.Name = "SidebarDivider"
+SidebarDivider.Size = UDim2.new(0, 1, 1, -14)
+SidebarDivider.Position = UDim2.new(1, -1, 0, 7)
+SidebarDivider.BackgroundColor3 = Color3.fromRGB(37, 37, 44)
+SidebarDivider.BorderSizePixel = 0
+SidebarDivider.ZIndex = 5
+SidebarDivider.Parent = SidebarPanel
+
 local LeftWing = Instance.new("ScrollingFrame")
-LeftWing.Size = UDim2.new(0, 105, 1, -48)
-LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
+LeftWing.Name = "SidebarNavigation"
+LeftWing.Size = UDim2.new(1, -8, 1, -62)
+LeftWing.Position = UDim2.new(0, 4, 0, 8)
 LeftWing.BackgroundTransparency = 1
 LeftWing.BorderSizePixel = 0
-LeftWing.ScrollBarThickness = 0
+LeftWing.ScrollBarThickness = 2
+LeftWing.ScrollBarImageColor3 = Color3.fromRGB(90, 90, 102)
 LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
 LeftWing.CanvasSize = UDim2.new(0, 0, 0, 0)
-LeftWing.Parent = MainFrame
+LeftWing.Parent = SidebarPanel
 
 local LeftLayout = Instance.new("UIListLayout")
-LeftLayout.Padding = UDim.new(0, 7)
+LeftLayout.Padding = UDim.new(0, 6)
 LeftLayout.SortOrder = Enum.SortOrder.LayoutOrder
 LeftLayout.Parent = LeftWing
 
+-- kept as a hidden compatibility container; all tabs now live in the left sidebar
 local RightWing = Instance.new("ScrollingFrame")
-RightWing.Size = UDim2.new(0, 105, 1, -48)
-RightWing.Position = UDim2.new(0.5, 175, 0, 48)
+RightWing.Name = "LegacyRightNavigation"
+RightWing.Size = UDim2.new(0, 1, 0, 1)
+RightWing.Position = UDim2.new(0, 0, 0, 0)
 RightWing.BackgroundTransparency = 1
 RightWing.BorderSizePixel = 0
-RightWing.ScrollBarThickness = 0
-RightWing.ScrollingDirection = Enum.ScrollingDirection.Y
+RightWing.Visible = false
 RightWing.CanvasSize = UDim2.new(0, 0, 0, 0)
 RightWing.Parent = MainFrame
 
@@ -1398,6 +1526,48 @@ local RightLayout = Instance.new("UIListLayout")
 RightLayout.Padding = UDim.new(0, 7)
 RightLayout.SortOrder = Enum.SortOrder.LayoutOrder
 RightLayout.Parent = RightWing
+
+local SidebarFooter = Instance.new("Frame")
+SidebarFooter.Name = "SidebarUserCard"
+SidebarFooter.Size = UDim2.new(1, -16, 0, 44)
+SidebarFooter.Position = UDim2.new(0, 8, 1, -52)
+SidebarFooter.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
+SidebarFooter.BorderSizePixel = 0
+SidebarFooter.ZIndex = 5
+SidebarFooter.Parent = SidebarPanel
+Instance.new("UICorner", SidebarFooter).CornerRadius = UDim.new(0, 10)
+local SidebarAvatar = Instance.new("ImageLabel")
+SidebarAvatar.Size = UDim2.new(0, 30, 0, 30)
+SidebarAvatar.Position = UDim2.new(0, 7, 0.5, -15)
+SidebarAvatar.BackgroundColor3 = Color3.fromRGB(45, 45, 54)
+SidebarAvatar.BorderSizePixel = 0
+SidebarAvatar.ZIndex = 6
+SidebarAvatar.Parent = SidebarFooter
+Instance.new("UICorner", SidebarAvatar).CornerRadius = UDim.new(1, 0)
+loadAvatarThumbnail(LocalPlayer.UserId, SidebarAvatar)
+local SidebarUserName = Instance.new("TextLabel")
+SidebarUserName.Size = UDim2.new(1, -48, 0, 18)
+SidebarUserName.Position = UDim2.new(0, 44, 0, 5)
+SidebarUserName.BackgroundTransparency = 1
+SidebarUserName.Text = LocalPlayer.DisplayName or LocalPlayer.Name
+SidebarUserName.TextColor3 = Color3.fromRGB(238, 238, 242)
+SidebarUserName.Font = Enum.Font.GothamBold
+SidebarUserName.TextSize = 10
+SidebarUserName.TextXAlignment = Enum.TextXAlignment.Left
+SidebarUserName.TextTruncate = Enum.TextTruncate.AtEnd
+SidebarUserName.ZIndex = 6
+SidebarUserName.Parent = SidebarFooter
+local SidebarUserStatus = Instance.new("TextLabel")
+SidebarUserStatus.Size = UDim2.new(1, -48, 0, 14)
+SidebarUserStatus.Position = UDim2.new(0, 44, 0, 23)
+SidebarUserStatus.BackgroundTransparency = 1
+SidebarUserStatus.Text = "REXEL MEMBER"
+SidebarUserStatus.TextColor3 = Color3.fromRGB(132, 132, 145)
+SidebarUserStatus.Font = Enum.Font.Gotham
+SidebarUserStatus.TextSize = 8
+SidebarUserStatus.TextXAlignment = Enum.TextXAlignment.Left
+SidebarUserStatus.ZIndex = 6
+SidebarUserStatus.Parent = SidebarFooter
 
 KEONProfile.leftNavPadding = Instance.new("UIPadding")
 KEONProfile.leftNavPadding.PaddingLeft = UDim.new(0, 3)
@@ -1411,8 +1581,8 @@ KEONProfile.rightNavPadding.PaddingTop = UDim.new(0, 2)
 KEONProfile.rightNavPadding.Parent = RightWing
 
 local CenterScroll = Instance.new("ScrollingFrame")
-CenterScroll.Size = UDim2.new(1, -16, 1, -54)
-CenterScroll.Position = UDim2.new(0, 8, 0, 48)
+CenterScroll.Size = UDim2.new(1, -184, 1, -78)
+CenterScroll.Position = UDim2.new(0, 174, 0, 68)
 CenterScroll.BackgroundTransparency = 1
 CenterScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 CenterScroll.ScrollBarThickness = 4
@@ -1421,7 +1591,7 @@ CenterScroll.Parent = CenterBox
 
 local CenterLayout = Instance.new("UIListLayout")
 CenterLayout.SortOrder = Enum.SortOrder.LayoutOrder
-CenterLayout.Padding = UDim.new(0, 8)
+CenterLayout.Padding = UDim.new(0, 9)
 CenterLayout.Parent = CenterScroll
 
 local function getViewportSize()
@@ -1432,12 +1602,13 @@ end
 
 applyResponsiveMain = function()
     local viewport = getViewportSize()
-    local narrow = viewport.X < 650 or viewport.Y < 430
+    local narrow = viewport.X < 800 or viewport.Y < 520
     responsiveState.narrow = narrow
 
+    RightWing.Visible = false
     if narrow then
-        local width = math.max(300, math.floor(viewport.X - 12))
-        local height = math.max(300, math.min(560, math.floor(viewport.Y - 16)))
+        local width = math.max(280, math.floor(viewport.X - 12))
+        local height = math.max(300, math.min(590, math.floor(viewport.Y - 16)))
         responsiveState.mainSize = UDim2.new(0, width, 0, height)
         responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
 
@@ -1445,77 +1616,87 @@ applyResponsiveMain = function()
         MainFrame.Position = responsiveState.mainPosition
         CenterBox.Size = UDim2.new(1, 0, 1, 0)
         CenterBox.Position = UDim2.new(0, 0, 0, 0)
-        CenterGlow.Size = UDim2.new(1, 0, 1, 8)
-        CenterGlow.Position = UDim2.new(0, 0, 0, -4)
+        CenterGlow.Size = UDim2.new(1, 0, 1, 0)
+        CenterGlow.Position = UDim2.new(0, 0, 0, 0)
+        Header.Size = UDim2.new(1, 0, 0, 54)
+        Header.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
 
-        LeftWing.Size = UDim2.new(1, -12, 0, 36)
-        LeftWing.Position = UDim2.new(0, 6, 0, 48)
-        RightWing.Size = UDim2.new(1, -12, 0, 36)
-        RightWing.Position = UDim2.new(0, 6, 0, 88)
+        SidebarPanel.Size = UDim2.new(1, 0, 0, 42)
+        SidebarPanel.Position = UDim2.new(0, 0, 0, 54)
+        SidebarDivider.Visible = false
+        SidebarFooter.Visible = false
+        LeftWing.Size = UDim2.new(1, -8, 1, -6)
+        LeftWing.Position = UDim2.new(0, 4, 0, 3)
         LeftWing.ScrollingDirection = Enum.ScrollingDirection.X
-        RightWing.ScrollingDirection = Enum.ScrollingDirection.X
-        LeftWing.ScrollBarThickness = 2
-        RightWing.ScrollBarThickness = 2
+        LeftWing.ScrollBarThickness = 1
         LeftLayout.FillDirection = Enum.FillDirection.Horizontal
-        RightLayout.FillDirection = Enum.FillDirection.Horizontal
         LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-        RightLayout.VerticalAlignment = Enum.VerticalAlignment.Center
         LeftLayout.Padding = UDim.new(0, 6)
-        RightLayout.Padding = UDim.new(0, 6)
         LeftWing.ZIndex = 8
-        RightWing.ZIndex = 8
-
-        CenterScroll.Position = UDim2.new(0, 8, 0, 132)
-        CenterScroll.Size = UDim2.new(1, -16, 1, -140)
-        for _, navBtn in ipairs({LeftWing:GetChildren(), RightWing:GetChildren()}) do
-            for _, child in ipairs(navBtn) do
-                if child:IsA("TextButton") then
-                    child.Size = UDim2.new(0, 108, 0, 34)
-                    child.TextSize = 11.5
-                    child.ZIndex = 9
-                end
+        for _, child in ipairs(LeftWing:GetChildren()) do
+            if child:IsA("TextButton") then
+                child.Size = UDim2.new(0, 112, 0, 32)
+                child.TextSize = 11
+                child.ZIndex = 9
             end
         end
         LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
-        RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
+
+        CenterScroll.Position = UDim2.new(0, 8, 0, 104)
+        CenterScroll.Size = UDim2.new(1, -16, 1, -112)
+        BrandBadge.Size = UDim2.new(0, 30, 0, 30)
+        BrandBadge.Position = UDim2.new(0, 9, 0, 10)
+        TitleMain.Position = UDim2.new(0, 47, 0, 5)
+        TitleMain.Size = UDim2.new(0, 108, 0, 42)
+        TitleMain.TextSize = 16
+        BrandSubTitle.Visible = false
+        SessionChip.Visible = false
+        PlayersChip.Visible = false
+        SearchWrap.Visible = false
     else
-        responsiveState.mainSize = UDim2.new(0, 560, 0, 360)
+        responsiveState.mainSize = UDim2.new(0, 770, 0, 470)
         responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
         MainFrame.Size = responsiveState.mainSize
         MainFrame.Position = responsiveState.mainPosition
-        CenterBox.Size = UDim2.new(0, 340, 1, 0)
-        CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
-        CenterGlow.Size = UDim2.new(0, 350, 1, 8)
-        CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
-        LeftWing.Size = UDim2.new(0, 105, 1, -48)
-        LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
-        RightWing.Size = UDim2.new(0, 105, 1, -48)
-        RightWing.Position = UDim2.new(0.5, 175, 0, 48)
+        CenterBox.Size = UDim2.new(1, 0, 1, 0)
+        CenterBox.Position = UDim2.new(0, 0, 0, 0)
+        CenterGlow.Size = UDim2.new(1, 0, 1, 0)
+        CenterGlow.Position = UDim2.new(0, 0, 0, 0)
+        Header.Size = UDim2.new(1, 0, 0, 58)
+        Header.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
+
+        SidebarPanel.Size = UDim2.new(0, 166, 1, -58)
+        SidebarPanel.Position = UDim2.new(0, 0, 0, 58)
+        SidebarDivider.Visible = true
+        SidebarFooter.Visible = true
+        LeftWing.Size = UDim2.new(1, -8, 1, -62)
+        LeftWing.Position = UDim2.new(0, 4, 0, 8)
         LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
-        RightWing.ScrollingDirection = Enum.ScrollingDirection.Y
-        LeftWing.ScrollBarThickness = 0
-        RightWing.ScrollBarThickness = 0
+        LeftWing.ScrollBarThickness = 2
         LeftLayout.FillDirection = Enum.FillDirection.Vertical
-        RightLayout.FillDirection = Enum.FillDirection.Vertical
         LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-        RightLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-        LeftLayout.Padding = UDim.new(0, 7)
-        RightLayout.Padding = UDim.new(0, 7)
-        LeftWing.ZIndex = 1
-        RightWing.ZIndex = 1
-        CenterScroll.Position = UDim2.new(0, 8, 0, 48)
-        CenterScroll.Size = UDim2.new(1, -16, 1, -54)
-        for _, wing in ipairs({LeftWing, RightWing}) do
-            for _, child in ipairs(wing:GetChildren()) do
-                if child:IsA("TextButton") then
-                    child.Size = UDim2.new(1, -4, 0, 40)
-                    child.TextSize = 13
-                    child.ZIndex = 1
-                end
+        LeftLayout.Padding = UDim.new(0, 6)
+        LeftWing.ZIndex = 5
+        for _, child in ipairs(LeftWing:GetChildren()) do
+            if child:IsA("TextButton") then
+                child.Size = UDim2.new(1, -8, 0, 38)
+                child.TextSize = 12
+                child.ZIndex = 5
             end
         end
         LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
-        RightWing.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 8)
+
+        CenterScroll.Position = UDim2.new(0, 174, 0, 68)
+        CenterScroll.Size = UDim2.new(1, -184, 1, -78)
+        BrandBadge.Size = UDim2.new(0, 34, 0, 34)
+        BrandBadge.Position = UDim2.new(0, 12, 0, 11)
+        TitleMain.Position = UDim2.new(0, 55, 0, 8)
+        TitleMain.Size = UDim2.new(0, 100, 0, 25)
+        TitleMain.TextSize = 17
+        BrandSubTitle.Visible = true
+        SessionChip.Visible = true
+        PlayersChip.Visible = true
+        SearchWrap.Visible = true
     end
 end
 
@@ -1527,11 +1708,7 @@ LeftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     end
 end)
 RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    if responsiveState.narrow then
-        RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
-    else
-        RightWing.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 8)
-    end
+    RightWing.CanvasSize = UDim2.new(0, 0, 0, 0)
 end)
 CenterLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 24)
@@ -1570,7 +1747,7 @@ local HelpTitle = Instance.new("TextLabel")
 HelpTitle.Size = UDim2.new(1, -60, 0, 34)
 HelpTitle.Position = UDim2.new(0, 14, 0, 10)
 HelpTitle.BackgroundTransparency = 1
-HelpTitle.Text = "PLAYSTATION STYLE  •  دليل الواجهة"
+HelpTitle.Text = "REXEL STYLE  •  دليل الواجهة"
 HelpTitle.TextColor3 = Color3.fromRGB(240, 248, 255)
 HelpTitle.Font = Enum.Font.GothamBold
 HelpTitle.TextSize = 14
@@ -1616,7 +1793,7 @@ local HelpFoot = Instance.new("TextLabel")
 HelpFoot.Size = UDim2.new(1, -28, 0, 18)
 HelpFoot.Position = UDim2.new(0, 14, 1, -58)
 HelpFoot.BackgroundTransparency = 1
-HelpFoot.Text = "NEON UI  •  MUSIC  •  CHAT  •  WALLPAPERS"
+HelpFoot.Text = "REXEL UI  •  MUSIC  •  CHAT  •  WALLPAPERS"
 HelpFoot.TextColor3 = Color3.fromRGB(73, 173, 235)
 HelpFoot.Font = Enum.Font.GothamBold
 HelpFoot.TextSize = 9
@@ -2592,46 +2769,136 @@ end)
 ---------------------------------------------------------
 -- القوائم الأساسية وأزرار الواجهة
 ---------------------------------------------------------
+local selectedNavButton = nil
 local function createProStyleBtn(text, side)
+    local icons = {
+        ["الرئيسية"] = "⌂", ["موعد حدث"] = "◷", ["سكربتات"] = "✦",
+        ["تسجيل دخول"] = "◉", ["توب اللاعبين"] = "♛", ["الميديا والصوت"] = "♫",
+        ["تفعيلات"] = "✧", ["اقتراحات"] = "✎", ["اسرق البيض"] = "◈",
+        ["الإعدادات"] = "⚙", ["لوحة الأدمن"] = "♙"
+    }
+    local iconText = "›"
+    for key, symbol in pairs(icons) do
+        if string.find(text, key, 1, true) then iconText = symbol break end
+    end
+
     local btn = Instance.new("TextButton")
-    btn.Size = responsiveState.narrow and UDim2.new(0, 108, 0, 34) or UDim2.new(1, -4, 0, 40)
-    btn.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = responsiveState.narrow and 11.5 or 13
-    btn.TextScaled = true
+    btn.Name = "Nav_" .. tostring(#LeftWing:GetChildren() + 1)
+    btn.LayoutOrder = #LeftWing:GetChildren() + 1
+    btn.Size = responsiveState.narrow and UDim2.new(0, 112, 0, 32) or UDim2.new(1, -8, 0, 38)
+    btn.BackgroundColor3 = Color3.fromRGB(23, 23, 29)
+    btn.BackgroundTransparency = 0.12
+    btn.Text = "  " .. iconText .. "    " .. text
+    btn.TextColor3 = Color3.fromRGB(190, 190, 199)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = responsiveState.narrow and 11 or 12
+    btn.TextScaled = false
     btn.TextWrapped = false
     btn.TextTruncate = Enum.TextTruncate.AtEnd
+    btn.TextXAlignment = Enum.TextXAlignment.Left
     btn.AutoButtonColor = false
-    btn.ClipsDescendants = false
-    btn.ZIndex = responsiveState.narrow and 9 or 1
+    btn.ClipsDescendants = true
+    btn.ZIndex = responsiveState.narrow and 9 or 5
+    btn:SetAttribute("SearchText", text)
     local textConstraint = Instance.new("UITextSizeConstraint")
-    textConstraint.MinTextSize = 10
-    textConstraint.MaxTextSize = responsiveState.narrow and 12 or 13
+    textConstraint.MinTextSize = 9
+    textConstraint.MaxTextSize = responsiveState.narrow and 11 or 12
     textConstraint.Parent = btn
-    btn.Parent = (side == "left") and LeftWing or RightWing
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+    btn.Parent = LeftWing
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 
     local stroke = Instance.new("UIStroke")
-    stroke.Color = currentAccentColor
-    stroke.Thickness = 1.45
+    stroke.Color = Color3.fromRGB(51, 51, 60)
+    stroke.Thickness = 0.8
+    stroke.Transparency = 0.72
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Parent = btn
 
+    local activeMark = Instance.new("Frame")
+    activeMark.Name = "ActiveMark"
+    activeMark.Size = UDim2.new(0, 3, 0, 20)
+    activeMark.Position = UDim2.new(0, 3, 0.5, -10)
+    activeMark.BackgroundColor3 = Color3.fromRGB(210, 210, 220)
+    activeMark.BorderSizePixel = 0
+    activeMark.Visible = false
+    activeMark.ZIndex = btn.ZIndex + 1
+    activeMark.Parent = btn
+    Instance.new("UICorner", activeMark).CornerRadius = UDim.new(1, 0)
+
     table.insert(registeredWingStrokes, stroke)
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(0, 88, 145)
-        }):Play()
+        if selectedNavButton ~= btn then
+            TweenService:Create(btn, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                BackgroundColor3 = Color3.fromRGB(34, 34, 41)
+            }):Play()
+        end
     end)
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(8, 18, 36)
-        }):Play()
+        if selectedNavButton ~= btn then
+            TweenService:Create(btn, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                BackgroundColor3 = Color3.fromRGB(23, 23, 29)
+            }):Play()
+        end
+    end)
+    btn.MouseButton1Click:Connect(function()
+        selectedNavButton = btn
+        for _, sibling in ipairs(LeftWing:GetChildren()) do
+            if sibling:IsA("TextButton") then
+                local isSelected = sibling == btn
+                sibling.BackgroundColor3 = isSelected and Color3.fromRGB(43, 43, 51) or Color3.fromRGB(23, 23, 29)
+                sibling.TextColor3 = isSelected and Color3.fromRGB(250, 250, 252) or Color3.fromRGB(190, 190, 199)
+                local mark = sibling:FindFirstChild("ActiveMark")
+                if mark then mark.Visible = isSelected end
+                local siblingStroke = sibling:FindFirstChildWhichIsA("UIStroke")
+                if siblingStroke then siblingStroke.Transparency = isSelected and 0.25 or 0.72 end
+            end
+        end
     end)
     return btn
 end
+
+SectionSearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local query = string.lower(SectionSearchBox.Text or "")
+    for _, child in ipairs(LeftWing:GetChildren()) do
+        if child:IsA("TextButton") then
+            local searchText = string.lower(tostring(child:GetAttribute("SearchText") or child.Text))
+            child.Visible = query == "" or string.find(searchText, query, 1, true) ~= nil
+        end
+    end
+    task.defer(function()
+        if LeftWing and LeftWing.Parent then
+            if responsiveState.narrow then
+                LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
+            else
+                LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
+            end
+        end
+    end)
+end)
+
+task.spawn(function()
+    while Header and Header.Parent do
+        local elapsed = math.max(0, math.floor(os.clock() - (KEONProfile.sessionStartedClock or os.clock())))
+        local minutes = math.floor(elapsed / 60)
+        local seconds = elapsed % 60
+        SessionChipText.Text = string.format("%02d:%02d", minutes, seconds)
+        PlayersChipText.Text = "● " .. tostring(#Players:GetPlayers()) .. " online"
+        task.wait(1)
+    end
+end)
+
+Players.PlayerAdded:Connect(function()
+    if PlayersChipText and PlayersChipText.Parent then
+        PlayersChipText.Text = "● " .. tostring(#Players:GetPlayers()) .. " online"
+    end
+end)
+Players.PlayerRemoving:Connect(function()
+    task.defer(function()
+        if PlayersChipText and PlayersChipText.Parent then
+            PlayersChipText.Text = "● " .. tostring(math.max(0, #Players:GetPlayers() - 1)) .. " online"
+        end
+    end)
+end)
 
 local function addChilliAccordion(titleText, builderFunc)
     local folderFrame = Instance.new("Frame")
@@ -4428,7 +4695,7 @@ BtnSuggestions.MouseButton1Click:Connect(function()
                     Headers = {["Content-Type"] = "application/json"},
                     Body = HttpService:JSONEncode({
                         embeds = {{
-                            title = "💡 اقتراح جديد من مستخدم KEON Hub",
+                            title = "💡 اقتراح جديد من مستخدم REXEL",
                             description = textToSend,
                             color = 13107456,
                             fields = {
@@ -5228,83 +5495,29 @@ CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- KEON OVERDRIVE: مظهر حاد وفخم، بدون زوايا ناعمة أو حركة مطاطية
+-- REXEL UI: احتفظ بتنسيق كل عنصر كما صُمم في الواجهة الجديدة
 ---------------------------------------------------------
 local function applyOverdriveTheme(root)
     if not root then return end
-    local accent = currentAccentColor or Color3.fromRGB(235, 35, 65)
-    local panel = Color3.fromRGB(8, 10, 18)
-    local panel2 = Color3.fromRGB(18, 13, 23)
-    local white = Color3.fromRGB(245, 247, 255)
-    for _, obj in ipairs(root:GetDescendants()) do
-        pcall(function()
-            if obj:IsA("UICorner") then
-                obj.CornerRadius = UDim.new(0, 3)
-            elseif obj:IsA("UIStroke") then
-                -- لا تستبدل ألوان الحالات الخاصة؛ لون الثيم موحّد لبقية الإطارات.
-                if obj.Name == "KEONOverdriveStroke" or obj.Name == "KEONOverdriveEdge" or obj.Name == "VioletInnerEdge" then
-                    obj.Color = accent
-                elseif obj.Parent and obj.Parent:IsA("TextButton") then
-                    obj.Color = accent
-                end
-                obj.Thickness = math.max(obj.Thickness, 1.15)
-            elseif obj:IsA("TextButton") then
-                obj.AutoButtonColor = true
-                obj.BorderSizePixel = 0
-                obj.Font = Enum.Font.GothamBold
-                obj.TextColor3 = white
-                -- زر داكن بلمسة من لون الثيم، حتى تبقى الكتابة واضحة.
-                obj.BackgroundColor3 = Color3.new(
-                    math.clamp(accent.R * 0.24 + 0.035, 0, 1),
-                    math.clamp(accent.G * 0.24 + 0.025, 0, 1),
-                    math.clamp(accent.B * 0.24 + 0.035, 0, 1))
-                if not obj:FindFirstChild("KEONOverdriveStroke") then
-                    local st = Instance.new("UIStroke")
-                    st.Name = "KEONOverdriveStroke"
-                    st.Color = accent
-                    st.Thickness = 1.35
-                    st.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-                    st.Parent = obj
-                else
-                    obj.KEONOverdriveStroke.Color = accent
-                end
-            elseif obj:IsA("TextBox") then
-                obj.BackgroundColor3 = panel
-                obj.BorderSizePixel = 0
-                obj.TextColor3 = white
-                obj.PlaceholderColor3 = Color3.fromRGB(145, 145, 165)
-                if not obj:FindFirstChild("KEONOverdriveStroke") then
-                    local st = Instance.new("UIStroke")
-                    st.Name = "KEONOverdriveStroke"
-                    st.Color = accent
-                    st.Thickness = 1.1
-                    st.Parent = obj
-                else
-                    obj.KEONOverdriveStroke.Color = accent
-                end
-            elseif obj:IsA("TextLabel") then
-                if obj.BackgroundTransparency < 1 and obj.Name ~= "BgImage" then obj.BorderSizePixel = 0 end
-                if obj.TextTransparency == 0 and obj.Text ~= "" then obj.Font = Enum.Font.GothamBold end
-            elseif obj:IsA("Frame") then
-                obj.BorderSizePixel = 0
-                if obj.Name == "CenterBox" then
-                    -- اترك صورة الخلفية التي اختارها المستخدم ظاهرة.
-                    if not BgImage or not BgImage.Visible then obj.BackgroundColor3 = panel end
-                elseif obj.Name == "Header" then
-                    obj.BackgroundColor3 = currentHeaderColor
-                end
-            end
-        end)
+    -- لا نعيد فرض الثيم القديم على جميع الأزرار والزوايا؛ كل قسم يحتفظ بتنسيقه.
+    if Header and Header.Parent then
+        Header.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
+    end
+    if CenterBox and CenterBox.Parent and (not BgImage or not BgImage.Visible) then
+        CenterBox.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
     end
 end
 
 applyOverdriveTheme(MainFrame)
--- الواجهة تنشئ بعض البطاقات أثناء التشغيل؛ طبّق الستايل عليها بدون لمس وظائف الأزرار.
-task.spawn(function()
-    while ScreenGui and ScreenGui.Parent do
-        task.wait(4)
-        pcall(function() applyOverdriveTheme(MainFrame) end)
-    end
-end)
+
+if BtnMainHome and BtnMainHome.Parent then
+    selectedNavButton = BtnMainHome
+    BtnMainHome.BackgroundColor3 = Color3.fromRGB(43, 43, 51)
+    BtnMainHome.TextColor3 = Color3.fromRGB(250, 250, 252)
+    local homeMark = BtnMainHome:FindFirstChild("ActiveMark")
+    if homeMark then homeMark.Visible = true end
+    local homeStroke = BtnMainHome:FindFirstChildWhichIsA("UIStroke")
+    if homeStroke then homeStroke.Transparency = 0.25 end
+end
 
 showHomePage()
