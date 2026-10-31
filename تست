@@ -1,387 +1,623 @@
 
--- REXEL HUB | UI ONLY V1
--- Mobile Friendly | Delta
+--========================================
+--          REXEL HUB PRO V1
+--       UI ONLY | DELTA MOBILE
+--========================================
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
-local player = Players.LocalPlayer
-local gui = Instance.new("ScreenGui")
-gui.Name = "RexelHub"
-gui.ResetOnSpawn = false
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local Player = Players.LocalPlayer
 
-local parent = (gethui and gethui()) or player:WaitForChild("PlayerGui")
-gui.Parent = parent
+-- إعدادات
+local CONFIG = {
+    Name = "ريكسل هب",
+    Version = "1.0",
+    Background = "https://d.top4top.io/p_3956imcxl0.jpg"
+}
 
-local function new(class, props, parentObj)
-    local obj = Instance.new(class)
-    for k, v in pairs(props) do
-        obj[k] = v
+local RED = Color3.fromRGB(235, 25, 48)
+local DARK = Color3.fromRGB(12, 10, 13)
+local PANEL = Color3.fromRGB(20, 17, 21)
+local WHITE = Color3.fromRGB(245, 240, 242)
+local GRAY = Color3.fromRGB(155, 145, 150)
+
+-- إزالة النسخة القديمة
+local parent
+
+pcall(function()
+    parent = gethui()
+end)
+
+if not parent then
+    parent = Player:WaitForChild("PlayerGui")
+end
+
+local old = parent:FindFirstChild("REXEL_PRO")
+if old then old:Destroy() end
+
+-- إنشاء الواجهة
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "REXEL_PRO"
+GUI.ResetOnSpawn = false
+GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+GUI.Parent = parent
+
+-- أدوات مساعدة
+local function Create(class, properties, parentObject)
+    local object = Instance.new(class)
+
+    for property, value in pairs(properties) do
+        object[property] = value
     end
-    obj.Parent = parentObj
-    return obj
+
+    object.Parent = parentObject
+    return object
 end
 
-local function corner(obj, radius)
-    new("UICorner", {
+local function Round(object, radius)
+    Create("UICorner", {
         CornerRadius = UDim.new(0, radius)
-    }, obj)
+    }, object)
 end
 
-local function stroke(obj, color, thickness)
-    new("UIStroke", {
+local function Outline(object, color, thickness, transparency)
+    Create("UIStroke", {
         Color = color,
         Thickness = thickness or 1,
-        Transparency = 0.35
-    }, obj)
+        Transparency = transparency or 0.4
+    }, object)
 end
 
-local purple = Color3.fromRGB(145, 100, 255)
-local dark = Color3.fromRGB(12, 12, 16)
-local panel = Color3.fromRGB(19, 19, 24)
-local white = Color3.fromRGB(235, 235, 242)
-local muted = Color3.fromRGB(135, 135, 150)
+local function Fade(object, color, transparency)
+    return Create("Frame", {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundColor3 = color,
+        BackgroundTransparency = transparency,
+        BorderSizePixel = 0,
+        ZIndex = object.ZIndex + 1
+    }, object)
+end
 
--- Main window
-local main = new("Frame", {
+--========================================
+--              النافذة
+--========================================
+
+local Main = Create("Frame", {
+    Name = "Main",
     Size = UDim2.fromOffset(760, 440),
     Position = UDim2.new(0.5, -380, 0.5, -220),
-    BackgroundColor3 = dark,
-    BorderSizePixel = 0
-}, gui)
+    BackgroundColor3 = DARK,
+    BorderSizePixel = 0,
+    ClipsDescendants = true
+}, GUI)
 
-corner(main, 17)
-stroke(main, Color3.fromRGB(55, 55, 68), 1)
+Round(Main, 17)
+Outline(Main, RED, 1.3, 0.25)
 
--- Scale for mobile
-local scale = new("UIScale", {Scale = 1}, main)
+local Scale = Create("UIScale", {
+    Scale = 1
+}, Main)
 
-local function updateScale()
+local function UpdateScale()
     local camera = workspace.CurrentCamera
-    if camera then
-        local size = camera.ViewportSize
-        scale.Scale = math.min(1, size.X / 790, size.Y / 470)
+    if not camera then return end
+
+    local size = camera.ViewportSize
+    Scale.Scale = math.min(
+        1,
+        size.X / 790,
+        size.Y / 470
+    )
+end
+
+UpdateScale()
+
+--========================================
+--             الخلفية
+--========================================
+
+local Background = Create("ImageLabel", {
+    Name = "AnimeBackground",
+    Size = UDim2.fromScale(1, 1),
+    BackgroundTransparency = 1,
+    Image = CONFIG.Background,
+    ImageTransparency = 0.43,
+    ScaleType = Enum.ScaleType.Crop,
+    ZIndex = 1
+}, Main)
+
+local DarkOverlay = Create("Frame", {
+    Size = UDim2.fromScale(1, 1),
+    BackgroundColor3 = Color3.fromRGB(17, 5, 9),
+    BackgroundTransparency = 0.22,
+    BorderSizePixel = 0,
+    ZIndex = 2
+}, Main)
+
+--========================================
+--             الشريط العلوي
+--========================================
+
+local Header = Create("Frame", {
+    Size = UDim2.new(1, 0, 0, 65),
+    BackgroundColor3 = Color3.fromRGB(13, 11, 14),
+    BackgroundTransparency = 0.08,
+    BorderSizePixel = 0,
+    ZIndex = 5
+}, Main)
+
+-- الشعار
+local Logo = Create("TextLabel", {
+    Size = UDim2.fromOffset(40, 40),
+    Position = UDim2.fromOffset(13, 12),
+    BackgroundColor3 = RED,
+    Text = "R",
+    TextColor3 = WHITE,
+    TextSize = 29,
+    Font = Enum.Font.GothamBlack,
+    ZIndex = 6
+}, Header)
+
+Round(Logo, 12)
+
+local Brand = Create("TextLabel", {
+    Position = UDim2.fromOffset(62, 10),
+    Size = UDim2.fromOffset(145, 24),
+    BackgroundTransparency = 1,
+    Text = "ريكسل هب",
+    TextColor3 = WHITE,
+    TextSize = 17,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 6
+}, Header)
+
+local Subtitle = Create("TextLabel", {
+    Position = UDim2.fromOffset(62, 34),
+    Size = UDim2.fromOffset(145, 18),
+    BackgroundTransparency = 1,
+    Text = "واجهة احترافية",
+    TextColor3 = GRAY,
+    TextSize = 10,
+    Font = Enum.Font.Gotham,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 6
+}, Header)
+
+-- إحصائيات علوية
+local function TopInfo(text, x, width, color)
+    local box = Create("TextLabel", {
+        Position = UDim2.fromOffset(x, 17),
+        Size = UDim2.fromOffset(width, 31),
+        BackgroundColor3 = PANEL,
+        Text = text,
+        TextColor3 = color or WHITE,
+        TextSize = 11,
+        Font = Enum.Font.GothamBold,
+        ZIndex = 6
+    }, Header)
+
+    Round(box, 10)
+    Outline(box, RED, 0.7, 0.7)
+
+    return box
+end
+
+TopInfo("◷  00:00", 220, 78, WHITE)
+TopInfo("●  جاهز", 306, 78, Color3.fromRGB(100, 230, 130))
+TopInfo("◆  PRO", 392, 75, RED)
+
+-- البحث
+local Search = Create("TextBox", {
+    Position = UDim2.fromOffset(480, 16),
+    Size = UDim2.fromOffset(130, 33),
+    BackgroundColor3 = PANEL,
+    PlaceholderText = "⌕  بحث",
+    Text = "",
+    TextColor3 = WHITE,
+    PlaceholderColor3 = GRAY,
+    TextSize = 12,
+    Font = Enum.Font.Gotham,
+    ClearTextOnFocus = false,
+    ZIndex = 6
+}, Header)
+
+Round(Search, 10)
+
+-- زر الإشعارات
+local Bell = Create("TextButton", {
+    Position = UDim2.fromOffset(616, 15),
+    Size = UDim2.fromOffset(35, 35),
+    BackgroundColor3 = PANEL,
+    Text = "♧",
+    TextColor3 = WHITE,
+    TextSize = 19,
+    ZIndex = 6
+}, Header)
+
+Round(Bell, 9)
+
+-- التصغير والإغلاق
+local Minimize = Create("TextButton", {
+    Position = UDim2.new(1, -78, 0, 15),
+    Size = UDim2.fromOffset(30, 35),
+    BackgroundTransparency = 1,
+    Text = "−",
+    TextColor3 = WHITE,
+    TextSize = 23,
+    ZIndex = 6
+}, Header)
+
+local Close = Create("TextButton", {
+    Position = UDim2.new(1, -43, 0, 15),
+    Size = UDim2.fromOffset(30, 35),
+    BackgroundTransparency = 1,
+    Text = "×",
+    TextColor3 = RED,
+    TextSize = 24,
+    ZIndex = 6
+}, Header)
+
+--========================================
+--              القائمة الجانبية
+--========================================
+
+local Sidebar = Create("Frame", {
+    Position = UDim2.fromOffset(0, 65),
+    Size = UDim2.new(0, 165, 1, -65),
+    BackgroundColor3 = Color3.fromRGB(13, 11, 15),
+    BackgroundTransparency = 0.08,
+    BorderSizePixel = 0,
+    ZIndex = 4
+}, Main)
+
+local MenuTitle = Create("TextLabel", {
+    Position = UDim2.fromOffset(17, 13),
+    Size = UDim2.fromOffset(130, 22),
+    BackgroundTransparency = 1,
+    Text = "القائمة الرئيسية",
+    TextColor3 = GRAY,
+    TextSize = 10,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 6
+}, Sidebar)
+
+local Pages = {
+    {"⌂", "الرئيسية"},
+    {"♛", "الأدوات"},
+    {"▦", "الانتقال"},
+    {"◉", "المرئيات"},
+    {"♟", "اللاعب"},
+    {"✦", "متنوع"},
+    {"⚙", "الإعدادات"}
+}
+
+--========================================
+--              المحتوى
+--========================================
+
+local Content = Create("Frame", {
+    Position = UDim2.fromOffset(166, 65),
+    Size = UDim2.new(1, -166, 1, -65),
+    BackgroundTransparency = 1,
+    ZIndex = 4
+}, Main)
+
+local PageButtons = {}
+local CurrentPage = "الرئيسية"
+
+local function ClearContent()
+    for _, item in ipairs(Content:GetChildren()) do
+        item:Destroy()
     end
 end
 
-updateScale()
+local function ShowPage(pageName)
 
--- Drag system
-local dragging, dragStart, startPos
+    CurrentPage = pageName
 
-main.InputBegan:Connect(function(input)
+    for name, button in pairs(PageButtons) do
+        local selected = name == pageName
+
+        TweenService:Create(
+            button,
+            TweenInfo.new(0.2),
+            {
+                BackgroundColor3 = selected
+                    and Color3.fromRGB(95, 12, 27)
+                    or Color3.fromRGB(19, 16, 20)
+            }
+        ):Play()
+
+        button.TextColor3 = selected and WHITE or GRAY
+    end
+
+    ClearContent()
+
+    -- عنوان الصفحة
+    Create("TextLabel", {
+        Position = UDim2.fromOffset(27, 23),
+        Size = UDim2.new(1, -50, 0, 38),
+        BackgroundTransparency = 1,
+        Text = pageName,
+        TextColor3 = WHITE,
+        TextSize = 24,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 6
+    }, Content)
+
+    Create("TextLabel", {
+        Position = UDim2.fromOffset(29, 61),
+        Size = UDim2.new(1, -50, 0, 25),
+        BackgroundTransparency = 1,
+        Text = "مرحباً بك في ريكسل هب",
+        TextColor3 = GRAY,
+        TextSize = 12,
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 6
+    }, Content)
+
+    -- البطاقة الرئيسية
+    local Card = Create("Frame", {
+        Position = UDim2.fromOffset(25, 108),
+        Size = UDim2.new(1, -50, 0, 112),
+        BackgroundColor3 = Color3.fromRGB(13, 10, 14),
+        BackgroundTransparency = 0.12,
+        BorderSizePixel = 0,
+        ZIndex = 6
+    }, Content)
+
+    Round(Card, 14)
+    Outline(Card, RED, 1, 0.55)
+
+    -- أيقونة
+    local Star = Create("TextLabel", {
+        Position = UDim2.fromOffset(17, 25),
+        Size = UDim2.fromOffset(55, 55),
+        BackgroundTransparency = 1,
+        Text = "★",
+        TextColor3 = RED,
+        TextSize = 43,
+        Font = Enum.Font.GothamBold,
+        ZIndex = 7
+    }, Card)
+
+    Create("TextLabel", {
+        Position = UDim2.fromOffset(85, 25),
+        Size = UDim2.new(1, -105, 0, 27),
+        BackgroundTransparency = 1,
+        Text = "ريكسل هب",
+        TextColor3 = RED,
+        TextSize = 17,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 7
+    }, Card)
+
+    Create("TextLabel", {
+        Position = UDim2.fromOffset(85, 54),
+        Size = UDim2.new(1, -105, 0, 25),
+        BackgroundTransparency = 1,
+        Text = "واجهة تجريبية - سيتم إضافة الوظائف لاحقاً",
+        TextColor3 = WHITE,
+        TextSize = 11,
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 7
+    }, Card)
+
+    -- بطاقة الحالة
+    local StatusCard = Create("Frame", {
+        Position = UDim2.fromOffset(25, 235),
+        Size = UDim2.new(1, -50, 0, 65),
+        BackgroundColor3 = PANEL,
+        BackgroundTransparency = 0.1,
+        BorderSizePixel = 0,
+        ZIndex = 6
+    }, Content)
+
+    Round(StatusCard, 12)
+
+    Create("TextLabel", {
+        Position = UDim2.fromOffset(15, 10),
+        Size = UDim2.new(1, -30, 0, 20),
+        BackgroundTransparency = 1,
+        Text = "حالة الواجهة",
+        TextColor3 = WHITE,
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 7
+    }, StatusCard)
+
+    Create("TextLabel", {
+        Position = UDim2.fromOffset(15, 33),
+        Size = UDim2.new(1, -30, 0, 20),
+        BackgroundTransparency = 1,
+        Text = "● الواجهة تعمل بنجاح",
+        TextColor3 = Color3.fromRGB(100, 220, 130),
+        TextSize = 11,
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 7
+    }, StatusCard)
+
+end
+
+-- إنشاء أزرار القائمة
+for index, data in ipairs(Pages) do
+
+    local Button = Create("TextButton", {
+        Name = data[2],
+        Position = UDim2.fromOffset(9, 43 + (index - 1) * 44),
+        Size = UDim2.new(1, -18, 0, 37),
+        BackgroundColor3 = PANEL,
+        Text = "   " .. data[1] .. "    " .. data[2],
+        TextColor3 = GRAY,
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        AutoButtonColor = false,
+        ZIndex = 6
+    }, Sidebar)
+
+    Round(Button, 9)
+
+    PageButtons[data[2]] = Button
+
+    Button.MouseButton1Click:Connect(function()
+        ShowPage(data[2])
+    end)
+
+end
+
+-- الملف الشخصي أسفل القائمة
+local Profile = Create("Frame", {
+    Position = UDim2.new(0, 10, 1, -58),
+    Size = UDim2.new(1, -20, 0, 46),
+    BackgroundColor3 = PANEL,
+    BorderSizePixel = 0,
+    ZIndex = 6
+}, Sidebar)
+
+Round(Profile, 12)
+
+Create("TextLabel", {
+    Position = UDim2.fromOffset(10, 5),
+    Size = UDim2.fromOffset(135, 18),
+    BackgroundTransparency = 1,
+    Text = "ريكسل هب",
+    TextColor3 = WHITE,
+    TextSize = 12,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 7
+}, Profile)
+
+Create("TextLabel", {
+    Position = UDim2.fromOffset(10, 23),
+    Size = UDim2.fromOffset(135, 16),
+    BackgroundTransparency = 1,
+    Text = "الإصدار : 1.0",
+    TextColor3 = GRAY,
+    TextSize = 10,
+    Font = Enum.Font.Gotham,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 7
+}, Profile)
+
+--========================================
+--           البحث بين الأقسام
+--========================================
+
+Search:GetPropertyChangedSignal("Text"):Connect(function()
+
+    local query = Search.Text:lower()
+
+    for name, button in pairs(PageButtons) do
+        button.Visible = query == ""
+            or name:lower():find(query, 1, true) ~= nil
+    end
+
+end)
+
+-- الصفحة الافتراضية
+ShowPage("الرئيسية")
+
+--========================================
+--             السحب باللمس
+--========================================
+
+local dragging = false
+local dragStart
+local startPosition
+
+Header.InputBegan:Connect(function(input)
+
     if input.UserInputType == Enum.UserInputType.MouseButton1
     or input.UserInputType == Enum.UserInputType.Touch then
+
         dragging = true
         dragStart = input.Position
-        startPos = main.Position
+        startPosition = Main.Position
+
     end
 end)
 
 UIS.InputChanged:Connect(function(input)
+
     if dragging and (
         input.UserInputType == Enum.UserInputType.MouseMovement
         or input.UserInputType == Enum.UserInputType.Touch
     ) then
+
         local delta = input.Position - dragStart
-        main.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
+
+        Main.Position = UDim2.new(
+            startPosition.X.Scale,
+            startPosition.X.Offset + delta.X,
+            startPosition.Y.Scale,
+            startPosition.Y.Offset + delta.Y
         )
+
     end
 end)
 
 UIS.InputEnded:Connect(function(input)
+
     if input.UserInputType == Enum.UserInputType.MouseButton1
     or input.UserInputType == Enum.UserInputType.Touch then
         dragging = false
     end
+
 end)
 
--- Sidebar
-local sidebar = new("Frame", {
-    Size = UDim2.new(0, 165, 1, -58),
-    Position = UDim2.fromOffset(0, 58),
-    BackgroundColor3 = Color3.fromRGB(15, 15, 19),
-    BorderSizePixel = 0
-}, main)
+--========================================
+--           التصغير وإعادة الفتح
+--========================================
 
--- Header
-local header = new("Frame", {
-    Size = UDim2.new(1, 0, 0, 58),
-    BackgroundColor3 = Color3.fromRGB(15, 15, 19),
-    BorderSizePixel = 0
-}, main)
+local Minimized = false
 
-local logo = new("TextLabel", {
-    Size = UDim2.fromOffset(36, 36),
-    Position = UDim2.fromOffset(13, 11),
-    BackgroundColor3 = Color3.fromRGB(34, 34, 44),
+local Reopen = Create("TextButton", {
+    Size = UDim2.fromOffset(53, 53),
+    Position = UDim2.new(0, 18, 0.5, -26),
+    BackgroundColor3 = DARK,
     Text = "R",
-    TextColor3 = purple,
-    TextSize = 25,
-    Font = Enum.Font.GothamBold
-}, header)
-corner(logo, 10)
+    TextColor3 = RED,
+    TextSize = 29,
+    Font = Enum.Font.GothamBlack,
+    Visible = false,
+    ZIndex = 20
+}, GUI)
 
-new("TextLabel", {
-    Position = UDim2.fromOffset(58, 8),
-    Size = UDim2.fromOffset(145, 23),
-    BackgroundTransparency = 1,
-    Text = "REXEL HUB",
-    TextColor3 = white,
-    TextSize = 15,
-    Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left
-}, header)
+Round(Reopen, 13)
+Outline(Reopen, RED, 2, 0.15)
 
-new("TextLabel", {
-    Position = UDim2.fromOffset(58, 29),
-    Size = UDim2.fromOffset(150, 17),
-    BackgroundTransparency = 1,
-    Text = "Universal Interface",
-    TextColor3 = muted,
-    TextSize = 10,
-    Font = Enum.Font.Gotham
-}, header)
+Minimize.MouseButton1Click:Connect(function()
 
--- Top status
-local function status(text, x, width, color)
-    local box = new("TextLabel", {
-        Position = UDim2.fromOffset(x, 14),
-        Size = UDim2.fromOffset(width, 29),
-        BackgroundColor3 = panel,
-        Text = text,
-        TextColor3 = color or white,
-        TextSize = 11,
-        Font = Enum.Font.GothamMedium
-    }, header)
-    corner(box, 8)
-end
+    if Minimized then return end
 
-status("◷  00:00", 225, 78, white)
-status("●  UI ONLY", 311, 88, purple)
-status("◆  READY", 407, 85, Color3.fromRGB(90, 220, 140))
+    Minimized = true
+    Main.Visible = false
+    Reopen.Visible = true
 
--- Search
-local search = new("TextBox", {
-    Position = UDim2.fromOffset(505, 13),
-    Size = UDim2.fromOffset(155, 32),
-    BackgroundColor3 = panel,
-    PlaceholderText = "⌕  Search",
-    Text = "",
-    TextColor3 = white,
-    PlaceholderColor3 = muted,
-    TextSize = 12,
-    Font = Enum.Font.Gotham,
-    ClearTextOnFocus = false
-}, header)
-corner(search, 9)
-
--- Minimize and close
-local close = new("TextButton", {
-    Position = UDim2.new(1, -39, 0, 12),
-    Size = UDim2.fromOffset(28, 32),
-    BackgroundTransparency = 1,
-    Text = "×",
-    TextColor3 = white,
-    TextSize = 23,
-    Font = Enum.Font.Gotham
-}, header)
-
-local minimize = new("TextButton", {
-    Position = UDim2.new(1, -75, 0, 12),
-    Size = UDim2.fromOffset(28, 32),
-    BackgroundTransparency = 1,
-    Text = "−",
-    TextColor3 = white,
-    TextSize = 23
-}, header)
-
--- Sidebar title
-new("TextLabel", {
-    Position = UDim2.fromOffset(17, 12),
-    Size = UDim2.fromOffset(120, 22),
-    BackgroundTransparency = 1,
-    Text = "MAIN MENU",
-    TextColor3 = muted,
-    TextSize = 10,
-    Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left
-}, sidebar)
-
--- Sidebar buttons
-local sections = {
-    {"⌂", "Home"},
-    {"♧", "Universal"},
-    {"◈", "Movement"},
-    {"◇", "Visuals"},
-    {"♙", "Player"},
-    {"✧", "Misc"},
-    {"⚙", "Settings"}
-}
-
-local content = new("Frame", {
-    Position = UDim2.fromOffset(166, 59),
-    Size = UDim2.new(1, -166, 1, -59),
-    BackgroundColor3 = dark,
-    BorderSizePixel = 0
-}, main)
-
-local buttons = {}
-local activePage
-
-local function showPage(name)
-    activePage = name
-
-    for _, b in pairs(buttons) do
-        local selected = b.Name == name
-        TweenService:Create(b, TweenInfo.new(0.15), {
-            BackgroundColor3 = selected
-                and Color3.fromRGB(43, 34, 62)
-                or Color3.fromRGB(15, 15, 19)
-        }):Play()
-    end
-
-    for _, child in pairs(content:GetChildren()) do
-        child:Destroy()
-    end
-
-    new("TextLabel", {
-        Position = UDim2.fromOffset(25, 22),
-        Size = UDim2.new(1, -45, 0, 35),
-        BackgroundTransparency = 1,
-        Text = name,
-        TextColor3 = white,
-        TextSize = 21,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left
-    }, content)
-
-    new("TextLabel", {
-        Position = UDim2.fromOffset(26, 60),
-        Size = UDim2.new(1, -50, 0, 25),
-        BackgroundTransparency = 1,
-        Text = "Welcome to REXEL HUB",
-        TextColor3 = muted,
-        TextSize = 12,
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left
-    }, content)
-
-    local card = new("Frame", {
-        Position = UDim2.fromOffset(25, 105),
-        Size = UDim2.new(1, -50, 0, 90),
-        BackgroundColor3 = panel,
-        BorderSizePixel = 0
-    }, content)
-    corner(card, 12)
-    stroke(card, Color3.fromRGB(55, 55, 68))
-
-    new("TextLabel", {
-        Position = UDim2.fromOffset(16, 12),
-        Size = UDim2.new(1, -30, 0, 25),
-        BackgroundTransparency = 1,
-        Text = "REXEL | " .. name,
-        TextColor3 = purple,
-        TextSize = 14,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left
-    }, card)
-
-    new("TextLabel", {
-        Position = UDim2.fromOffset(16, 42),
-        Size = UDim2.new(1, -30, 0, 25),
-        BackgroundTransparency = 1,
-        Text = "Interface preview - No functions added yet",
-        TextColor3 = muted,
-        TextSize = 11,
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left
-    }, card)
-end
-
-for i, item in ipairs(sections) do
-    local b = new("TextButton", {
-        Name = item[2],
-        Position = UDim2.fromOffset(9, 43 + (i-1)*43),
-        Size = UDim2.new(1, -18, 0, 36),
-        BackgroundColor3 = Color3.fromRGB(15, 15, 19),
-        Text = "   " .. item[1] .. "     " .. item[2],
-        TextColor3 = muted,
-        TextSize = 12,
-        Font = Enum.Font.GothamMedium,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        AutoButtonColor = false
-    }, sidebar)
-
-    corner(b, 9)
-    buttons[item[2]] = b
-
-    b.MouseButton1Click:Connect(function()
-        showPage(item[2])
-    end)
-end
-
--- Sidebar footer
-new("TextLabel", {
-    Position = UDim2.new(0, 15, 1, -48),
-    Size = UDim2.new(1, -25, 0, 35),
-    BackgroundTransparency = 1,
-    Text = "REXEL HUB  •  V1",
-    TextColor3 = muted,
-    TextSize = 10,
-    Font = Enum.Font.Gotham
-}, sidebar)
-
-showPage("Home")
-
--- Minimize
-local minimized = false
-minimize.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    sidebar.Visible = not minimized
-    content.Visible = not minimized
-    main.Size = minimized
-        and UDim2.fromOffset(250, 58)
-        or UDim2.fromOffset(760, 440)
-    minimize.Text = minimized and "+" or "−"
 end)
 
-close.MouseButton1Click:Connect(function()
-    gui:Destroy()
+Reopen.MouseButton1Click:Connect(function()
+
+    Minimized = false
+    Main.Visible = true
+    Reopen.Visible = false
+
 end)
 
--- Floating reopen button
-local reopen = new("TextButton", {
-    Size = UDim2.fromOffset(52, 52),
-    Position = UDim2.new(0, 20, 0.5, -26),
-    BackgroundColor3 = Color3.fromRGB(22, 22, 29),
-    Text = "R",
-    TextColor3 = purple,
-    TextSize = 25,
-    Font = Enum.Font.GothamBold,
-    Visible = false
-}, gui)
-corner(reopen, 12)
-stroke(reopen, purple, 1)
-
-reopen.MouseButton1Click:Connect(function()
-    main.Visible = true
-    reopen.Visible = false
+Close.MouseButton1Click:Connect(function()
+    GUI:Destroy()
 end)
 
--- Minimize to floating icon
-minimize.MouseButton1Click:Connect(function()
-    if minimized then
-        main.Visible = false
-        reopen.Visible = true
-    else
-        main.Visible = true
-        reopen.Visible = false
-    end
-end)
+print("REXEL HUB PRO V1 LOADED")
