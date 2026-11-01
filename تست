@@ -1,276 +1,493 @@
 --[[
-    REXEL | ريكسل
-    واجهة Roblox صغيرة باللغة العربية، مستوحاة من الصورة المرفقة.
-    ضع رقم صورة Roblox في IMAGE_ID بعد رفع الصورة إلى Creator Dashboard.
-    ملاحظة: هذا قالب واجهة فقط؛ لا يتضمن غشاً أو سرقة عناصر أو تجاوز أنظمة اللعبة.
+    REXEL HUB | ريكسل
+    واجهة Roblox عربية بتصميم أحمر/أسود مستوحى من الصورة المرجعية.
+    الخلفية: ارفع صورة الخلفية إلى Roblox Creator Dashboard ثم ضع رقمها أدناه.
+    مثال: "rbxassetid://1234567890"
+
+    هذه واجهة UI؛ اربط الأزرار بوظائف لعبتك المسموح بها.
 ]]
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local IMAGE_ID = "PUT_ROBLOX_IMAGE_ID_HERE" -- مثال: rbxassetid://1234567890
+-- خلفية مدمجة داخل السكربت: لا تحتاج إلى Image ID أو رفع صورة
 
-local old = playerGui:FindFirstChild("RixelHub")
-if old then old:Destroy() end
+local oldGui = playerGui:FindFirstChild("RixelHub")
+if oldGui then oldGui:Destroy() end
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RixelHub"
 gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
-local main = Instance.new("Frame")
-main.Name = "Main"
-main.Size = UDim2.fromOffset(500, 310)
-main.Position = UDim2.new(0.5, -250, 0.5, -155)
-main.BackgroundColor3 = Color3.fromRGB(13, 13, 17)
-main.BackgroundTransparency = 0.08
-main.BorderSizePixel = 0
-main.ClipsDescendants = true
-main.Parent = gui
+local function new(className, props, parent)
+    local obj = Instance.new(className)
+    for key, value in pairs(props) do
+        obj[key] = value
+    end
+    obj.Parent = parent
+    return obj
+end
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
-corner.Parent = main
+local function round(obj, radius)
+    new("UICorner", {CornerRadius = UDim.new(0, radius)}, obj)
+end
 
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(80, 190, 255)
-stroke.Transparency = 0.25
-stroke.Thickness = 1.4
-stroke.Parent = main
+local function outline(obj, color, transparency, thickness)
+    new("UIStroke", {
+        Color = color,
+        Transparency = transparency or 0,
+        Thickness = thickness or 1
+    }, obj)
+end
 
-local bg = Instance.new("ImageLabel")
-bg.Name = "Background"
-bg.Size = UDim2.fromScale(1, 1)
-bg.BackgroundTransparency = 1
-bg.Image = IMAGE_ID
-bg.ImageTransparency = 0.72
-bg.ScaleType = Enum.ScaleType.Crop
-bg.ZIndex = 0
-bg.Parent = main
+local RED = Color3.fromRGB(239, 75, 91)
+local RED_DARK = Color3.fromRGB(125, 34, 48)
+local PANEL = Color3.fromRGB(15, 14, 21)
+local PANEL_2 = Color3.fromRGB(28, 24, 34)
+local WHITE = Color3.fromRGB(245, 241, 246)
+local MUTED = Color3.fromRGB(178, 166, 180)
 
-local shade = Instance.new("Frame")
-shade.Size = UDim2.fromScale(1, 1)
-shade.BackgroundColor3 = Color3.fromRGB(5, 7, 12)
-shade.BackgroundTransparency = 0.25
-shade.BorderSizePixel = 0
-shade.ZIndex = 1
-shade.Parent = main
+-- الحجم صغير نسبياً، ويتقلص تلقائياً على الشاشات الصغيرة
+local scale = new("UIScale", {Scale = 1}, gui)
+local camera = workspace.CurrentCamera
+local function updateScale()
+    local viewport = camera and camera.ViewportSize or Vector2.new(1000, 700)
+    scale.Scale = math.clamp(math.min(viewport.X / 900, viewport.Y / 650), 0.68, 1)
+end
+updateScale()
+if camera then
+    camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
+end
 
-local top = Instance.new("Frame")
-top.Size = UDim2.new(1, 0, 0, 43)
-top.BackgroundColor3 = Color3.fromRGB(8, 9, 13)
-top.BackgroundTransparency = 0.12
-top.BorderSizePixel = 0
-top.ZIndex = 2
-top.Parent = main
+local main = new("Frame", {
+    Name = "Main",
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    Position = UDim2.fromScale(0.5, 0.5),
+    Size = UDim2.fromOffset(570, 390),
+    BackgroundColor3 = PANEL,
+    BackgroundTransparency = 0.04,
+    BorderSizePixel = 0,
+    ClipsDescendants = true
+}, gui)
+round(main, 13)
+outline(main, RED, 0.18, 1.5)
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -90, 1, 0)
-title.Position = UDim2.fromOffset(14, 0)
-title.BackgroundTransparency = 1
-title.Text = "ريكسل | REXEL"
-title.TextColor3 = Color3.fromRGB(235, 245, 255)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 17
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.ZIndex = 3
-title.Parent = top
+-- صورة الخلفية: شفافية منخفضة حتى تكون واضحة
+local background = new("Frame", {
+    Name = "Background",
+    Position = UDim2.new(0, 132, 0, 48),
+    Size = UDim2.new(1, -132, 1, -48),
+    BackgroundColor3 = Color3.fromRGB(72, 20, 39),
+    BorderSizePixel = 0,
+    ClipsDescendants = true,
+    ZIndex = 1
+}, main)
 
-local close = Instance.new("TextButton")
-close.Size = UDim2.fromOffset(32, 30)
-close.Position = UDim2.new(1, -39, 0, 6)
-close.BackgroundColor3 = Color3.fromRGB(175, 55, 65)
-close.Text = "×"
-close.TextColor3 = Color3.new(1, 1, 1)
-close.TextSize = 22
-close.Font = Enum.Font.GothamBold
-close.ZIndex = 3
-close.Parent = top
-Instance.new("UICorner", close).CornerRadius = UDim.new(0, 7)
-close.MouseButton1Click:Connect(function() gui:Destroy() end)
+local bgGradient = new("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(105, 29, 51)),
+        ColorSequenceKeypoint.new(0.48, Color3.fromRGB(38, 19, 37)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(13, 13, 24))
+    }),
+    Rotation = 28
+}, background)
 
-local sidebar = Instance.new("Frame")
-sidebar.Size = UDim2.new(0, 126, 1, -53)
-sidebar.Position = UDim2.fromOffset(8, 48)
-sidebar.BackgroundColor3 = Color3.fromRGB(9, 10, 14)
-sidebar.BackgroundTransparency = 0.18
-sidebar.BorderSizePixel = 0
-sidebar.ZIndex = 2
-sidebar.Parent = main
-Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 9)
+-- زخارف خلفية مدمجة؛ لا تحتاج إلى صورة أو Asset ID
+for i = 1, 9 do
+    local stripe = new("Frame", {
+        Position = UDim2.new((i - 1) * 0.13, -25, 0, -35),
+        Size = UDim2.new(0, 62, 1, 90),
+        Rotation = 18,
+        BackgroundColor3 = (i % 2 == 0)
+            and Color3.fromRGB(238, 65, 91)
+            or Color3.fromRGB(91, 42, 75),
+        BackgroundTransparency = 0.84,
+        BorderSizePixel = 0,
+        ZIndex = 1
+    }, background)
+end
 
-local sideLayout = Instance.new("UIListLayout")
-sideLayout.Padding = UDim.new(0, 6)
-sideLayout.SortOrder = Enum.SortOrder.LayoutOrder
-sideLayout.Parent = sidebar
+for i = 1, 18 do
+    local dot = new("Frame", {
+        Position = UDim2.new(((i * 37) % 97) / 100, 0, ((i * 19) % 91) / 100, 0),
+        Size = UDim2.fromOffset(3 + (i % 3), 3 + (i % 3)),
+        BackgroundColor3 = Color3.fromRGB(255, 166, 178),
+        BackgroundTransparency = 0.55,
+        BorderSizePixel = 0,
+        ZIndex = 1
+    }, background)
+    round(dot, 8)
+end
 
-local sidePad = Instance.new("UIPadding")
-sidePad.PaddingTop = UDim.new(0, 9)
-sidePad.PaddingLeft = UDim.new(0, 7)
-sidePad.PaddingRight = UDim.new(0, 7)
-sidePad.Parent = sidebar
+-- طبقة شفافة خفيفة للمحافظة على وضوح النصوص
+local tint = new("Frame", {
+    Position = background.Position,
+    Size = background.Size,
+    BackgroundColor3 = Color3.fromRGB(12, 7, 17),
+    BackgroundTransparency = 0.68,
+    BorderSizePixel = 0,
+    ZIndex = 2
+}, main)
 
-local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -148, 1, -57)
-content.Position = UDim2.fromOffset(140, 49)
-content.BackgroundColor3 = Color3.fromRGB(10, 11, 16)
-content.BackgroundTransparency = 0.22
-content.BorderSizePixel = 0
-content.ZIndex = 2
-content.Parent = main
-Instance.new("UICorner", content).CornerRadius = UDim.new(0, 9)
+local top = new("Frame", {
+    Size = UDim2.new(1, 0, 0, 48),
+    BackgroundColor3 = Color3.fromRGB(10, 9, 14),
+    BackgroundTransparency = 0.02,
+    BorderSizePixel = 0,
+    ZIndex = 5
+}, main)
 
-local pageTitle = Instance.new("TextLabel")
-pageTitle.Size = UDim2.new(1, -20, 0, 34)
-pageTitle.Position = UDim2.fromOffset(10, 4)
-pageTitle.BackgroundTransparency = 1
-pageTitle.Text = "الرئيسية"
-pageTitle.TextColor3 = Color3.fromRGB(90, 205, 255)
-pageTitle.TextSize = 16
-pageTitle.Font = Enum.Font.GothamBold
-pageTitle.TextXAlignment = Enum.TextXAlignment.Right
-pageTitle.ZIndex = 3
-pageTitle.Parent = content
+local logo = new("Frame", {
+    Position = UDim2.fromOffset(12, 8),
+    Size = UDim2.fromOffset(32, 32),
+    BackgroundColor3 = RED,
+    BorderSizePixel = 0,
+    ZIndex = 6
+}, top)
+round(logo, 9)
+new("TextLabel", {
+    Size = UDim2.fromScale(1, 1),
+    BackgroundTransparency = 1,
+    Text = "R",
+    TextColor3 = WHITE,
+    Font = Enum.Font.GothamBlack,
+    TextSize = 21,
+    ZIndex = 7
+}, logo)
 
-local pageBody = Instance.new("Frame")
-pageBody.Size = UDim2.new(1, -16, 1, -47)
-pageBody.Position = UDim2.fromOffset(8, 40)
-pageBody.BackgroundTransparency = 1
-pageBody.ZIndex = 3
-pageBody.Parent = content
+new("TextLabel", {
+    Position = UDim2.fromOffset(53, 5),
+    Size = UDim2.fromOffset(180, 22),
+    BackgroundTransparency = 1,
+    Text = "ريكسل هَب",
+    TextColor3 = WHITE,
+    Font = Enum.Font.GothamBold,
+    TextSize = 16,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 6
+}, top)
 
-local bodyLayout = Instance.new("UIListLayout")
-bodyLayout.Padding = UDim.new(0, 7)
-bodyLayout.SortOrder = Enum.SortOrder.LayoutOrder
-bodyLayout.Parent = pageBody
+new("TextLabel", {
+    Position = UDim2.fromOffset(54, 25),
+    Size = UDim2.fromOffset(160, 15),
+    BackgroundTransparency = 1,
+    Text = "REXEL  •  الإصدار 3.0",
+    TextColor3 = MUTED,
+    Font = Enum.Font.Gotham,
+    TextSize = 9,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 6
+}, top)
+
+local minimize = new("TextButton", {
+    Position = UDim2.new(1, -76, 0, 8),
+    Size = UDim2.fromOffset(28, 30),
+    BackgroundColor3 = PANEL_2,
+    Text = "—",
+    TextColor3 = WHITE,
+    Font = Enum.Font.GothamBold,
+    TextSize = 17,
+    BorderSizePixel = 0,
+    ZIndex = 6
+}, top)
+round(minimize, 7)
+
+local close = new("TextButton", {
+    Position = UDim2.new(1, -40, 0, 8),
+    Size = UDim2.fromOffset(28, 30),
+    BackgroundColor3 = RED_DARK,
+    Text = "×",
+    TextColor3 = WHITE,
+    Font = Enum.Font.GothamBold,
+    TextSize = 20,
+    BorderSizePixel = 0,
+    ZIndex = 6
+}, top)
+round(close, 7)
+close.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+local sidebar = new("Frame", {
+    Position = UDim2.fromOffset(0, 48),
+    Size = UDim2.new(0, 132, 1, -48),
+    BackgroundColor3 = Color3.fromRGB(12, 11, 17),
+    BackgroundTransparency = 0.03,
+    BorderSizePixel = 0,
+    ZIndex = 4
+}, main)
+
+new("TextLabel", {
+    Position = UDim2.fromOffset(14, 12),
+    Size = UDim2.new(1, -25, 0, 18),
+    BackgroundTransparency = 1,
+    Text = "القائمة الرئيسية",
+    TextColor3 = MUTED,
+    Font = Enum.Font.GothamBold,
+    TextSize = 10,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 5
+}, sidebar)
+
+local navHolder = new("Frame", {
+    Position = UDim2.fromOffset(8, 38),
+    Size = UDim2.new(1, -16, 1, -100),
+    BackgroundTransparency = 1,
+    ZIndex = 5
+}, sidebar)
+
+local navLayout = new("UIListLayout", {
+    Padding = UDim.new(0, 6),
+    SortOrder = Enum.SortOrder.LayoutOrder
+}, navHolder)
+
+local profile = new("Frame", {
+    Position = UDim2.new(0, 8, 1, -53),
+    Size = UDim2.new(1, -16, 0, 42),
+    BackgroundColor3 = PANEL_2,
+    BackgroundTransparency = 0.12,
+    BorderSizePixel = 0,
+    ZIndex = 5
+}, sidebar)
+round(profile, 8)
+
+new("TextLabel", {
+    Position = UDim2.fromOffset(8, 4),
+    Size = UDim2.new(1, -16, 0, 16),
+    BackgroundTransparency = 1,
+    Text = player.DisplayName,
+    TextColor3 = WHITE,
+    Font = Enum.Font.GothamBold,
+    TextSize = 10,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    TextTruncate = Enum.TextTruncate.AtEnd,
+    ZIndex = 6
+}, profile)
+
+new("TextLabel", {
+    Position = UDim2.fromOffset(8, 21),
+    Size = UDim2.new(1, -16, 0, 13),
+    BackgroundTransparency = 1,
+    Text = "مستخدم ريكسل",
+    TextColor3 = MUTED,
+    Font = Enum.Font.Gotham,
+    TextSize = 9,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 6
+}, profile)
+
+local content = new("Frame", {
+    Position = UDim2.fromOffset(143, 58),
+    Size = UDim2.new(1, -154, 1, -69),
+    BackgroundTransparency = 1,
+    ZIndex = 3
+}, main)
+
+local heading = new("TextLabel", {
+    Position = UDim2.fromOffset(8, 2),
+    Size = UDim2.new(1, -16, 0, 30),
+    BackgroundTransparency = 1,
+    Text = "الرئيسية",
+    TextColor3 = WHITE,
+    Font = Enum.Font.GothamBold,
+    TextSize = 19,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 4
+}, content)
+
+local subtitle = new("TextLabel", {
+    Position = UDim2.fromOffset(8, 31),
+    Size = UDim2.new(1, -16, 0, 20),
+    BackgroundTransparency = 1,
+    Text = "مرحباً بك في ريكسل هَب",
+    TextColor3 = Color3.fromRGB(255, 190, 196),
+    Font = Enum.Font.Gotham,
+    TextSize = 11,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 4
+}, content)
+
+local welcome = new("Frame", {
+    Position = UDim2.fromOffset(7, 62),
+    Size = UDim2.new(1, -14, 0, 91),
+    BackgroundColor3 = Color3.fromRGB(17, 13, 22),
+    BackgroundTransparency = 0.18,
+    BorderSizePixel = 0,
+    ZIndex = 4
+}, content)
+round(welcome, 12)
+outline(welcome, RED, 0.22, 1.2)
+
+new("TextLabel", {
+    Position = UDim2.fromOffset(14, 12),
+    Size = UDim2.fromOffset(42, 58),
+    BackgroundTransparency = 1,
+    Text = "★",
+    TextColor3 = RED,
+    Font = Enum.Font.GothamBlack,
+    TextSize = 34,
+    ZIndex = 5
+}, welcome)
+
+new("TextLabel", {
+    Position = UDim2.fromOffset(62, 16),
+    Size = UDim2.new(1, -75, 0, 22),
+    BackgroundTransparency = 1,
+    Text = "ريكسل هَب",
+    TextColor3 = RED,
+    Font = Enum.Font.GothamBold,
+    TextSize = 15,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 5
+}, welcome)
+
+new("TextLabel", {
+    Position = UDim2.fromOffset(62, 42),
+    Size = UDim2.new(1, -75, 0, 28),
+    BackgroundTransparency = 1,
+    Text = "واجهة عربية بتصميم أنيق وخفيف",
+    TextColor3 = WHITE,
+    Font = Enum.Font.Gotham,
+    TextSize = 11,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 5
+}, welcome)
+
+local status = new("Frame", {
+    Position = UDim2.fromOffset(7, 164),
+    Size = UDim2.new(1, -14, 0, 66),
+    BackgroundColor3 = Color3.fromRGB(17, 13, 22),
+    BackgroundTransparency = 0.2,
+    BorderSizePixel = 0,
+    ZIndex = 4
+}, content)
+round(status, 10)
+
+new("TextLabel", {
+    Position = UDim2.fromOffset(12, 8),
+    Size = UDim2.new(1, -24, 0, 20),
+    BackgroundTransparency = 1,
+    Text = "حالة الواجهة",
+    TextColor3 = WHITE,
+    Font = Enum.Font.GothamBold,
+    TextSize = 12,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 5
+}, status)
+
+new("TextLabel", {
+    Position = UDim2.fromOffset(12, 33),
+    Size = UDim2.new(1, -24, 0, 18),
+    BackgroundTransparency = 1,
+    Text = "●  الواجهة تعمل بنجاح",
+    TextColor3 = Color3.fromRGB(70, 220, 160),
+    Font = Enum.Font.Gotham,
+    TextSize = 10,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 5
+}, status)
+
+local pageInfo = new("TextLabel", {
+    Position = UDim2.fromOffset(9, 241),
+    Size = UDim2.new(1, -18, 0, 42),
+    BackgroundTransparency = 1,
+    Text = "اختر قسماً من القائمة لعرض الخيارات.",
+    TextColor3 = WHITE,
+    Font = Enum.Font.Gotham,
+    TextSize = 11,
+    TextWrapped = true,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 4
+}, content)
 
 local pages = {
-    {"الرئيسية", "مرحباً بك في واجهة ريكسل", "واجهة عربية صغيرة قابلة للتعديل."},
-    {"المتجر", "المتجر", "مكان لعرض عناصر ومتطلبات لعبتك."},
-    {"الفهرس", "الفهرس", "اعرض هنا العناصر التي جمعتها."},
-    {"السرقة", "السرقة", "أدوات واجهة قانونية حسب نظام لعبتك."},
-    {"البيوض", "البيوض", "اعرض أنواع البيوض ومعلوماتها هنا."},
-    {"الحيوانات", "الحيوانات", "قائمة الحيوانات ومعلوماتها."},
-    {"الأحداث", "الأحداث", "مواعيد وتفاصيل الأحداث داخل اللعبة."},
-    {"المزرعة", "المزرعة", "إعدادات المزرعة ومعلومات الإنتاج."},
+    {"الرئيسية", "مرحباً بك! هذه الصفحة الرئيسية لواجهة ريكسل."},
+    {"الأدوات", "هنا يمكنك إضافة أدوات واجهة خاصة بتجربتك."},
+    {"الأحداث", "تابع معلومات الأحداث والتنبيهات هنا."},
+    {"الحيوانات", "اعرض قائمة الحيوانات ومعلوماتها هنا."},
+    {"الفهرس", "مكان لعرض العناصر والمقتنيات."},
+    {"المتجر", "مكان لعرض عناصر المتجر والأسعار."},
+    {"الإعدادات", "تحكم بمظهر الواجهة وخياراتها."},
 }
 
-local function clearBody()
-    for _, child in ipairs(pageBody:GetChildren()) do
-        if not child:IsA("UIListLayout") then child:Destroy() end
-    end
-end
-
-local function addInfo(text)
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 0, 54)
-    label.BackgroundColor3 = Color3.fromRGB(25, 28, 37)
-    label.BackgroundTransparency = 0.12
-    label.BorderSizePixel = 0
-    label.Text = text
-    label.TextColor3 = Color3.fromRGB(235, 238, 245)
-    label.TextSize = 13
-    label.Font = Enum.Font.Gotham
-    label.TextWrapped = true
-    label.TextXAlignment = Enum.TextXAlignment.Right
-    label.ZIndex = 4
-    label.Parent = pageBody
-    Instance.new("UICorner", label).CornerRadius = UDim.new(0, 7)
-end
-
-local function addToggle(labelText)
-    local state = false
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 0, 38)
-    button.BackgroundColor3 = Color3.fromRGB(31, 37, 48)
-    button.BorderSizePixel = 0
-    button.TextColor3 = Color3.fromRGB(245, 245, 250)
-    button.TextSize = 13
-    button.Font = Enum.Font.GothamBold
-    button.Text = labelText .. "  |  متوقف"
-    button.TextXAlignment = Enum.TextXAlignment.Right
-    button.ZIndex = 4
-    button.Parent = pageBody
-    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 7)
-
-    button.MouseButton1Click:Connect(function()
-        state = not state
-        button.Text = labelText .. (state and "  |  يعمل" or "  |  متوقف")
-        button.BackgroundColor3 = state and Color3.fromRGB(20, 115, 75) or Color3.fromRGB(31, 37, 48)
-    end)
-end
-
-local function showPage(item)
-    pageTitle.Text = item[1]
-    clearBody()
-    addInfo(item[2] .. "\n" .. item[3])
-    if item[1] == "الرئيسية" then
-        addToggle("إظهار معلومات الواجهة")
-        addToggle("تأثيرات الواجهة")
-    elseif item[1] == "الأحداث" then
-        addToggle("تنبيه الأحداث")
-        addToggle("عرض قائمة الأحداث")
-    elseif item[1] == "المزرعة" then
-        addToggle("تنبيه الإنتاج")
-        addToggle("عرض حالة المزرعة")
-    else
-        addToggle("تفعيل خيار الواجهة")
-        addToggle("إظهار التفاصيل")
-    end
-end
-
+local selectedButton
 for index, item in ipairs(pages) do
-    local button = Instance.new("TextButton")
-    button.LayoutOrder = index
-    button.Size = UDim2.new(1, 0, 0, 29)
-    button.BackgroundColor3 = Color3.fromRGB(28, 31, 41)
-    button.BackgroundTransparency = 0.1
-    button.BorderSizePixel = 0
-    button.Text = item[1]
-    button.TextColor3 = Color3.fromRGB(235, 238, 245)
-    button.TextSize = 12
-    button.Font = Enum.Font.GothamBold
-    button.ZIndex = 3
-    button.Parent = sidebar
-    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
+    local button = new("TextButton", {
+        LayoutOrder = index,
+        Size = UDim2.new(1, 0, 0, 34),
+        BackgroundColor3 = PANEL_2,
+        BackgroundTransparency = 0.1,
+        BorderSizePixel = 0,
+        Text = item[1],
+        TextColor3 = WHITE,
+        Font = Enum.Font.GothamBold,
+        TextSize = 11,
+        ZIndex = 6
+    }, navHolder)
+    round(button, 7)
 
     button.MouseButton1Click:Connect(function()
-        showPage(item)
-        for _, sibling in ipairs(sidebar:GetChildren()) do
-            if sibling:IsA("TextButton") then
-                sibling.BackgroundColor3 = Color3.fromRGB(28, 31, 41)
-            end
+        if selectedButton then
+            selectedButton.BackgroundColor3 = PANEL_2
         end
-        button.BackgroundColor3 = Color3.fromRGB(25, 105, 145)
+        selectedButton = button
+        button.BackgroundColor3 = RED_DARK
+        heading.Text = item[1]
+        subtitle.Text = "قسم " .. item[1] .. " من ريكسل"
+        pageInfo.Text = item[2]
     end)
 end
 
--- سحب النافذة من الشريط العلوي
-local dragging, dragStart, startPos
+-- تصغير وإظهار النافذة
+local minimized = false
+minimize.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    sidebar.Visible = not minimized
+    content.Visible = not minimized
+    background.Visible = not minimized
+    tint.Visible = not minimized
+    main.Size = minimized and UDim2.fromOffset(250, 48) or UDim2.fromOffset(570, 390)
+    minimize.Text = minimized and "+" or "—"
+end)
+
+-- تحريك النافذة باللمس أو الماوس من الشريط العلوي
+local dragging = false
+local dragInput, dragStart, startPosition
+
 top.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
         or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
-        startPos = main.Position
+        startPosition = main.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
         end)
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+top.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
     end
 end)
 
-showPage(pages[1])
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(
+            startPosition.X.Scale, startPosition.X.Offset + delta.X,
+            startPosition.Y.Scale, startPosition.Y.Offset + delta.Y
+        )
+    end
+end)
