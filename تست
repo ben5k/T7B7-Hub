@@ -1,23 +1,113 @@
 --[[
-    VERSION: 7V  |  REXEL IMAGE-FIX UPDATE
-    CHANGELOG: explicit image asset setup + guaranteed built-in background fallback.
+    VERSION: 8V  |  REXEL DIRECT-BACKGROUND FIX
+    CHANGELOG:
+      8V: Automatically downloads the exact Top4Top image to executor storage,
+          converts it with getcustomasset/getsynasset, and displays it.
+      7V: Previous interface layout and fallback background.
 
     REXEL | STEAL AN EGG UI
-    Arabic Roblox interface inspired by the supplied reference screenshot.
+    Arabic Roblox interface based on the supplied reference.
 
-    INSTALL:
-      1) Put this LocalScript in StarterPlayer > StarterPlayerScripts
-         (or StarterGui).
-      2) The compact UI works immediately with a built-in red/charcoal
-         abstract background; it does not need any image ID.
-      3) To show the exact supplied anime artwork, Roblox requires that
-         image to be uploaded as a Roblox image asset. Then set the ID below.
-         A Top4Top URL or a local JPG file cannot be assigned to ImageLabel.
-
-    This is the interface layer. Buttons navigate the UI and do not alter
-    another game's server/gameplay. Connect your own authorized game systems
-    where marked if this is your Roblox experience.
+    IMPORTANT:
+      - The direct Top4Top URL is loaded automatically only in executors that
+        provide request + writefile + getcustomasset (or getsynasset).
+      - A normal Roblox Studio LocalScript cannot download a web JPG and turn
+        it into an ImageLabel asset. Studio requires a Roblox image asset ID.
+      - If the executor blocks Top4Top or lacks those APIs, the interface
+        remains usable and shows the built-in background.
 ]]
+
+-- VERSION: 8V
+local BACKGROUND_URL = "https://d.top4top.io/p_3956imcxl0.jpg"
+local BACKGROUND_FILE = "REXEL_BACKGROUND_8V.jpg"
+
+-- Executor-only web-image loader. Returns a custom local asset URI on success.
+local function loadRemoteBackground()
+    local env = _G
+    pcall(function()
+        if type(getgenv) == "function" then
+            env = getgenv()
+        elseif type(getfenv) == "function" then
+            env = getfenv()
+        end
+    end)
+
+    local requestFn = env.request or env.http_request or env.httpRequest
+    if not requestFn and type(env.syn) == "table" then
+        requestFn = env.syn.request
+    end
+    if not requestFn and type(env.http) == "table" then
+        requestFn = env.http.request
+    end
+
+    local writeFn = env.writefile
+    local assetFn = env.getcustomasset or env.getsynasset
+    local isFileFn = env.isfile
+
+    if type(writeFn) ~= "function" or type(assetFn) ~= "function" then
+        return nil, "المنفّذ لا يدعم getcustomasset و writefile"
+    end
+
+    -- Use a previously downloaded copy when available.
+    if type(isFileFn) == "function" then
+        local okExists, exists = pcall(isFileFn, BACKGROUND_FILE)
+        if okExists and exists then
+            local okCached, cachedUri = pcall(assetFn, BACKGROUND_FILE)
+            if okCached and type(cachedUri) == "string" then
+                return cachedUri
+            end
+        end
+    end
+
+    local body
+    if type(requestFn) == "function" then
+        local okRequest, response = pcall(function()
+            return requestFn({
+                Url = BACKGROUND_URL,
+                Method = "GET"
+            })
+        end)
+
+        if okRequest and type(response) == "table" then
+            local statusCode = tonumber(response.StatusCode or response.Status or 200)
+            if statusCode and statusCode ~= 200 then
+                return nil, "رابط الصورة أعاد حالة HTTP " .. tostring(statusCode)
+            end
+            body = response.Body or response.body
+        end
+    end
+
+    -- Some executors expose game:HttpGet even when request() is unavailable.
+    if type(body) ~= "string" and game.HttpGet then
+        local okGet, responseBody = pcall(function()
+            return game:HttpGet(BACKGROUND_URL)
+        end)
+        if okGet then body = responseBody end
+    end
+
+    if type(body) ~= "string" or #body < 1000 then
+        return nil, "تعذر تنزيل الصورة من الرابط"
+    end
+
+    local okWrite = pcall(function()
+        writeFn(BACKGROUND_FILE, body)
+    end)
+    if not okWrite then
+        return nil, "تعذر حفظ الصورة في ملفات المنفّذ"
+    end
+
+    local okAsset, assetUri = pcall(function()
+        return assetFn(BACKGROUND_FILE)
+    end)
+    if not okAsset or type(assetUri) ~= "string" then
+        return nil, "تعذر تحويل الصورة إلى أصل محلي"
+    end
+
+    return assetUri
+end
+
+
+
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -26,13 +116,7 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- IMAGE SETUP:
--- Leave empty to show the built-in red/cream background (works immediately).
--- To show the exact anime artwork, upload REXEL_BACKGROUND.jpg to Roblox
--- Creator Dashboard > Development Items > Images, then paste its asset ID below.
--- Example: local BACKGROUND_IMAGE = "rbxassetid://1234567890"
--- A Top4Top URL is NOT a Roblox image asset and will not render here.
-local BACKGROUND_IMAGE = ""
+-- The image will be loaded from BACKGROUND_URL automatically where supported.
 
 local old = playerGui:FindFirstChild("RixelStealEgg")
 if old then old:Destroy() end
@@ -171,11 +255,11 @@ local bgImage = make("ImageLabel", {
     Position = UDim2.fromScale(0, 0),
     Size = UDim2.fromScale(1, 1),
     BackgroundTransparency = 1,
-    Image = BACKGROUND_IMAGE,
-    ImageTransparency = 0.12,
+    Image = "",
+    ImageTransparency = 0.05,
     ScaleType = Enum.ScaleType.Crop,
     BorderSizePixel = 0,
-    Visible = BACKGROUND_IMAGE ~= "",
+    Visible = false,
     ZIndex = 2
 }, bgBase)
 
@@ -357,7 +441,22 @@ local listLayout = make("UIListLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder
 }, list)
 
-local notice = label(content, "REXEL • الواجهة تعمل", UDim2.new(1, -12, 0, 22), UDim2.new(0, 6, 1, -25), 9, C.green, Enum.Font.GothamBold, Enum.TextXAlignment.Right, 6)
+local notice = label(content, "REXEL 8V • جاري تحميل الخلفية الأصلية...", UDim2.new(1, -12, 0, 22), UDim2.new(0, 6, 1, -25), 9, C.gold, Enum.Font.GothamBold, Enum.TextXAlignment.Right, 6)
+
+-- Download and show the exact image from the user's link.
+task.spawn(function()
+    local assetUri, loadError = loadRemoteBackground()
+    if assetUri and gui.Parent then
+        bgImage.Image = assetUri
+        bgImage.Visible = true
+        notice.Text = "REXEL 8V • تم تحميل خلفيتك الأصلية"
+        notice.TextColor3 = C.green
+    elseif gui.Parent then
+        notice.Text = "الخلفية الأصلية تحتاج منفّذاً يدعم تحميل الصور"
+        notice.TextColor3 = C.gold
+        warn("[REXEL 8V] " .. tostring(loadError))
+    end
+end)
 
 local items = {
     { "🥚", "التقاط البيضة", "Capture The Egg", "متاح", C.gold },
