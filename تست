@@ -1,4 +1,4 @@
--- KEON HUB - Anime Background / Landscape Layout (v70.0.0)
+-- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -97,7 +97,6 @@ local function fetchAsset(url, fileName)
 end
 
 local wallUrls = {
-    fetchAsset("https://d.top4top.io/p_3956imcxl0.jpg", "keon_primary_anime_bg"),
     fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v58"),
     fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
     fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
@@ -141,22 +140,21 @@ local BROADCAST_SOUND_ID = "rbxassetid://17208361335"
 local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 
 local neonSpeed = 3.2
-local currentAccentColor = Color3.fromRGB(235, 35, 65)
-local currentHeaderColor = Color3.fromRGB(218, 47, 57)
+local currentAccentColor = Color3.fromRGB(220, 66, 83)
+local currentHeaderColor = Color3.fromRGB(12, 12, 18)
 local globalMediaVolume = 5.0
 
 -- تخطيط متجاوب حتى لا تخرج الأزرار عن شاشة الهاتف
 local responsiveState = {
     narrow = false,
-    mainSize = UDim2.new(0, 620, 0, 540),
-    mainPosition = UDim2.new(0.5, -310, 0.5, -270)
+    mainSize = UDim2.new(0, 560, 0, 360),
+    mainPosition = UDim2.new(0.5, -280, 0.5, -180)
 }
 local applyResponsiveMain
 local applyResponsiveChat
 
-local selectedScriptBgIndex = 1
+local selectedScriptBgIndex = 0
 local selectedChatBgIndex = 0
-local favoriteScripts = {}
 local showOwnCountryOverhead = true
 local uiScaleValue = 1.0
 local mainUIScaleObject = nil
@@ -179,8 +177,6 @@ local activeNameLabels = {}
 local function saveUserSettings()
     if writefile then
         local cfg = {
-            version = 66,
-            favoriteScripts = favoriteScripts,
             scriptBg = selectedScriptBgIndex,
             chatBg = selectedChatBgIndex,
             showOwnCountryOverhead = showOwnCountryOverhead,
@@ -204,12 +200,8 @@ local function loadUserSettings()
         pcall(function()
             local cfg = safeDecode(readfile(CONFIG_FILE))
             if cfg then
-                selectedScriptBgIndex = tonumber(cfg.scriptBg) or 1
-                if selectedScriptBgIndex <= 0 then selectedScriptBgIndex = 1 end
+                selectedScriptBgIndex = cfg.scriptBg or 0
                 selectedChatBgIndex = cfg.chatBg or 0
-                if type(cfg.favoriteScripts) == "table" then
-                    favoriteScripts = cfg.favoriteScripts
-                end
                 if cfg.showOwnCountryOverhead ~= nil then showOwnCountryOverhead = cfg.showOwnCountryOverhead end
                 uiScaleValue = math.clamp(tonumber(cfg.uiScaleValue) or 1.0, 0.75, 1.2)
                 KEONProfile.selectedCountryFlag = cfg.countryFlag or KEONProfile.selectedCountryFlag
@@ -219,8 +211,7 @@ local function loadUserSettings()
                 if cfg.r and cfg.g and cfg.b then
                     currentAccentColor = Color3.new(cfg.r, cfg.g, cfg.b)
                 end
-                -- Upgrade older configs to the new red panel. V66+ colors remain user-selected.
-                if cfg.version and cfg.version >= 66 and cfg.hr and cfg.hg and cfg.hb then
+                if cfg.hr and cfg.hg and cfg.hb then
                     currentHeaderColor = Color3.new(cfg.hr, cfg.hg, cfg.hb)
                 end
             end
@@ -229,15 +220,10 @@ local function loadUserSettings()
 end
 
 loadUserSettings()
--- حفظ تلقائي للإعدادات محلياً؛ لا يحتاج المستخدم إلى زر حفظ.
-task.spawn(function()
-    while true do
-        task.wait(5)
-        pcall(saveUserSettings)
-    end
-end)
--- الإعدادات المحفوظة هي المرجع؛ لا تعِد ضبط اللون بعد التحميل.
--- استرجاع الخلفية المختارة يتم عند إنشاء الواجهة عبر applyScriptBackground(selectedScriptBgIndex).
+-- ثابت بصرياً على ثيم PS5 النظيف، مع تعطيل صور خلفيات الواجهة والشات.
+currentAccentColor = Color3.fromRGB(220, 66, 83)
+currentHeaderColor = Color3.fromRGB(12, 12, 18)
+-- لا تصفّر اختيار الخلفية المحفوظ؛ اتركه ليستعيد آخر اختيار.
 
 local function playUiSound(soundId, pitch, volume)
     task.spawn(function()
@@ -1080,7 +1066,7 @@ local LoadTitle = Instance.new("TextLabel")
 LoadTitle.Size = UDim2.new(1, 0, 0, 25)
 LoadTitle.Position = UDim2.new(0, 0, 0, 72)
 LoadTitle.BackgroundTransparency = 1
-LoadTitle.Text = "⚡ KEON // OVERDRIVE"
+LoadTitle.Text = "PLAYSTATION STYLE  •  KEON"
 LoadTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 LoadTitle.Font = Enum.Font.GothamBlack
 LoadTitle.TextSize = 18
@@ -1090,7 +1076,7 @@ local LoadSub = Instance.new("TextLabel")
 LoadSub.Size = UDim2.new(1, -18, 0, 30)
 LoadSub.Position = UDim2.new(0, 9, 0, 96)
 LoadSub.BackgroundTransparency = 1
-LoadSub.Text = "نظام نيون قتالي • إصدار المطور KEON"
+LoadSub.Text = "🔥 تم تطوير وإطلاق هذا السكربت من أيادٍ عربية لكم وبس ❤️"
 LoadSub.TextColor3 = Color3.fromRGB(170, 205, 235)
 LoadSub.Font = Enum.Font.GothamBold
 LoadSub.TextWrapped = true
@@ -1115,7 +1101,7 @@ local LoadFooter = Instance.new("TextLabel")
 LoadFooter.Size = UDim2.new(1, -20, 0, 18)
 LoadFooter.Position = UDim2.new(0, 10, 0, 154)
 LoadFooter.BackgroundTransparency = 1
-LoadFooter.Text = "OVERDRIVE SYSTEM  //  ONLINE"
+LoadFooter.Text = "صناعة عربية • أهلاً بكم في KEON"
 LoadFooter.TextColor3 = Color3.fromRGB(95, 170, 235)
 LoadFooter.Font = Enum.Font.GothamBold
 LoadFooter.TextSize = 10
@@ -1151,9 +1137,12 @@ ScreenGui.Parent = parent
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 520, 0, 620)
-MainFrame.Position = UDim2.new(0.64, 0, 0.56, 0)
-MainFrame.BackgroundTransparency = 1
+MainFrame.Size = UDim2.new(0, 880, 0, 560)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 13)
+MainFrame.BackgroundTransparency = 0
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Visible = false
@@ -1161,35 +1150,39 @@ MainFrame.Parent = ScreenGui
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainUIScaleObject = Instance.new("UIScale")
 mainUIScaleObject.Name = "KEONUserInterfaceScale"
-mainUIScaleObject.Scale = math.clamp(uiScaleValue, 0.85, 1.0)
+mainUIScaleObject.Scale = uiScaleValue
 mainUIScaleObject.Parent = MainFrame
+local outerFrameStroke = Instance.new("UIStroke")
+outerFrameStroke.Color = Color3.fromRGB(196, 55, 69)
+outerFrameStroke.Thickness = 1.6
+outerFrameStroke.Parent = MainFrame
 
 local CenterGlow = Instance.new("Frame")
-CenterGlow.Name = "PS5SoftGlow"
-CenterGlow.Size = UDim2.new(1, 8, 1, 8)
-CenterGlow.Position = UDim2.new(0, -4, 0, -4)
-CenterGlow.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
-CenterGlow.BackgroundTransparency = 1
+CenterGlow.Name = "KEONRedGlow"
+CenterGlow.Size = UDim2.new(1, -145, 1, -58)
+CenterGlow.Position = UDim2.new(0, 145, 0, 58)
+CenterGlow.BackgroundColor3 = Color3.fromRGB(190, 35, 58)
+CenterGlow.BackgroundTransparency = 0.91
 CenterGlow.BorderSizePixel = 0
 CenterGlow.ZIndex = 0
 CenterGlow.Parent = MainFrame
-Instance.new("UICorner", CenterGlow).CornerRadius = UDim.new(0, 2)
+Instance.new("UICorner", CenterGlow).CornerRadius = UDim.new(0, 19)
 
 local CenterBox = Instance.new("Frame")
 CenterBox.Name = "CenterBox"
-CenterBox.Size = UDim2.new(1, 0, 1, 0)
-CenterBox.Position = UDim2.new(0, 0, 0, 0)
-CenterBox.BackgroundColor3 = Color3.fromRGB(17, 19, 24)
+CenterBox.Size = UDim2.new(1, -145, 1, -58)
+CenterBox.Position = UDim2.new(0, 145, 0, 58)
+CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
 CenterBox.BackgroundTransparency = 0
 CenterBox.BorderSizePixel = 0
 CenterBox.ClipsDescendants = true
 CenterBox.Parent = MainFrame
-Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 2)
+Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 0)
 local centerSurfaceGradient = Instance.new("UIGradient")
 centerSurfaceGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(29, 31, 38)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(18, 20, 25)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 14, 18))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 12, 18)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 10, 15)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 8, 13))
 })
 centerSurfaceGradient.Rotation = 110
 centerSurfaceGradient.Parent = CenterBox
@@ -1203,30 +1196,45 @@ BgImage.Visible = false
 BgImage.ScaleType = Enum.ScaleType.Crop
 BgImage.ZIndex = 1
 BgImage.Parent = CenterBox
-Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 2)
+Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 14)
 
 -- دالة تطبيق الخلفية المتحركة أو العادية بدقة وتجنب السواد تماماً للجوال
 local function applyScriptBackground(idx)
     idx = tonumber(idx) or 0
     selectedScriptBgIndex = idx
-    -- Requested primary wallpaper: show it behind the KEON panel content.
     if idx > 0 and wallUrls[idx] then
         BgImage.Image = wallUrls[idx]
         BgImage.Visible = true
-        BgImage.ImageTransparency = 0.18
+        CenterBox.BackgroundTransparency = 0
+        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+        BgImage.ImageTransparency = 0
     else
-        BgImage.Image = wallUrls[1] or ""
-        BgImage.Visible = true
-        BgImage.ImageTransparency = 0.18
+        BgImage.Image = ""
+        BgImage.Visible = false
+        CenterBox.BackgroundTransparency = 0
+        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
     end
-    CenterBox.BackgroundTransparency = 0.08
-    CenterBox.BackgroundColor3 = Color3.fromRGB(17, 19, 24)
     saveUserSettings()
 end
 applyScriptBackground(selectedScriptBgIndex)
 
+-- تحميل خلفية KEON المختارة محلياً عند دعم بيئة التنفيذ
+task.spawn(function()
+    local backgroundUrl = "https://d.top4top.io/p_3956imcxl0.jpg"
+    pcall(function()
+        if type(writefile) == "function" and type(getcustomasset) == "function" then
+            local imageData = game:HttpGet(backgroundUrl)
+            local imagePath = "KEON_HUB_MAIN_BACKGROUND.jpg"
+            writefile(imagePath, imageData)
+            BgImage.Image = getcustomasset(imagePath)
+            BgImage.Visible = true
+            BgImage.ImageTransparency = 0.18
+        end
+    end)
+end)
+
+
 local centerStroke = Instance.new("UIStroke")
-centerStroke.Name = "KEONPanelBorder"
 centerStroke.Color = currentAccentColor
 centerStroke.Thickness = 1.7
 centerStroke.Parent = CenterBox
@@ -1249,32 +1257,31 @@ task.spawn(function()
 end)
 
 local Header = Instance.new("Frame")
-Header.Name = "Header"
-Header.Size = UDim2.new(1, 0, 0, 52)
-Header.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
+Header.Size = UDim2.new(1, 0, 0, 58)
+Header.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
 Header.BorderSizePixel = 0
-Header.ZIndex = 3
-Header.Parent = CenterBox
-Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 2)
+Header.ZIndex = 20
+Header.Parent = MainFrame
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 16)
 local HeaderAccentLine = Instance.new("Frame")
-HeaderAccentLine.Name = "KEONAccentRail"
-HeaderAccentLine.Size = UDim2.new(1, -24, 0, 2)
-HeaderAccentLine.Position = UDim2.new(0, 12, 1, -3)
-HeaderAccentLine.BackgroundColor3 = currentAccentColor
+HeaderAccentLine.Name = "KEONAccentLine"
+HeaderAccentLine.Size = UDim2.new(1, -20, 0, 2)
+HeaderAccentLine.Position = UDim2.new(0, 10, 1, -2)
+HeaderAccentLine.BackgroundColor3 = Color3.fromRGB(210, 65, 78)
 HeaderAccentLine.BorderSizePixel = 0
 HeaderAccentLine.ZIndex = 5
 HeaderAccentLine.Parent = Header
 Instance.new("UICorner", HeaderAccentLine).CornerRadius = UDim.new(1, 0)
 
 local TitleMain = Instance.new("TextLabel")
-TitleMain.Size = UDim2.new(1, -112, 1, 0)
-TitleMain.Position = UDim2.new(0, 12, 0, 0)
+TitleMain.Size = UDim2.new(1, -108, 1, 0)
+TitleMain.Position = UDim2.new(0, 22, 0, 0)
 TitleMain.BackgroundTransparency = 1
-TitleMain.Text = "KEON HUB"
+TitleMain.Text = "KEON HUB  •  لوحة التحكم"
 TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.GothamBold
-TitleMain.TextSize = 15
-TitleMain.TextXAlignment = Enum.TextXAlignment.Center
+TitleMain.TextSize = 18
+TitleMain.TextXAlignment = Enum.TextXAlignment.Left
 TitleMain.ZIndex = 4
 TitleMain.Parent = Header
 
@@ -1282,7 +1289,7 @@ local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Name = "MinimizeBtn"
 MinimizeBtn.Size = UDim2.new(0, 26, 0, 26)
 MinimizeBtn.Position = UDim2.new(1, -62, 0, 8)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(18, 86, 160)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(35, 28, 34)
 MinimizeBtn.Text = "–"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeBtn.Font = Enum.Font.GothamBold
@@ -1291,7 +1298,7 @@ MinimizeBtn.ZIndex = 4
 MinimizeBtn.Parent = Header
 Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 8)
 local minimizeStroke = Instance.new("UIStroke")
-minimizeStroke.Color = Color3.fromRGB(80, 180, 255)
+minimizeStroke.Color = Color3.fromRGB(210, 65, 82)
 minimizeStroke.Thickness = 0.8
 minimizeStroke.Parent = MinimizeBtn
 
@@ -1312,7 +1319,7 @@ local HelpBtn = Instance.new("TextButton")
 HelpBtn.Name = "PS5HelpBtn"
 HelpBtn.Size = UDim2.new(0, 24, 0, 26)
 HelpBtn.Position = UDim2.new(1, -92, 0, 8)
-HelpBtn.BackgroundColor3 = Color3.fromRGB(12, 54, 96)
+HelpBtn.BackgroundColor3 = Color3.fromRGB(35, 28, 34)
 HelpBtn.Text = "?"
 HelpBtn.TextColor3 = Color3.fromRGB(220, 244, 255)
 HelpBtn.Font = Enum.Font.GothamBlack
@@ -1327,28 +1334,17 @@ helpBtnStroke.Parent = HelpBtn
 
 local FloatingMinBox = Instance.new("ImageButton")
 FloatingMinBox.Name = "KEONFloatingMinBox"
-FloatingMinBox.Size = UDim2.new(0, 48, 0, 48)
-FloatingMinBox.Position = UDim2.new(0.34, 0, 0.5, -24)
-FloatingMinBox.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
-FloatingMinBox.Image = ""
-FloatingMinBox.ImageTransparency = 1
+FloatingMinBox.Size = UDim2.new(0, 56, 0, 56)
+FloatingMinBox.Position = UDim2.new(0, 18, 0.5, -28)
+FloatingMinBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+FloatingMinBox.Image = MINIMIZE_ICON_IMAGE
 FloatingMinBox.ScaleType = Enum.ScaleType.Crop
 FloatingMinBox.Active = true
 FloatingMinBox.Draggable = true
 FloatingMinBox.Visible = false
 FloatingMinBox.ZIndex = 100
 FloatingMinBox.Parent = ScreenGui
-Instance.new("UICorner", FloatingMinBox).CornerRadius = UDim.new(0, 3)
-local FloatingArrowText = Instance.new("TextLabel")
-FloatingArrowText.Name = "OpenArrow"
-FloatingArrowText.Size = UDim2.new(1, 0, 1, 0)
-FloatingArrowText.BackgroundTransparency = 1
-FloatingArrowText.Text = "❯"
-FloatingArrowText.TextColor3 = Color3.fromRGB(255, 255, 255)
-FloatingArrowText.Font = Enum.Font.GothamBlack
-FloatingArrowText.TextSize = 31
-FloatingArrowText.ZIndex = 101
-FloatingArrowText.Parent = FloatingMinBox
+Instance.new("UICorner", FloatingMinBox).CornerRadius = UDim.new(0, 16)
 
 local minBoxStroke = Instance.new("UIStroke")
 minBoxStroke.Color = currentAccentColor
@@ -1370,11 +1366,11 @@ end)
 
 MinimizeBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
-    TweenService:Create(MainFrame, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+    TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
         Size = UDim2.new(0, 0, 0, 0),
         Position = UDim2.new(0.5, 0, 0.5, 0)
     }):Play()
-    task.wait(0.16)
+    task.wait(0.3)
     MainFrame.Visible = false
     FloatingMinBox.Visible = true
 end)
@@ -1392,8 +1388,10 @@ FloatingMinBox.MouseButton1Click:Connect(function()
 end)
 
 local LeftWing = Instance.new("ScrollingFrame")
-LeftWing.Size = UDim2.new(0, 105, 1, -48)
-LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
+LeftWing.Size = UDim2.new(0, 145, 1, -58)
+LeftWing.Position = UDim2.new(0, 0, 0, 58)
+LeftWing.BackgroundColor3 = Color3.fromRGB(10, 10, 16)
+LeftWing.BackgroundTransparency = 0
 LeftWing.BackgroundTransparency = 1
 LeftWing.BorderSizePixel = 0
 LeftWing.ScrollBarThickness = 0
@@ -1406,9 +1404,48 @@ LeftLayout.Padding = UDim.new(0, 7)
 LeftLayout.SortOrder = Enum.SortOrder.LayoutOrder
 LeftLayout.Parent = LeftWing
 
+-- بطاقة هوية KEON أعلى القائمة الجانبية
+local SidebarBrand = Instance.new("Frame")
+SidebarBrand.Name = "KEONSidebarBrand"
+SidebarBrand.Size = UDim2.new(1, -12, 0, 78)
+SidebarBrand.BackgroundTransparency = 1
+SidebarBrand.LayoutOrder = -100
+SidebarBrand.Parent = LeftWing
+local SidebarLogo = Instance.new("TextLabel")
+SidebarLogo.Size = UDim2.new(0, 42, 0, 42)
+SidebarLogo.Position = UDim2.new(0, 7, 0, 8)
+SidebarLogo.BackgroundColor3 = Color3.fromRGB(207, 62, 78)
+SidebarLogo.Text = "K"
+SidebarLogo.TextColor3 = Color3.fromRGB(255, 255, 255)
+SidebarLogo.Font = Enum.Font.GothamBlack
+SidebarLogo.TextSize = 25
+SidebarLogo.Parent = SidebarBrand
+Instance.new("UICorner", SidebarLogo).CornerRadius = UDim.new(0, 12)
+local SidebarName = Instance.new("TextLabel")
+SidebarName.Size = UDim2.new(1, -58, 0, 25)
+SidebarName.Position = UDim2.new(0, 55, 0, 10)
+SidebarName.BackgroundTransparency = 1
+SidebarName.Text = "KEON HUB"
+SidebarName.TextColor3 = Color3.fromRGB(255, 255, 255)
+SidebarName.Font = Enum.Font.GothamBlack
+SidebarName.TextSize = 13
+SidebarName.TextXAlignment = Enum.TextXAlignment.Left
+SidebarName.Parent = SidebarBrand
+local SidebarVersion = Instance.new("TextLabel")
+SidebarVersion.Size = UDim2.new(1, -58, 0, 20)
+SidebarVersion.Position = UDim2.new(0, 55, 0, 34)
+SidebarVersion.BackgroundTransparency = 1
+SidebarVersion.Text = "واجهة التحكم"
+SidebarVersion.TextColor3 = Color3.fromRGB(165, 165, 180)
+SidebarVersion.Font = Enum.Font.Gotham
+SidebarVersion.TextSize = 10
+SidebarVersion.TextXAlignment = Enum.TextXAlignment.Left
+SidebarVersion.Parent = SidebarBrand
+
 local RightWing = Instance.new("ScrollingFrame")
-RightWing.Size = UDim2.new(0, 105, 1, -48)
-RightWing.Position = UDim2.new(0.5, 175, 0, 48)
+RightWing.Size = UDim2.new(0, 0, 1, 0)
+RightWing.Position = UDim2.new(1, 0, 0, 0)
+RightWing.Visible = false
 RightWing.BackgroundTransparency = 1
 RightWing.BorderSizePixel = 0
 RightWing.ScrollBarThickness = 0
@@ -1433,8 +1470,8 @@ KEONProfile.rightNavPadding.PaddingTop = UDim.new(0, 2)
 KEONProfile.rightNavPadding.Parent = RightWing
 
 local CenterScroll = Instance.new("ScrollingFrame")
-CenterScroll.Size = UDim2.new(1, -16, 1, -54)
-CenterScroll.Position = UDim2.new(0, 8, 0, 48)
+CenterScroll.Size = UDim2.new(1, -38, 1, -92)
+CenterScroll.Position = UDim2.new(0, 19, 0, 76)
 CenterScroll.BackgroundTransparency = 1
 CenterScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 CenterScroll.ScrollBarThickness = 4
@@ -1454,76 +1491,68 @@ end
 
 applyResponsiveMain = function()
     local viewport = getViewportSize()
-    local compact = viewport.X < 900 or viewport.Y < 600
+    local width = math.max(310, math.min(880, math.floor(viewport.X - 28)))
+    local height = math.max(310, math.min(560, math.floor(viewport.Y - 28)))
+    local compact = width < 620
     responsiveState.narrow = compact
-
-    -- Landscape KEON window: centered, broad, and proportioned like the supplied reference.
-    local width = math.floor(math.min(870, viewport.X * 0.86))
-    local height = math.floor(math.min(550, viewport.Y * 0.72))
-    width = math.max(280, math.min(width, viewport.X - 20))
-    height = math.max(300, math.min(height, viewport.Y - 24))
     responsiveState.mainSize = UDim2.new(0, width, 0, height)
-    responsiveState.mainPosition = UDim2.new(0.5, 0, 0.52, 0)
+    responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
     MainFrame.Size = responsiveState.mainSize
     MainFrame.Position = responsiveState.mainPosition
 
-    if FloatingMinBox then
-        FloatingMinBox.Position = UDim2.new(0.5, -math.floor(width / 2) - 52, 0.52, -22)
-    end
+    local sideWidth = compact and 104 or 145
+    local headerHeight = compact and 50 or 58
+    CenterBox.Size = UDim2.new(1, -sideWidth, 1, -headerHeight)
+    CenterBox.Position = UDim2.new(0, sideWidth, 0, headerHeight)
+    CenterGlow.Size = UDim2.new(1, -sideWidth, 1, -headerHeight + 8)
+    CenterGlow.Position = UDim2.new(0, sideWidth, 0, headerHeight - 4)
 
-    CenterBox.Size = UDim2.new(1, 0, 1, 0)
-    CenterBox.Position = UDim2.new(0, 0, 0, 0)
-    CenterGlow.Size = UDim2.new(1, 8, 1, 8)
-    CenterGlow.Position = UDim2.new(0, -4, 0, -4)
-    Header.Size = UDim2.new(1, 0, 0, 52)
+    Header.Size = UDim2.new(1, 0, 0, headerHeight)
+    Header.Position = UDim2.new(0, 0, 0, 0)
+    TitleMain.TextSize = compact and 14 or 18
+    TitleMain.Position = UDim2.new(0, 18, 0, 0)
 
-    -- Vertical navigation rail on the left, matching the reference screenshot.
-    local railWidth = math.clamp(math.floor(width * 0.17), 92, 132)
-    local railTop = 58
-    local railGap = 8
-    local railHeight = math.floor((height - railTop - 14 - railGap) / 2)
-
-    LeftWing.Size = UDim2.new(0, railWidth, 0, railHeight)
-    LeftWing.Position = UDim2.new(0, 8, 0, railTop)
-    RightWing.Size = UDim2.new(0, railWidth, 0, railHeight)
-    RightWing.Position = UDim2.new(0, 8, 0, railTop + railHeight + railGap)
-
-    for _, wing in ipairs({LeftWing, RightWing}) do
-        wing.ScrollingDirection = Enum.ScrollingDirection.Y
-        wing.ScrollBarThickness = compact and 2 or 3
-        wing.CanvasPosition = Vector2.new(0, 0)
-        wing.ZIndex = 8
-    end
+    LeftWing.Size = UDim2.new(0, sideWidth, 1, -headerHeight)
+    LeftWing.Position = UDim2.new(0, 0, 0, headerHeight)
+    LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
+    LeftWing.ScrollBarThickness = 2
+    LeftWing.BackgroundTransparency = 0
+    LeftWing.BackgroundColor3 = Color3.fromRGB(10, 10, 16)
+    LeftWing.ZIndex = 6
     LeftLayout.FillDirection = Enum.FillDirection.Vertical
-    RightLayout.FillDirection = Enum.FillDirection.Vertical
     LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-    RightLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-    LeftLayout.Padding = UDim.new(0, 5)
-    RightLayout.Padding = UDim.new(0, 5)
+    LeftLayout.Padding = UDim.new(0, compact and 5 or 8)
 
-    for _, wing in ipairs({LeftWing, RightWing}) do
-        for _, child in ipairs(wing:GetChildren()) do
-            if child:IsA("TextButton") then
-                child.Size = UDim2.new(1, -6, 0, compact and 31 or 35)
-                child.TextSize = compact and 10 or 11.5
-                child.ZIndex = 9
-            end
+    RightWing.Visible = false
+    RightWing.Size = UDim2.new(0, 0, 0, 0)
+
+    CenterScroll.Position = UDim2.new(0, compact and 10 or 20, 0, compact and 18 or 26)
+    CenterScroll.Size = UDim2.new(1, compact and -20 or -40, 1, compact and -34 or -52)
+    CenterScroll.ScrollBarThickness = compact and 2 or 4
+
+    for _, child in ipairs(LeftWing:GetChildren()) do
+        if child:IsA("TextButton") then
+            child.Size = UDim2.new(1, -12, 0, compact and 38 or 44)
+            child.TextSize = compact and 11 or 14
+            child.ZIndex = 7
         end
-        local layout = (wing == LeftWing) and LeftLayout or RightLayout
-        wing.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 8)
     end
-
-    CenterScroll.Position = UDim2.new(0, railWidth + 16, 0, 58)
-    CenterScroll.Size = UDim2.new(1, -railWidth - 24, 1, -68)
-    CenterScroll.ScrollBarThickness = compact and 3 or 4
-    CenterScroll.ZIndex = 3
+    LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 18)
 end
 
 LeftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
+    if responsiveState.narrow then
+        LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
+    else
+        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
+    end
 end)
 RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
+    if responsiveState.narrow then
+        RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
+    else
+        RightWing.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 8)
+    end
 end)
 CenterLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 24)
@@ -2586,40 +2615,40 @@ end)
 ---------------------------------------------------------
 local function createProStyleBtn(text, side)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, responsiveState.narrow and 96 or 102, 0, 30)
-    btn.BackgroundColor3 = Color3.fromRGB(25, 26, 31)
+    btn.Size = UDim2.new(1, -14, 0, 44)
+    btn.BackgroundColor3 = Color3.fromRGB(17, 17, 25)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = responsiveState.narrow and 10.5 or 11.5
+    btn.TextSize = 14
     btn.TextScaled = true
     btn.TextWrapped = false
     btn.TextTruncate = Enum.TextTruncate.AtEnd
     btn.AutoButtonColor = false
     btn.ClipsDescendants = false
-    btn.ZIndex = 9
+    btn.ZIndex = 5
     local textConstraint = Instance.new("UITextSizeConstraint")
     textConstraint.MinTextSize = 10
-    textConstraint.MaxTextSize = responsiveState.narrow and 11 or 12
+    textConstraint.MaxTextSize = 15
     textConstraint.Parent = btn
-    btn.Parent = (side == "left") and LeftWing or RightWing
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 3)
+    btn.Parent = LeftWing
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 7)
 
     local stroke = Instance.new("UIStroke")
-    stroke.Color = currentAccentColor
-    stroke.Thickness = 1.45
+    stroke.Color = Color3.fromRGB(55, 55, 68)
+    stroke.Thickness = 0.8
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Parent = btn
 
     table.insert(registeredWingStrokes, stroke)
     btn.MouseEnter:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(95, 18, 31)
+            BackgroundColor3 = Color3.fromRGB(145, 38, 53)
         }):Play()
     end)
     btn.MouseLeave:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(25, 26, 31)
+            BackgroundColor3 = Color3.fromRGB(17, 17, 25)
         }):Play()
     end)
     return btn
@@ -2628,7 +2657,7 @@ end
 local function addChilliAccordion(titleText, builderFunc)
     local folderFrame = Instance.new("Frame")
     folderFrame.Size = UDim2.new(1, 0, 0, 36)
-    folderFrame.BackgroundColor3 = Color3.fromRGB(29, 30, 36)
+    folderFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
     folderFrame.BackgroundTransparency = 0
     folderFrame.ZIndex = 3
     folderFrame.Parent = CenterScroll
@@ -2671,10 +2700,10 @@ local function addChilliAccordion(titleText, builderFunc)
     local function addToggleRow(nameText, onToggle)
         local rowFrame = Instance.new("Frame")
         rowFrame.Size = UDim2.new(1, 0, 0, 36)
-        rowFrame.BackgroundColor3 = Color3.fromRGB(39, 40, 47)
+        rowFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
         rowFrame.ZIndex = 3
         rowFrame.Parent = contentHolder
-        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 3)
+        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 9)
 
         local rowStroke = Instance.new("UIStroke")
         rowStroke.Color = currentAccentColor
@@ -2724,10 +2753,10 @@ local function addChilliAccordion(titleText, builderFunc)
     local function addActionRow(nameText, onClick)
         local rowFrame = Instance.new("Frame")
         rowFrame.Size = UDim2.new(1, 0, 0, 34)
-        rowFrame.BackgroundColor3 = Color3.fromRGB(39, 40, 47)
+        rowFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
         rowFrame.ZIndex = 3
         rowFrame.Parent = contentHolder
-        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 3)
+        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 9)
 
         local rowStroke = Instance.new("UIStroke")
         rowStroke.Color = currentAccentColor
@@ -2792,118 +2821,123 @@ end
 -- التبويبات الرئيسية
 ---------------------------------------------------------
 local BtnMainHome = createProStyleBtn("الرئيسية", "left")
+BtnMainHome.BackgroundColor3 = Color3.fromRGB(170, 45, 61)
 local function showHomePage()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    local intro = Instance.new("Frame")
-    intro.Name = "KEONPanelIntro"
-    intro.Size = UDim2.new(1, 0, 0, 64)
-    intro.BackgroundColor3 = Color3.fromRGB(31, 34, 41)
-    intro.BorderSizePixel = 0
-    intro.ZIndex = 3
-    intro.Parent = CenterScroll
-    Instance.new("UICorner", intro).CornerRadius = UDim.new(0, 3)
-    local introStroke = Instance.new("UIStroke")
-    introStroke.Color = Color3.fromRGB(218, 47, 57)
-    introStroke.Thickness = 1.5
-    introStroke.Parent = intro
+    local pageTitle = Instance.new("TextLabel")
+    pageTitle.Name = "HomePageTitle"
+    pageTitle.Size = UDim2.new(1, -24, 0, 42)
+    pageTitle.Position = UDim2.new(0, 12, 0, 0)
+    pageTitle.BackgroundTransparency = 1
+    pageTitle.Text = "الرئيسية"
+    pageTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    pageTitle.Font = Enum.Font.GothamBlack
+    pageTitle.TextSize = 25
+    pageTitle.TextXAlignment = Enum.TextXAlignment.Right
+    pageTitle.ZIndex = 8
+    pageTitle.Parent = CenterScroll
 
-    local introTitle = Instance.new("TextLabel")
-    introTitle.Size = UDim2.new(1, -16, 0, 28)
-    introTitle.Position = UDim2.new(0, 8, 0, 5)
-    introTitle.BackgroundTransparency = 1
-    introTitle.Text = "KEON HUB  •  لوحة السكربتات"
-    introTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    introTitle.Font = Enum.Font.GothamBlack
-    introTitle.TextSize = 16
-    introTitle.TextXAlignment = Enum.TextXAlignment.Right
-    introTitle.ZIndex = 4
-    introTitle.Parent = intro
+    local pageSubtitle = Instance.new("TextLabel")
+    pageSubtitle.Size = UDim2.new(1, -24, 0, 24)
+    pageSubtitle.Position = UDim2.new(0, 12, 0, 40)
+    pageSubtitle.BackgroundTransparency = 1
+    pageSubtitle.Text = "مرحباً بك في KEON HUB"
+    pageSubtitle.TextColor3 = Color3.fromRGB(210, 210, 220)
+    pageSubtitle.Font = Enum.Font.Gotham
+    pageSubtitle.TextSize = 13
+    pageSubtitle.TextXAlignment = Enum.TextXAlignment.Right
+    pageSubtitle.ZIndex = 8
+    pageSubtitle.Parent = CenterScroll
 
-    local introSub = Instance.new("TextLabel")
-    introSub.Size = UDim2.new(1, -16, 0, 20)
-    introSub.Position = UDim2.new(0, 8, 0, 34)
-    introSub.BackgroundTransparency = 1
-    introSub.Text = "اختر القسم من الأزرار بالأعلى"
-    introSub.TextColor3 = Color3.fromRGB(190, 195, 205)
-    introSub.Font = Enum.Font.GothamBold
-    introSub.TextSize = 11
-    introSub.TextXAlignment = Enum.TextXAlignment.Right
-    introSub.ZIndex = 4
-    introSub.Parent = intro
+    local welcomeCard = Instance.new("Frame")
+    welcomeCard.Name = "KEONWelcomeCard"
+    welcomeCard.Size = UDim2.new(1, -8, 0, 128)
+    welcomeCard.Position = UDim2.new(0, 4, 0, 78)
+    welcomeCard.BackgroundColor3 = Color3.fromRGB(12, 10, 17)
+    welcomeCard.BackgroundTransparency = 0.12
+    welcomeCard.BorderSizePixel = 0
+    welcomeCard.ZIndex = 8
+    welcomeCard.Parent = CenterScroll
+    Instance.new("UICorner", welcomeCard).CornerRadius = UDim.new(0, 16)
+    local welcomeStroke = Instance.new("UIStroke")
+    welcomeStroke.Color = Color3.fromRGB(205, 65, 83)
+    welcomeStroke.Thickness = 1.7
+    welcomeStroke.Parent = welcomeCard
 
-    local cards = {
-        {icon = "⚡", title = "سكربتات المابات", desc = "تصفّح السكربتات والأدوات المتاحة", color = Color3.fromRGB(68, 132, 255)},
-        {icon = "🥚", title = "اسرق البيض", desc = "افتح أدوات القسم من الشريط العلوي", color = Color3.fromRGB(70, 210, 125)},
-        {icon = "♫", title = "الميديا والصوت", desc = "الموسيقى والوسائط وإعداداتها", color = Color3.fromRGB(173, 91, 255)},
-        {icon = "⚙", title = "الإعدادات والثيمات", desc = "الألوان والخلفية وخيارات الواجهة", color = Color3.fromRGB(218, 47, 57)},
-        {icon = "🏆", title = "توب اللاعبين", desc = "عرض قسم اللاعبين والترتيب", color = Color3.fromRGB(255, 184, 65)},
-    }
+    local starIcon = Instance.new("TextLabel")
+    starIcon.Size = UDim2.new(0, 72, 0, 82)
+    starIcon.Position = UDim2.new(0, 24, 0.5, -41)
+    starIcon.BackgroundTransparency = 1
+    starIcon.Text = "★"
+    starIcon.TextColor3 = Color3.fromRGB(255, 91, 111)
+    starIcon.Font = Enum.Font.GothamBlack
+    starIcon.TextSize = 56
+    starIcon.ZIndex = 9
+    starIcon.Parent = welcomeCard
 
-    for i, item in ipairs(cards) do
-        local card = Instance.new("Frame")
-        card.Name = "KEONFeatureCard"
-        card.LayoutOrder = i
-        card.Size = UDim2.new(1, 0, 0, 78)
-        card.BackgroundColor3 = Color3.fromRGB(29, 32, 38)
-        card.BorderSizePixel = 0
-        card.ZIndex = 3
-        card.Parent = CenterScroll
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 3)
-        local edge = Instance.new("UIStroke")
-        edge.Color = Color3.fromRGB(76, 81, 91)
-        edge.Thickness = 1.2
-        edge.Parent = card
+    local welcomeTitle = Instance.new("TextLabel")
+    welcomeTitle.Size = UDim2.new(1, -125, 0, 32)
+    welcomeTitle.Position = UDim2.new(0, 112, 0, 27)
+    welcomeTitle.BackgroundTransparency = 1
+    welcomeTitle.Text = "KEON HUB"
+    welcomeTitle.TextColor3 = Color3.fromRGB(255, 105, 123)
+    welcomeTitle.Font = Enum.Font.GothamBlack
+    welcomeTitle.TextSize = 20
+    welcomeTitle.TextXAlignment = Enum.TextXAlignment.Left
+    welcomeTitle.ZIndex = 9
+    welcomeTitle.Parent = welcomeCard
 
-        local iconTile = Instance.new("Frame")
-        iconTile.Name = "ScriptIconTile"
-        iconTile.Size = UDim2.new(0, 54, 0, 60)
-        iconTile.Position = UDim2.new(0, 7, 0.5, -30)
-        iconTile.BackgroundColor3 = Color3.fromRGB(48, 53, 63)
-        iconTile.BorderSizePixel = 0
-        iconTile.ZIndex = 4
-        iconTile.Parent = card
-        Instance.new("UICorner", iconTile).CornerRadius = UDim.new(0, 2)
+    local welcomeDesc = Instance.new("TextLabel")
+    welcomeDesc.Size = UDim2.new(1, -130, 0, 38)
+    welcomeDesc.Position = UDim2.new(0, 112, 0, 61)
+    welcomeDesc.BackgroundTransparency = 1
+    welcomeDesc.Text = "واجهة تجريبية • سيتم إضافة الوظائف هنا لاحقاً"
+    welcomeDesc.TextColor3 = Color3.fromRGB(230, 230, 240)
+    welcomeDesc.Font = Enum.Font.GothamMedium
+    welcomeDesc.TextSize = 13
+    welcomeDesc.TextWrapped = true
+    welcomeDesc.TextXAlignment = Enum.TextXAlignment.Left
+    welcomeDesc.ZIndex = 9
+    welcomeDesc.Parent = welcomeCard
 
-        local iconText = Instance.new("TextLabel")
-        iconText.Size = UDim2.new(1, 0, 1, 0)
-        iconText.BackgroundTransparency = 1
-        iconText.Text = item.icon
-        iconText.TextColor3 = item.color
-        iconText.Font = Enum.Font.GothamBlack
-        iconText.TextSize = 27
-        iconText.ZIndex = 5
-        iconText.Parent = iconTile
+    local statusCard = Instance.new("Frame")
+    statusCard.Name = "KEONStatusCard"
+    statusCard.Size = UDim2.new(1, -8, 0, 88)
+    statusCard.Position = UDim2.new(0, 4, 0, 224)
+    statusCard.BackgroundColor3 = Color3.fromRGB(13, 12, 19)
+    statusCard.BackgroundTransparency = 0.10
+    statusCard.BorderSizePixel = 0
+    statusCard.ZIndex = 8
+    statusCard.Parent = CenterScroll
+    Instance.new("UICorner", statusCard).CornerRadius = UDim.new(0, 13)
 
-        local title = Instance.new("TextLabel")
-        title.Size = UDim2.new(1, -78, 0, 27)
-        title.Position = UDim2.new(0, 70, 0, 10)
-        title.BackgroundTransparency = 1
-        title.Text = item.title
-        title.TextColor3 = item.color
-        title.Font = Enum.Font.GothamBlack
-        title.TextSize = 14
-        title.TextXAlignment = Enum.TextXAlignment.Right
-        title.TextTruncate = Enum.TextTruncate.AtEnd
-        title.ZIndex = 4
-        title.Parent = card
+    local statusTitle = Instance.new("TextLabel")
+    statusTitle.Size = UDim2.new(1, -24, 0, 28)
+    statusTitle.Position = UDim2.new(0, 12, 0, 12)
+    statusTitle.BackgroundTransparency = 1
+    statusTitle.Text = "حالة الواجهة"
+    statusTitle.TextColor3 = Color3.fromRGB(245, 245, 250)
+    statusTitle.Font = Enum.Font.GothamBold
+    statusTitle.TextSize = 14
+    statusTitle.TextXAlignment = Enum.TextXAlignment.Right
+    statusTitle.ZIndex = 9
+    statusTitle.Parent = statusCard
 
-        local desc = Instance.new("TextLabel")
-        desc.Size = UDim2.new(1, -78, 0, 28)
-        desc.Position = UDim2.new(0, 70, 0, 39)
-        desc.BackgroundTransparency = 1
-        desc.Text = item.desc
-        desc.TextColor3 = Color3.fromRGB(225, 228, 235)
-        desc.Font = Enum.Font.GothamBold
-        desc.TextSize = 10
-        desc.TextXAlignment = Enum.TextXAlignment.Right
-        desc.TextWrapped = true
-        desc.ZIndex = 4
-        desc.Parent = card
-    end
+    local statusValue = Instance.new("TextLabel")
+    statusValue.Size = UDim2.new(1, -24, 0, 24)
+    statusValue.Position = UDim2.new(0, 12, 0, 44)
+    statusValue.BackgroundTransparency = 1
+    statusValue.Text = "● الواجهة تعمل بنجاح"
+    statusValue.TextColor3 = Color3.fromRGB(61, 220, 174)
+    statusValue.Font = Enum.Font.GothamBold
+    statusValue.TextSize = 13
+    statusValue.TextXAlignment = Enum.TextXAlignment.Right
+    statusValue.ZIndex = 9
+    statusValue.Parent = statusCard
 
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, 340)
 end
 BtnMainHome.MouseButton1Click:Connect(showHomePage)
 
@@ -3111,17 +3145,9 @@ local function openScriptDetailsPage(mapName, scriptsList)
         if showScriptsPage then showScriptsPage() end
     end)
 
-    local searchToolbar = Instance.new("Frame")
-    searchToolbar.Name = "ScriptSearchToolbar"
-    searchToolbar.Size = UDim2.new(1, 0, 0, 34)
-    searchToolbar.BackgroundTransparency = 1
-    searchToolbar.ZIndex = 3
-    searchToolbar.Parent = CenterScroll
-
     local searchBox = Instance.new("TextBox")
-    searchBox.Size = UDim2.new(1, -136, 0, 34)
-    searchBox.Position = UDim2.new(0, 0, 0, 0)
-    searchBox.BackgroundColor3 = Color3.fromRGB(35, 37, 44)
+    searchBox.Size = UDim2.new(1, 0, 0, 34)
+    searchBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
     searchBox.PlaceholderText = "⌕ ابحث عن سكربت…"
     searchBox.Text = ""
     searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -3129,7 +3155,7 @@ local function openScriptDetailsPage(mapName, scriptsList)
     searchBox.TextSize = 13
     searchBox.TextXAlignment = Enum.TextXAlignment.Right
     searchBox.ZIndex = 3
-    searchBox.Parent = searchToolbar
+    searchBox.Parent = CenterScroll
     Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 9)
 
     local searchStroke = Instance.new("UIStroke")
@@ -3137,25 +3163,6 @@ local function openScriptDetailsPage(mapName, scriptsList)
     searchStroke.Thickness = 1.2
     searchStroke.Parent = searchBox
     table.insert(registeredOptionStrokes, searchStroke)
-
-    local favoritesOnly = false
-    local favoritesFilterBtn = Instance.new("TextButton")
-    favoritesFilterBtn.Name = "KEONFavoriteFilterButton"
-    favoritesFilterBtn.Size = UDim2.new(0, 128, 0, 34)
-    favoritesFilterBtn.Position = UDim2.new(1, -128, 0, 0)
-    favoritesFilterBtn.BackgroundColor3 = Color3.fromRGB(55, 87, 125)
-    favoritesFilterBtn.Text = "☆ المفضلة"
-    favoritesFilterBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    favoritesFilterBtn.Font = Enum.Font.GothamBold
-    favoritesFilterBtn.TextSize = 11.5
-    favoritesFilterBtn.ZIndex = 3
-    favoritesFilterBtn.Parent = searchToolbar
-    Instance.new("UICorner", favoritesFilterBtn).CornerRadius = UDim.new(0, 3)
-    local favoritesFilterStroke = Instance.new("UIStroke")
-    favoritesFilterStroke.Color = currentAccentColor
-    favoritesFilterStroke.Thickness = 1.2
-    favoritesFilterStroke.Parent = favoritesFilterBtn
-    table.insert(registeredOptionStrokes, favoritesFilterStroke)
 
     local cardsContainer = Instance.new("Frame")
     cardsContainer.Size = UDim2.new(1, 0, 0, 0)
@@ -3173,35 +3180,31 @@ local function openScriptDetailsPage(mapName, scriptsList)
         end
 
         for _, sData in ipairs(scriptsList) do
-            local nameMatches = query == "" or string.find(string.lower(sData.name), string.lower(query))
-            local favoriteMatches = not favoritesOnly or favoriteScripts[sData.name] == true
-            if nameMatches and favoriteMatches then
+            if query == "" or string.find(string.lower(sData.name), string.lower(query)) then
                 local scriptCard = Instance.new("Frame")
-                scriptCard.Name = "ScriptCard"
-                scriptCard.Size = UDim2.new(1, -4, 0, 104)
-                scriptCard.BackgroundColor3 = Color3.fromRGB(27, 29, 35)
+                scriptCard.Size = UDim2.new(1, -4, 0, 108)
+                scriptCard.BackgroundColor3 = Color3.fromRGB(10, 20, 39)
                 scriptCard.BorderSizePixel = 0
                 scriptCard.ZIndex = 3
                 scriptCard.Parent = cardsContainer
-                Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 2)
+                Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 14)
 
                 local cardGradient = Instance.new("UIGradient")
                 cardGradient.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(49, 51, 57)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(26, 28, 33))
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(16, 41, 72)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 15, 30))
                 })
                 cardGradient.Rotation = 18
                 cardGradient.Parent = scriptCard
 
                 local cardStroke = Instance.new("UIStroke")
-                cardStroke.Color = Color3.fromRGB(93, 98, 109)
-                cardStroke.Thickness = 1.2
-                cardStroke.Transparency = 0.08
+                cardStroke.Color = currentAccentColor
+                cardStroke.Thickness = 1.35
+                cardStroke.Transparency = 0.12
                 cardStroke.Parent = scriptCard
                 table.insert(registeredOptionStrokes, cardStroke)
 
                 local accentRail = Instance.new("Frame")
-                accentRail.Name = "KEONAccentRail"
                 accentRail.Size = UDim2.new(0, 4, 1, -18)
                 accentRail.Position = UDim2.new(0, 6, 0, 9)
                 accentRail.BackgroundColor3 = currentAccentColor
@@ -3210,52 +3213,24 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 accentRail.Parent = scriptCard
                 Instance.new("UICorner", accentRail).CornerRadius = UDim.new(1, 0)
 
-                local iconTile = Instance.new("Frame")
-                iconTile.Name = "ScriptIconTile"
-                local iconWidth = responsiveState.narrow and 42 or 62
-                iconTile.Size = UDim2.new(0, iconWidth, 0, 78)
-                iconTile.Position = UDim2.new(0, 8, 0, 13)
-                iconTile.BackgroundColor3 = Color3.fromRGB(47, 50, 60)
-                iconTile.BorderSizePixel = 0
-                iconTile.ZIndex = 4
-                iconTile.Parent = scriptCard
-                Instance.new("UICorner", iconTile).CornerRadius = UDim.new(0, 1)
-                local iconStroke = Instance.new("UIStroke")
-                iconStroke.Color = currentAccentColor
-                iconStroke.Thickness = 1
-                iconStroke.Parent = iconTile
-
-                local iconGlyph = Instance.new("TextLabel")
-                iconGlyph.Size = UDim2.new(1, 0, 1, 0)
-                iconGlyph.BackgroundTransparency = 1
-                iconGlyph.Text = "▣"
-                iconGlyph.TextColor3 = currentAccentColor
-                iconGlyph.Font = Enum.Font.GothamBlack
-                iconGlyph.TextSize = responsiveState.narrow and 22 or 30
-                iconGlyph.ZIndex = 5
-                iconGlyph.Parent = iconTile
-                table.insert(activeNameLabels, iconGlyph)
-
-                local textStart = iconWidth + 20
-                local runWidth = responsiveState.narrow and 94 or 126
                 local scriptTitle = Instance.new("TextLabel")
-                scriptTitle.Size = UDim2.new(1, -(textStart + runWidth + 56), 0, 26)
-                scriptTitle.Position = UDim2.new(0, textStart, 0, 10)
+                scriptTitle.Size = UDim2.new(1, -24, 0, 26)
+                scriptTitle.Position = UDim2.new(0, 16, 0, 8)
                 scriptTitle.BackgroundTransparency = 1
                 scriptTitle.Text = sData.name
                 scriptTitle.TextColor3 = Color3.fromRGB(238, 248, 255)
                 scriptTitle.Font = Enum.Font.GothamBlack
                 scriptTitle.TextSize = 13
                 scriptTitle.TextTruncate = Enum.TextTruncate.AtEnd
-                scriptTitle.TextXAlignment = Enum.TextXAlignment.Left
+                scriptTitle.TextXAlignment = Enum.TextXAlignment.Right
                 scriptTitle.ZIndex = 4
                 scriptTitle.Parent = scriptCard
                 table.insert(activeNameLabels, scriptTitle)
 
                 local keyTag = Instance.new("TextLabel")
-                keyTag.Size = UDim2.new(1, -(textStart + runWidth + 56), 0, 27)
-                keyTag.Position = UDim2.new(0, textStart, 0, 47)
-                keyTag.BackgroundColor3 = Color3.fromRGB(37, 40, 48)
+                keyTag.Size = UDim2.new(1, -156, 0, 27)
+                keyTag.Position = UDim2.new(0, 16, 0, 47)
+                keyTag.BackgroundColor3 = Color3.fromRGB(7, 33, 51)
                 keyTag.BackgroundTransparency = 0.1
                 keyTag.Text = "🔑 " .. tostring(sData.keyState or "غير محدد")
                 keyTag.TextColor3 = Color3.fromRGB(143, 218, 255)
@@ -3267,46 +3242,10 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 keyTag.Parent = scriptCard
                 Instance.new("UICorner", keyTag).CornerRadius = UDim.new(0, 8)
 
-                local favoriteBtn = Instance.new("TextButton")
-                favoriteBtn.Name = "KEONFavoriteButton"
-                favoriteBtn.Size = UDim2.new(0, 38, 0, 42)
-                favoriteBtn.Position = UDim2.new(1, -(runWidth + 50), 0, 34)
-                favoriteBtn.BackgroundColor3 = favoriteScripts[sData.name] and Color3.fromRGB(111, 119, 133) or Color3.fromRGB(91, 99, 113)
-                favoriteBtn.Text = favoriteScripts[sData.name] and "★" or "☆"
-                favoriteBtn.TextColor3 = favoriteScripts[sData.name] and Color3.fromRGB(255, 218, 105) or Color3.fromRGB(235, 238, 245)
-                favoriteBtn.Font = Enum.Font.GothamBlack
-                favoriteBtn.TextSize = 22
-                favoriteBtn.ZIndex = 4
-                favoriteBtn.Parent = scriptCard
-                Instance.new("UICorner", favoriteBtn).CornerRadius = UDim.new(0, 2)
-                local favoriteBtnStroke = Instance.new("UIStroke")
-                favoriteBtnStroke.Color = currentAccentColor
-                favoriteBtnStroke.Thickness = 1
-                favoriteBtnStroke.Parent = favoriteBtn
-
-                favoriteBtn.MouseButton1Click:Connect(function()
-                    local isFavorite = favoriteScripts[sData.name] == true
-                    favoriteScripts[sData.name] = not isFavorite
-                    local selected = favoriteScripts[sData.name] == true
-                    favoriteBtn.Text = selected and "★" or "☆"
-                    favoriteBtn.TextColor3 = selected and Color3.fromRGB(255, 218, 105) or Color3.fromRGB(235, 238, 245)
-                    favoriteBtn.BackgroundColor3 = selected and Color3.fromRGB(111, 119, 133) or Color3.fromRGB(91, 99, 113)
-                    favoriteBtnStroke.Color = currentAccentColor
-                    saveUserSettings()
-                    if favoritesOnly and not selected then
-                        task.defer(function()
-                            if cardsContainer and cardsContainer.Parent then
-                                renderFilteredCards(searchBox.Text)
-                            end
-                        end)
-                    end
-                end)
-
                 local runBtn = Instance.new("TextButton")
-                runBtn.Name = "KEONPrimaryButton"
-                runBtn.Size = UDim2.new(0, runWidth, 0, 48)
-                runBtn.Position = UDim2.new(1, -(runWidth + 10), 0, 31)
-                runBtn.BackgroundColor3 = Color3.fromRGB(25, 210, 91)
+                runBtn.Size = UDim2.new(0, 126, 0, 33)
+                runBtn.Position = UDim2.new(1, -136, 0, 44)
+                runBtn.BackgroundColor3 = currentAccentColor
                 runBtn.Text = "تشغيل  ➤"
                 runBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
                 runBtn.Font = Enum.Font.GothamBold
@@ -3314,9 +3253,9 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 runBtn.TextScaled = true
                 runBtn.ZIndex = 4
                 runBtn.Parent = scriptCard
-                Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 2)
+                Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 10)
                 local runStroke = Instance.new("UIStroke")
-                runStroke.Color = Color3.fromRGB(255, 190, 195)
+                runStroke.Color = Color3.fromRGB(125, 220, 255)
                 runStroke.Thickness = 1
                 runStroke.Parent = runBtn
 
@@ -3341,14 +3280,6 @@ local function openScriptDetailsPage(mapName, scriptsList)
             end
         end)
     end
-
-    favoritesFilterBtn.MouseButton1Click:Connect(function()
-        favoritesOnly = not favoritesOnly
-        favoritesFilterBtn.Text = favoritesOnly and "★ المفضلة فقط" or "☆ المفضلة"
-        favoritesFilterBtn.BackgroundColor3 = favoritesOnly and currentAccentColor or Color3.fromRGB(55, 87, 125)
-        favoritesFilterStroke.Color = currentAccentColor
-        renderFilteredCards(searchBox.Text)
-    end)
 
     renderFilteredCards("")
 
@@ -4641,36 +4572,7 @@ BtnSettings.MouseButton1Click:Connect(function()
             currentHeaderColor = headerCol
             saveUserSettings()
 
-            -- طبّق اللون على الأزرار الموجودة أيضاً، وليس فقط العناصر الرئيسية.
-            for _, ui in ipairs(ScreenGui:GetDescendants()) do
-                pcall(function()
-                    if ui:IsA("TextButton") then
-                        ui.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        if ui.Name == "KEONPrimaryButton" then
-                            ui.BackgroundColor3 = accent
-                        elseif ui.Name == "CloseBtn" then
-                            ui.BackgroundColor3 = Color3.fromRGB(115, 18, 31)
-                        else
-                            ui.BackgroundColor3 = Color3.fromRGB(30, 31, 37)
-                        end
-                        local st = ui:FindFirstChildWhichIsA("UIStroke")
-                        if st then st.Color = accent end
-                    elseif ui:IsA("UIStroke") then
-                        ui.Color = accent
-                    elseif ui:IsA("Frame") and ui.Name == "KEONAccentRail" then
-                        ui.BackgroundColor3 = accent
-                    end
-                end)
-            end
-
             centerStroke.Color = accent
-            centerNeonGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-                ColorSequenceKeypoint.new(0.5, accent),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
-            })
-            minNeonGradient.Color = centerNeonGradient.Color
-            HeaderAccentLine.BackgroundColor3 = accent
             Header.BackgroundColor3 = headerCol
             floatStroke.Color = accent
             chatStroke.Color = accent
@@ -4696,9 +4598,7 @@ BtnSettings.MouseButton1Click:Connect(function()
             end
         end
 
-        addAction("🔴 الثيم الأحمر الافتراضي", function() updateTheme(Color3.fromRGB(235, 35, 65), Color3.fromRGB(90, 8, 24)) end)
-        addAction("🩸 الثيم القرمزي الملكي", function() updateTheme(Color3.fromRGB(190, 0, 55), Color3.fromRGB(75, 0, 24)) end)
-        addAction("🌸 الثيم قرمزي فاتح", function() updateTheme(Color3.fromRGB(255, 55, 115), Color3.fromRGB(100, 12, 42)) end)
+        addAction("الثيم القرمزي الفاخر 🔴", function() updateTheme(Color3.fromRGB(200, 20, 60), Color3.fromRGB(140, 10, 40)) end)
         addAction("الثيم الأسود والأبيض الملكي 🖤", function() updateTheme(Color3.fromRGB(255, 255, 255), Color3.fromRGB(30, 30, 35)) end)
         addAction("الثيم الدموي المرعب 🩸", function() updateTheme(Color3.fromRGB(220, 0, 0), Color3.fromRGB(100, 0, 0)) end)
         addAction("الثيم الذهبي الفاخر 🟡", function() updateTheme(Color3.fromRGB(255, 200, 50), Color3.fromRGB(180, 130, 10)) end)
@@ -4717,7 +4617,7 @@ BtnSettings.MouseButton1Click:Connect(function()
     addChilliAccordion("⚙️ حجم الواجهة وعلامة الرأس", function(addToggle, addAction)
         local function updateUIScale(nextScale)
             uiScaleValue = math.clamp(nextScale, 0.75, 1.2)
-            if mainUIScaleObject then mainUIScaleObject.Scale = math.clamp(uiScaleValue, 0.85, 1.0) end
+            if mainUIScaleObject then mainUIScaleObject.Scale = uiScaleValue end
             saveUserSettings()
         end
         addAction("➖ تصغير الواجهة", function()
@@ -5311,128 +5211,38 @@ task.spawn(function()
     MainFrame.Visible = true
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.Rotation = 0
-    TweenService:Create(MainFrame, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+    MainFrame.Rotation = -2.5
+    TweenService:Create(MainFrame, TweenInfo.new(0.68, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
         Size = responsiveState.mainSize,
         Position = responsiveState.mainPosition,
         Rotation = 0
     }):Play()
-    -- Keep the panel unobstructed on launch; help remains available from the ? button.
+    task.spawn(function()
+        task.wait(0.68)
+        for _, amount in ipairs({1.2, -1.2, 0.65, -0.65, 0}) do
+            if not MainFrame or not MainFrame.Parent then break end
+            local shake = TweenService:Create(MainFrame, TweenInfo.new(0.045, Enum.EasingStyle.Linear), {Rotation = amount})
+            shake:Play()
+            shake.Completed:Wait()
+        end
+    end)
+    task.delay(0.62, function()
+        if MainFrame and MainFrame.Visible then
+            openHelpPanel()
+        end
+    end)
 end)
 
 CloseBtn.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
-    TweenService:Create(MainFrame, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+    TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
         Size = UDim2.new(0, 0, 0, 0),
         Position = UDim2.new(0.5, 0, 0.5, 0)
     }):Play()
-    task.wait(0.16)
+    task.wait(0.3)
     MainFrame.Visible = false
     MainFrame.Size = responsiveState.mainSize
     MainFrame.Position = responsiveState.mainPosition
-end)
-
----------------------------------------------------------
--- KEON V70: تخطيط أفقي وخلفية أنمي أساسية
----------------------------------------------------------
-local function applyOverdriveTheme(root)
-    if not root then return end
-    local accent = currentAccentColor or Color3.fromRGB(235, 35, 65)
-    local panel = Color3.fromRGB(20, 22, 27)
-    local panel2 = Color3.fromRGB(43, 46, 53)
-    local white = Color3.fromRGB(245, 247, 255)
-    for _, obj in ipairs(root:GetDescendants()) do
-        pcall(function()
-            if obj:IsA("UICorner") then
-                obj.CornerRadius = UDim.new(0, 2)
-            elseif obj:IsA("UIStroke") then
-                if obj.Name == "KEONOverdriveStroke" or obj.Name == "KEONOverdriveEdge" or obj.Name == "VioletInnerEdge" then
-                    obj.Color = accent
-                elseif obj.Parent and obj.Parent:IsA("TextButton") and obj.Parent.Name ~= "KEONPrimaryButton" and obj.Parent.Name ~= "KEONFavoriteButton" then
-                    obj.Color = accent
-                end
-                obj.Thickness = math.max(obj.Thickness, 1.1)
-            elseif obj:IsA("TextButton") then
-                obj.AutoButtonColor = true
-                obj.BorderSizePixel = 0
-                obj.Font = Enum.Font.GothamBold
-                obj.TextColor3 = white
-                if obj.Name == "CloseBtn" then
-                    obj.BackgroundColor3 = Color3.fromRGB(135, 24, 38)
-                elseif obj.Name == "MinimizeBtn" or obj.Name == "PS5HelpBtn" then
-                    obj.BackgroundColor3 = panel2
-                elseif obj.Name == "KEONPrimaryButton" then
-                    obj.BackgroundColor3 = Color3.fromRGB(25, 210, 91)
-                    obj.TextColor3 = Color3.fromRGB(255, 255, 255)
-                elseif obj.Name == "KEONFavoriteButton" then
-                    obj.BackgroundColor3 = (obj.Text == "★") and Color3.fromRGB(111, 119, 133) or Color3.fromRGB(91, 99, 113)
-                    obj.TextColor3 = (obj.Text == "★") and Color3.fromRGB(255, 220, 105) or white
-                elseif obj.Name == "KEONFavoriteFilterButton" then
-                    obj.BackgroundColor3 = string.find(obj.Text, "فقط", 1, true) and Color3.fromRGB(25, 170, 80) or Color3.fromRGB(28, 105, 190)
-                elseif obj.Parent and obj.Parent.Name == "Header" then
-                    obj.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
-                elseif obj.Parent and obj.Parent.Name == "ScriptCard" then
-                    obj.BackgroundColor3 = accent
-                elseif obj.Name == "BtnMainHome" then
-                    obj.BackgroundColor3 = Color3.fromRGB(25, 170, 80)
-                else
-                    obj.BackgroundColor3 = panel2
-                end
-                if not obj:FindFirstChild("KEONOverdriveStroke") then
-                    local st = Instance.new("UIStroke")
-                    st.Name = "KEONOverdriveStroke"
-                    st.Color = (obj.Name == "KEONPrimaryButton") and Color3.fromRGB(125, 255, 165) or accent
-                    st.Thickness = 1.2
-                    st.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-                    st.Parent = obj
-                else
-                    obj.KEONOverdriveStroke.Color = (obj.Name == "KEONPrimaryButton") and Color3.fromRGB(125, 255, 165) or accent
-                end
-            elseif obj:IsA("TextBox") then
-                obj.BackgroundColor3 = panel
-                obj.BorderSizePixel = 0
-                obj.TextColor3 = white
-                obj.PlaceholderColor3 = Color3.fromRGB(175, 178, 188)
-                if not obj:FindFirstChild("KEONOverdriveStroke") then
-                    local st = Instance.new("UIStroke")
-                    st.Name = "KEONOverdriveStroke"
-                    st.Color = accent
-                    st.Thickness = 1.1
-                    st.Parent = obj
-                else
-                    obj.KEONOverdriveStroke.Color = accent
-                end
-            elseif obj:IsA("TextLabel") then
-                if obj.BackgroundTransparency < 1 and obj.Name ~= "BgImage" then obj.BorderSizePixel = 0 end
-                if obj.TextTransparency == 0 and obj.Text ~= "" then obj.Font = Enum.Font.GothamBold end
-            elseif obj:IsA("Frame") then
-                obj.BorderSizePixel = 0
-                if obj.Name == "CenterBox" then
-                    obj.BackgroundColor3 = panel
-                    if BgImage then BgImage.Visible = false end
-                elseif obj.Name == "Header" then
-                    obj.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
-                elseif obj.Name == "PS5SoftGlow" then
-                    obj.BackgroundTransparency = 1
-                elseif obj.Name == "ScriptCard" then
-                    obj.BackgroundColor3 = Color3.fromRGB(32, 35, 40)
-                elseif obj.Name == "ScriptIconTile" then
-                    obj.BackgroundColor3 = Color3.fromRGB(77, 82, 91)
-                elseif obj.Name == "KEONAccentRail" then
-                    obj.BackgroundColor3 = accent
-                end
-            end
-        end)
-    end
-end
-
-applyOverdriveTheme(MainFrame)
--- الواجهة تنشئ بعض البطاقات أثناء التشغيل؛ طبّق الستايل عليها بدون لمس وظائف الأزرار.
-task.spawn(function()
-    while ScreenGui and ScreenGui.Parent do
-        task.wait(4)
-        pcall(function() applyOverdriveTheme(MainFrame) end)
-    end
 end)
 
 showHomePage()
