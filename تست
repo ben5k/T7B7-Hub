@@ -1,4 +1,7 @@
 --[[
+    VERSION: 7V  |  REXEL IMAGE-FIX UPDATE
+    CHANGELOG: explicit image asset setup + guaranteed built-in background fallback.
+
     REXEL | STEAL AN EGG UI
     Arabic Roblox interface inspired by the supplied reference screenshot.
 
@@ -23,8 +26,12 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Leave empty for the built-in background. For the exact artwork,
--- upload the JPG to Roblox and replace this with rbxassetid://YOUR_ID.
+-- IMAGE SETUP:
+-- Leave empty to show the built-in red/cream background (works immediately).
+-- To show the exact anime artwork, upload REXEL_BACKGROUND.jpg to Roblox
+-- Creator Dashboard > Development Items > Images, then paste its asset ID below.
+-- Example: local BACKGROUND_IMAGE = "rbxassetid://1234567890"
+-- A Top4Top URL is NOT a Roblox image asset and will not render here.
 local BACKGROUND_IMAGE = ""
 
 local old = playerGui:FindFirstChild("RixelStealEgg")
