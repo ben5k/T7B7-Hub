@@ -2729,7 +2729,7 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 scriptTitle.Text = sData.name
                 scriptTitle.TextColor3 = Color3.fromRGB(238, 248, 255)
                 scriptTitle.Font = Enum.Font.GothamBlack
-                scriptTitle.TextSize = 13
+                scriptTitle.TextSize = tonumber(sData.textSize) or 13
                 scriptTitle.TextTruncate = Enum.TextTruncate.AtEnd
                 scriptTitle.TextXAlignment = Enum.TextXAlignment.Right
                 scriptTitle.ZIndex = 4
@@ -2904,7 +2904,7 @@ showScriptsPage = function()
         {name = "🌶️ سكربت فلفل (الأصلي)", keyState = "بدون مفتاح", url = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"},
         {name = "💧 سكربت الأزراق (PulseZax)", keyState = "بدون مفتاح", url = "https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"},
         {name = "⭐ سكربت SENA V7", keyState = "بدون مفتاح (قوي جداً)", url = "https://senahub.xyz/senaloader"},
-        {name = "🍏 سكربت التفاح (ChulluHub)", keyState = "بدون مفتاح", url = "https://raw.githubusercontent.com/napun87/stealaneggv2/refs/heads/main/chulluHub.lua"}
+        {name = "REXEL", keyState = "لودر خارجي", textSize = 10, url = "https://flowauth.net/v1/loaders/cacd453cf780cca1885f79c734f492fa.lua"}
     })
 
     addMapCard("💥 ماب كسر البيض", BREAK_EGG_MAP_IMAGE, {
