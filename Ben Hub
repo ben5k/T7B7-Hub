@@ -1,4 +1,4 @@
--- REXEL - Neon Script Hub (v64.1.0)
+-- REXEL - Neon Script Hub (v64..0)
 -- Developer: REXEL
 
 local CoreGui = game:GetService("CoreGui")
