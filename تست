@@ -140,8 +140,8 @@ local BROADCAST_SOUND_ID = "rbxassetid://17208361335"
 local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 
 local neonSpeed = 3.2
-local currentAccentColor = Color3.fromRGB(220, 66, 83)
-local currentHeaderColor = Color3.fromRGB(12, 12, 18)
+local currentAccentColor = Color3.fromRGB(0, 170, 255)
+local currentHeaderColor = Color3.fromRGB(7, 22, 48)
 local globalMediaVolume = 5.0
 
 -- تخطيط متجاوب حتى لا تخرج الأزرار عن شاشة الهاتف
@@ -221,8 +221,8 @@ end
 
 loadUserSettings()
 -- ثابت بصرياً على ثيم PS5 النظيف، مع تعطيل صور خلفيات الواجهة والشات.
-currentAccentColor = Color3.fromRGB(220, 66, 83)
-currentHeaderColor = Color3.fromRGB(12, 12, 18)
+currentAccentColor = Color3.fromRGB(0, 170, 255)
+currentHeaderColor = Color3.fromRGB(7, 22, 48)
 -- لا تصفّر اختيار الخلفية المحفوظ؛ اتركه ليستعيد آخر اختيار.
 
 local function playUiSound(soundId, pitch, volume)
@@ -1137,12 +1137,9 @@ ScreenGui.Parent = parent
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 880, 0, 560)
-MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(9, 12, 18)
-MainFrame.BackgroundTransparency = 0
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
+MainFrame.Size = UDim2.new(0, 560, 0, 360)
+MainFrame.Position = UDim2.new(0.5, -280, 0.5, -180)
+MainFrame.BackgroundTransparency = 1
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Visible = false
@@ -1152,16 +1149,12 @@ mainUIScaleObject = Instance.new("UIScale")
 mainUIScaleObject.Name = "KEONUserInterfaceScale"
 mainUIScaleObject.Scale = uiScaleValue
 mainUIScaleObject.Parent = MainFrame
-local outerFrameStroke = Instance.new("UIStroke")
-outerFrameStroke.Color = Color3.fromRGB(255, 76, 92)
-outerFrameStroke.Thickness = 2.2
-outerFrameStroke.Parent = MainFrame
 
 local CenterGlow = Instance.new("Frame")
-CenterGlow.Name = "KEONRedGlow"
-CenterGlow.Size = UDim2.new(1, -145, 1, -58)
-CenterGlow.Position = UDim2.new(0, 145, 0, 58)
-CenterGlow.BackgroundColor3 = Color3.fromRGB(190, 35, 58)
+CenterGlow.Name = "PS5SoftGlow"
+CenterGlow.Size = UDim2.new(0, 350, 1, 8)
+CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
+CenterGlow.BackgroundColor3 = Color3.fromRGB(0, 126, 255)
 CenterGlow.BackgroundTransparency = 0.91
 CenterGlow.BorderSizePixel = 0
 CenterGlow.ZIndex = 0
@@ -1170,19 +1163,19 @@ Instance.new("UICorner", CenterGlow).CornerRadius = UDim.new(0, 19)
 
 local CenterBox = Instance.new("Frame")
 CenterBox.Name = "CenterBox"
-CenterBox.Size = UDim2.new(1, -145, 1, -58)
-CenterBox.Position = UDim2.new(0, 145, 0, 58)
-CenterBox.BackgroundColor3 = Color3.fromRGB(18, 14, 19)
+CenterBox.Size = UDim2.new(0, 340, 1, 0)
+CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
+CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
 CenterBox.BackgroundTransparency = 0
 CenterBox.BorderSizePixel = 0
 CenterBox.ClipsDescendants = true
 CenterBox.Parent = MainFrame
-Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 0)
+Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 16)
 local centerSurfaceGradient = Instance.new("UIGradient")
 centerSurfaceGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 12, 18)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 10, 15)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 8, 13))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 20, 42)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(7, 14, 28)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 10, 22))
 })
 centerSurfaceGradient.Rotation = 110
 centerSurfaceGradient.Parent = CenterBox
@@ -1206,37 +1199,21 @@ local function applyScriptBackground(idx)
         BgImage.Image = wallUrls[idx]
         BgImage.Visible = true
         CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(18, 14, 19)
+        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
         BgImage.ImageTransparency = 0
     else
         BgImage.Image = ""
         BgImage.Visible = false
         CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(18, 14, 19)
+        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
     end
     saveUserSettings()
 end
 applyScriptBackground(selectedScriptBgIndex)
 
--- تحميل خلفية KEON المختارة محلياً عند دعم بيئة التنفيذ
-task.spawn(function()
-    local backgroundUrl = "https://d.top4top.io/p_3956imcxl0.jpg"
-    pcall(function()
-        if type(writefile) == "function" and type(getcustomasset) == "function" then
-            local imageData = game:HttpGet(backgroundUrl)
-            local imagePath = "KEON_HUB_MAIN_BACKGROUND.jpg"
-            writefile(imagePath, imageData)
-            BgImage.Image = getcustomasset(imagePath)
-            BgImage.Visible = true
-            BgImage.ImageTransparency = 0.18
-        end
-    end)
-end)
-
-
 local centerStroke = Instance.new("UIStroke")
-centerStroke.Color = Color3.fromRGB(103, 48, 59)
-centerStroke.Thickness = 0.8
+centerStroke.Color = currentAccentColor
+centerStroke.Thickness = 1.7
 centerStroke.Parent = CenterBox
 
 local centerNeonGradient = Instance.new("UIGradient")
@@ -1257,17 +1234,17 @@ task.spawn(function()
 end)
 
 local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 64)
-Header.BackgroundColor3 = Color3.fromRGB(14, 18, 26)
+Header.Size = UDim2.new(1, 0, 0, 44)
+Header.BackgroundColor3 = currentHeaderColor
 Header.BorderSizePixel = 0
-Header.ZIndex = 20
-Header.Parent = MainFrame
+Header.ZIndex = 3
+Header.Parent = CenterBox
 Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 16)
 local HeaderAccentLine = Instance.new("Frame")
-HeaderAccentLine.Name = "KEONAccentLine"
-HeaderAccentLine.Size = UDim2.new(1, -20, 0, 2)
-HeaderAccentLine.Position = UDim2.new(0, 10, 1, -2)
-HeaderAccentLine.BackgroundColor3 = Color3.fromRGB(245, 76, 88)
+HeaderAccentLine.Name = "PS5AccentLine"
+HeaderAccentLine.Size = UDim2.new(1, -24, 0, 2)
+HeaderAccentLine.Position = UDim2.new(0, 12, 1, -3)
+HeaderAccentLine.BackgroundColor3 = currentAccentColor
 HeaderAccentLine.BorderSizePixel = 0
 HeaderAccentLine.ZIndex = 5
 HeaderAccentLine.Parent = Header
@@ -1275,13 +1252,13 @@ Instance.new("UICorner", HeaderAccentLine).CornerRadius = UDim.new(1, 0)
 
 local TitleMain = Instance.new("TextLabel")
 TitleMain.Size = UDim2.new(1, -108, 1, 0)
-TitleMain.Position = UDim2.new(0, 22, 0, 0)
+TitleMain.Position = UDim2.new(0, 10, 0, 0)
 TitleMain.BackgroundTransparency = 1
-TitleMain.Text = "KEON HUB  •  لوحة التحكم"
+TitleMain.Text = "◈  PLAYSTATION  •  KEON HUB"
 TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.GothamBold
-TitleMain.TextSize = 18
-TitleMain.TextXAlignment = Enum.TextXAlignment.Left
+TitleMain.TextSize = 15
+TitleMain.TextXAlignment = Enum.TextXAlignment.Center
 TitleMain.ZIndex = 4
 TitleMain.Parent = Header
 
@@ -1289,7 +1266,7 @@ local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Name = "MinimizeBtn"
 MinimizeBtn.Size = UDim2.new(0, 26, 0, 26)
 MinimizeBtn.Position = UDim2.new(1, -62, 0, 8)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(35, 28, 34)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(18, 86, 160)
 MinimizeBtn.Text = "–"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeBtn.Font = Enum.Font.GothamBold
@@ -1298,7 +1275,7 @@ MinimizeBtn.ZIndex = 4
 MinimizeBtn.Parent = Header
 Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 8)
 local minimizeStroke = Instance.new("UIStroke")
-minimizeStroke.Color = Color3.fromRGB(210, 65, 82)
+minimizeStroke.Color = Color3.fromRGB(80, 180, 255)
 minimizeStroke.Thickness = 0.8
 minimizeStroke.Parent = MinimizeBtn
 
@@ -1319,7 +1296,7 @@ local HelpBtn = Instance.new("TextButton")
 HelpBtn.Name = "PS5HelpBtn"
 HelpBtn.Size = UDim2.new(0, 24, 0, 26)
 HelpBtn.Position = UDim2.new(1, -92, 0, 8)
-HelpBtn.BackgroundColor3 = Color3.fromRGB(35, 28, 34)
+HelpBtn.BackgroundColor3 = Color3.fromRGB(12, 54, 96)
 HelpBtn.Text = "?"
 HelpBtn.TextColor3 = Color3.fromRGB(220, 244, 255)
 HelpBtn.Font = Enum.Font.GothamBlack
@@ -1334,8 +1311,8 @@ helpBtnStroke.Parent = HelpBtn
 
 local FloatingMinBox = Instance.new("ImageButton")
 FloatingMinBox.Name = "KEONFloatingMinBox"
-FloatingMinBox.Size = UDim2.new(0, 56, 0, 56)
-FloatingMinBox.Position = UDim2.new(0, 18, 0.5, -28)
+FloatingMinBox.Size = UDim2.new(0, 52, 0, 52)
+FloatingMinBox.Position = UDim2.new(0, 20, 0.5, -26)
 FloatingMinBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
 FloatingMinBox.Image = MINIMIZE_ICON_IMAGE
 FloatingMinBox.ScaleType = Enum.ScaleType.Crop
@@ -1388,10 +1365,8 @@ FloatingMinBox.MouseButton1Click:Connect(function()
 end)
 
 local LeftWing = Instance.new("ScrollingFrame")
-LeftWing.Size = UDim2.new(0, 145, 1, -58)
-LeftWing.Position = UDim2.new(0, 0, 0, 58)
-LeftWing.BackgroundColor3 = Color3.fromRGB(13, 17, 24)
-LeftWing.BackgroundTransparency = 0
+LeftWing.Size = UDim2.new(0, 105, 1, -48)
+LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
 LeftWing.BackgroundTransparency = 1
 LeftWing.BorderSizePixel = 0
 LeftWing.ScrollBarThickness = 0
@@ -1404,48 +1379,9 @@ LeftLayout.Padding = UDim.new(0, 7)
 LeftLayout.SortOrder = Enum.SortOrder.LayoutOrder
 LeftLayout.Parent = LeftWing
 
--- بطاقة هوية KEON أعلى القائمة الجانبية
-local SidebarBrand = Instance.new("Frame")
-SidebarBrand.Name = "KEONSidebarBrand"
-SidebarBrand.Size = UDim2.new(1, -12, 0, 78)
-SidebarBrand.BackgroundTransparency = 1
-SidebarBrand.LayoutOrder = -100
-SidebarBrand.Parent = LeftWing
-local SidebarLogo = Instance.new("TextLabel")
-SidebarLogo.Size = UDim2.new(0, 42, 0, 42)
-SidebarLogo.Position = UDim2.new(0, 7, 0, 8)
-SidebarLogo.BackgroundColor3 = Color3.fromRGB(207, 62, 78)
-SidebarLogo.Text = "K"
-SidebarLogo.TextColor3 = Color3.fromRGB(255, 255, 255)
-SidebarLogo.Font = Enum.Font.GothamBlack
-SidebarLogo.TextSize = 25
-SidebarLogo.Parent = SidebarBrand
-Instance.new("UICorner", SidebarLogo).CornerRadius = UDim.new(0, 12)
-local SidebarName = Instance.new("TextLabel")
-SidebarName.Size = UDim2.new(1, -58, 0, 25)
-SidebarName.Position = UDim2.new(0, 55, 0, 10)
-SidebarName.BackgroundTransparency = 1
-SidebarName.Text = "KEON HUB"
-SidebarName.TextColor3 = Color3.fromRGB(255, 255, 255)
-SidebarName.Font = Enum.Font.GothamBlack
-SidebarName.TextSize = 13
-SidebarName.TextXAlignment = Enum.TextXAlignment.Left
-SidebarName.Parent = SidebarBrand
-local SidebarVersion = Instance.new("TextLabel")
-SidebarVersion.Size = UDim2.new(1, -58, 0, 20)
-SidebarVersion.Position = UDim2.new(0, 55, 0, 34)
-SidebarVersion.BackgroundTransparency = 1
-SidebarVersion.Text = "EMBER CONTROL DECK"
-SidebarVersion.TextColor3 = Color3.fromRGB(165, 165, 180)
-SidebarVersion.Font = Enum.Font.Gotham
-SidebarVersion.TextSize = 10
-SidebarVersion.TextXAlignment = Enum.TextXAlignment.Left
-SidebarVersion.Parent = SidebarBrand
-
 local RightWing = Instance.new("ScrollingFrame")
-RightWing.Size = UDim2.new(0, 0, 1, 0)
-RightWing.Position = UDim2.new(1, 0, 0, 0)
-RightWing.Visible = false
+RightWing.Size = UDim2.new(0, 105, 1, -48)
+RightWing.Position = UDim2.new(0.5, 175, 0, 48)
 RightWing.BackgroundTransparency = 1
 RightWing.BorderSizePixel = 0
 RightWing.ScrollBarThickness = 0
@@ -1470,8 +1406,8 @@ KEONProfile.rightNavPadding.PaddingTop = UDim.new(0, 2)
 KEONProfile.rightNavPadding.Parent = RightWing
 
 local CenterScroll = Instance.new("ScrollingFrame")
-CenterScroll.Size = UDim2.new(1, -38, 1, -92)
-CenterScroll.Position = UDim2.new(0, 19, 0, 76)
+CenterScroll.Size = UDim2.new(1, -16, 1, -54)
+CenterScroll.Position = UDim2.new(0, 8, 0, 48)
 CenterScroll.BackgroundTransparency = 1
 CenterScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 CenterScroll.ScrollBarThickness = 4
@@ -1491,53 +1427,91 @@ end
 
 applyResponsiveMain = function()
     local viewport = getViewportSize()
-    local width = math.max(310, math.min(880, math.floor(viewport.X - 28)))
-    local height = math.max(310, math.min(560, math.floor(viewport.Y - 28)))
-    local compact = width < 620
-    responsiveState.narrow = compact
-    responsiveState.mainSize = UDim2.new(0, width, 0, height)
-    responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.Size = responsiveState.mainSize
-    MainFrame.Position = responsiveState.mainPosition
+    local narrow = viewport.X < 650 or viewport.Y < 430
+    responsiveState.narrow = narrow
 
-    local sideWidth = compact and 112 or 166
-    local headerHeight = compact and 54 or 64
-    CenterBox.Size = UDim2.new(1, -sideWidth, 1, -headerHeight)
-    CenterBox.Position = UDim2.new(0, sideWidth, 0, headerHeight)
-    CenterGlow.Size = UDim2.new(1, -sideWidth, 1, -headerHeight + 8)
-    CenterGlow.Position = UDim2.new(0, sideWidth, 0, headerHeight - 4)
+    if narrow then
+        local width = math.max(300, math.floor(viewport.X - 12))
+        local height = math.max(300, math.min(560, math.floor(viewport.Y - 16)))
+        responsiveState.mainSize = UDim2.new(0, width, 0, height)
+        responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
 
-    Header.Size = UDim2.new(1, 0, 0, headerHeight)
-    Header.Position = UDim2.new(0, 0, 0, 0)
-    TitleMain.TextSize = compact and 14 or 18
-    TitleMain.Position = UDim2.new(0, 18, 0, 0)
+        MainFrame.Size = responsiveState.mainSize
+        MainFrame.Position = responsiveState.mainPosition
+        CenterBox.Size = UDim2.new(1, 0, 1, 0)
+        CenterBox.Position = UDim2.new(0, 0, 0, 0)
+        CenterGlow.Size = UDim2.new(1, 0, 1, 8)
+        CenterGlow.Position = UDim2.new(0, 0, 0, -4)
 
-    LeftWing.Size = UDim2.new(0, sideWidth, 1, -headerHeight)
-    LeftWing.Position = UDim2.new(0, 0, 0, headerHeight)
-    LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
-    LeftWing.ScrollBarThickness = 2
-    LeftWing.BackgroundTransparency = 0
-    LeftWing.BackgroundColor3 = Color3.fromRGB(13, 17, 24)
-    LeftWing.ZIndex = 6
-    LeftLayout.FillDirection = Enum.FillDirection.Vertical
-    LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-    LeftLayout.Padding = UDim.new(0, compact and 5 or 8)
+        LeftWing.Size = UDim2.new(1, -12, 0, 36)
+        LeftWing.Position = UDim2.new(0, 6, 0, 48)
+        RightWing.Size = UDim2.new(1, -12, 0, 36)
+        RightWing.Position = UDim2.new(0, 6, 0, 88)
+        LeftWing.ScrollingDirection = Enum.ScrollingDirection.X
+        RightWing.ScrollingDirection = Enum.ScrollingDirection.X
+        LeftWing.ScrollBarThickness = 2
+        RightWing.ScrollBarThickness = 2
+        LeftLayout.FillDirection = Enum.FillDirection.Horizontal
+        RightLayout.FillDirection = Enum.FillDirection.Horizontal
+        LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+        RightLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+        LeftLayout.Padding = UDim.new(0, 6)
+        RightLayout.Padding = UDim.new(0, 6)
+        LeftWing.ZIndex = 8
+        RightWing.ZIndex = 8
 
-    RightWing.Visible = false
-    RightWing.Size = UDim2.new(0, 0, 0, 0)
-
-    CenterScroll.Position = UDim2.new(0, compact and 10 or 20, 0, compact and 18 or 26)
-    CenterScroll.Size = UDim2.new(1, compact and -20 or -40, 1, compact and -34 or -52)
-    CenterScroll.ScrollBarThickness = compact and 2 or 4
-
-    for _, child in ipairs(LeftWing:GetChildren()) do
-        if child:IsA("TextButton") then
-            child.Size = UDim2.new(1, -12, 0, compact and 38 or 44)
-            child.TextSize = compact and 11 or 14
-            child.ZIndex = 7
+        CenterScroll.Position = UDim2.new(0, 8, 0, 132)
+        CenterScroll.Size = UDim2.new(1, -16, 1, -140)
+        for _, navBtn in ipairs({LeftWing:GetChildren(), RightWing:GetChildren()}) do
+            for _, child in ipairs(navBtn) do
+                if child:IsA("TextButton") then
+                    child.Size = UDim2.new(0, 108, 0, 34)
+                    child.TextSize = 11.5
+                    child.ZIndex = 9
+                end
+            end
         end
+        LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
+        RightWing.CanvasSize = UDim2.new(0, RightLayout.AbsoluteContentSize.X + 8, 0, 0)
+    else
+        responsiveState.mainSize = UDim2.new(0, 560, 0, 360)
+        responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
+        MainFrame.Size = responsiveState.mainSize
+        MainFrame.Position = responsiveState.mainPosition
+        CenterBox.Size = UDim2.new(0, 340, 1, 0)
+        CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
+        CenterGlow.Size = UDim2.new(0, 350, 1, 8)
+        CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
+        LeftWing.Size = UDim2.new(0, 105, 1, -48)
+        LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
+        RightWing.Size = UDim2.new(0, 105, 1, -48)
+        RightWing.Position = UDim2.new(0.5, 175, 0, 48)
+        LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
+        RightWing.ScrollingDirection = Enum.ScrollingDirection.Y
+        LeftWing.ScrollBarThickness = 0
+        RightWing.ScrollBarThickness = 0
+        LeftLayout.FillDirection = Enum.FillDirection.Vertical
+        RightLayout.FillDirection = Enum.FillDirection.Vertical
+        LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+        RightLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+        LeftLayout.Padding = UDim.new(0, 7)
+        RightLayout.Padding = UDim.new(0, 7)
+        LeftWing.ZIndex = 1
+        RightWing.ZIndex = 1
+        CenterScroll.Position = UDim2.new(0, 8, 0, 48)
+        CenterScroll.Size = UDim2.new(1, -16, 1, -54)
+        for _, wing in ipairs({LeftWing, RightWing}) do
+            for _, child in ipairs(wing:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.Size = UDim2.new(1, -4, 0, 40)
+                    child.TextSize = 13
+                    child.ZIndex = 1
+                end
+            end
+        end
+        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
+        RightWing.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 8)
     end
-    LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 18)
 end
 
 LeftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -2615,69 +2589,40 @@ end)
 ---------------------------------------------------------
 local function createProStyleBtn(text, side)
     local btn = Instance.new("TextButton")
-    btn.Name = "KEON_Nav_" .. tostring(text):gsub("%W", "")
-    btn.Size = UDim2.new(1, -16, 0, 50)
-    btn.BackgroundColor3 = Color3.fromRGB(19, 22, 29)
-    btn.Text = "   ◈   " .. tostring(text)
-    btn.TextColor3 = Color3.fromRGB(190, 199, 213)
+    btn.Size = responsiveState.narrow and UDim2.new(0, 108, 0, 34) or UDim2.new(1, -4, 0, 40)
+    btn.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 13
-    btn.TextScaled = false
+    btn.TextSize = responsiveState.narrow and 11.5 or 13
+    btn.TextScaled = true
     btn.TextWrapped = false
     btn.TextTruncate = Enum.TextTruncate.AtEnd
-    btn.TextXAlignment = Enum.TextXAlignment.Left
     btn.AutoButtonColor = false
-    btn.ClipsDescendants = true
-    btn.ZIndex = 7
-    btn.Parent = LeftWing
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 9)
+    btn.ClipsDescendants = false
+    btn.ZIndex = responsiveState.narrow and 9 or 1
+    local textConstraint = Instance.new("UITextSizeConstraint")
+    textConstraint.MinTextSize = 10
+    textConstraint.MaxTextSize = responsiveState.narrow and 12 or 13
+    textConstraint.Parent = btn
+    btn.Parent = (side == "left") and LeftWing or RightWing
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
+
     local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(43, 51, 64)
-    stroke.Thickness = 1
+    stroke.Color = currentAccentColor
+    stroke.Thickness = 1.45
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Parent = btn
+
     table.insert(registeredWingStrokes, stroke)
-
-    local rail = Instance.new("Frame")
-    rail.Name = "ActiveRail"
-    rail.Size = UDim2.new(0, 4, 1, -14)
-    rail.Position = UDim2.new(0, 5, 0, 7)
-    rail.BackgroundColor3 = Color3.fromRGB(255, 73, 91)
-    rail.BorderSizePixel = 0
-    rail.Visible = false
-    rail.ZIndex = 8
-    rail.Parent = btn
-    Instance.new("UICorner", rail).CornerRadius = UDim.new(1, 0)
-
-    local activeGlow = Instance.new("Frame")
-    activeGlow.Name = "ActiveGlow"
-    activeGlow.Size = UDim2.new(0, 30, 1, 0)
-    activeGlow.Position = UDim2.new(0, 0, 0, 0)
-    activeGlow.BackgroundColor3 = Color3.fromRGB(210, 42, 65)
-    activeGlow.BackgroundTransparency = 0.86
-    activeGlow.BorderSizePixel = 0
-    activeGlow.Visible = false
-    activeGlow.ZIndex = 6
-    activeGlow.Parent = btn
-    Instance.new("UICorner", activeGlow).CornerRadius = UDim.new(0, 9)
-
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.12, Enum.EasingStyle.Quad), {
-            BackgroundColor3 = Color3.fromRGB(35, 27, 38),
-            TextColor3 = Color3.fromRGB(255, 255, 255)
+        TweenService:Create(btn, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(0, 88, 145)
         }):Play()
-        stroke.Color = Color3.fromRGB(255, 73, 91)
     end)
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.14, Enum.EasingStyle.Quad), {
-            BackgroundColor3 = Color3.fromRGB(19, 22, 29),
-            TextColor3 = Color3.fromRGB(190, 199, 213)
-        }):Play()
-        stroke.Color = Color3.fromRGB(43, 51, 64)
-    end)
-    btn.MouseButton1Down:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.07), {
-            BackgroundColor3 = Color3.fromRGB(83, 29, 47)
+        TweenService:Create(btn, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(8, 18, 36)
         }):Play()
     end)
     return btn
@@ -2685,25 +2630,25 @@ end
 
 local function addChilliAccordion(titleText, builderFunc)
     local folderFrame = Instance.new("Frame")
-    folderFrame.Size = UDim2.new(1, 0, 0, 44)
-    folderFrame.BackgroundColor3 = Color3.fromRGB(20, 23, 31)
+    folderFrame.Size = UDim2.new(1, 0, 0, 36)
+    folderFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
     folderFrame.BackgroundTransparency = 0
     folderFrame.ZIndex = 3
     folderFrame.Parent = CenterScroll
-    Instance.new("UICorner", folderFrame).CornerRadius = UDim.new(0, 9)
+    Instance.new("UICorner", folderFrame).CornerRadius = UDim.new(0, 10)
     local folderStroke = Instance.new("UIStroke")
-    folderStroke.Color = Color3.fromRGB(62, 72, 88)
-    folderStroke.Thickness = 1
+    folderStroke.Color = currentAccentColor
+    folderStroke.Thickness = 1.2
     folderStroke.Parent = folderFrame
 
     local headBtn = Instance.new("TextButton")
-    headBtn.Size = UDim2.new(1, 0, 0, 44)
+    headBtn.Size = UDim2.new(1, 0, 0, 36)
     headBtn.BackgroundTransparency = 1
-    headBtn.Text = "  ▸   " .. titleText
+    headBtn.Text = "  ›  " .. titleText
     headBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     headBtn.Font = Enum.Font.GothamBold
-    headBtn.TextSize = 14
-    headBtn.TextXAlignment = Enum.TextXAlignment.Left
+    headBtn.TextSize = 14.5
+    headBtn.TextXAlignment = Enum.TextXAlignment.Center
     headBtn.ZIndex = 3
     headBtn.Parent = folderFrame
 
@@ -2714,7 +2659,7 @@ local function addChilliAccordion(titleText, builderFunc)
 
     local contentHolder = Instance.new("Frame")
     contentHolder.Size = UDim2.new(1, 0, 0, 0)
-    contentHolder.Position = UDim2.new(0, 0, 0, 46)
+    contentHolder.Position = UDim2.new(0, 0, 0, 38)
     contentHolder.BackgroundTransparency = 1
     contentHolder.Visible = false
     contentHolder.ZIndex = 3
@@ -2728,15 +2673,15 @@ local function addChilliAccordion(titleText, builderFunc)
 
     local function addToggleRow(nameText, onToggle)
         local rowFrame = Instance.new("Frame")
-        rowFrame.Size = UDim2.new(1, 0, 0, 44)
-        rowFrame.BackgroundColor3 = Color3.fromRGB(25, 29, 38)
+        rowFrame.Size = UDim2.new(1, 0, 0, 36)
+        rowFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
         rowFrame.ZIndex = 3
         rowFrame.Parent = contentHolder
-        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 9)
 
         local rowStroke = Instance.new("UIStroke")
-        rowStroke.Color = Color3.fromRGB(55, 66, 82)
-        rowStroke.Thickness = 0.8
+        rowStroke.Color = currentAccentColor
+        rowStroke.Thickness = 1.2
         rowStroke.Parent = rowFrame
         table.insert(registeredOptionStrokes, rowStroke)
 
@@ -2753,58 +2698,54 @@ local function addChilliAccordion(titleText, builderFunc)
         nameLbl.Parent = rowFrame
 
         local toggleBtn = Instance.new("TextButton")
-        toggleBtn.Size = UDim2.new(0, 42, 0, 22)
-        toggleBtn.Position = UDim2.new(1, -52, 0.5, -11)
-        toggleBtn.BackgroundColor3 = Color3.fromRGB(54, 61, 75)
+        toggleBtn.Size = UDim2.new(0, 22, 0, 22)
+        toggleBtn.Position = UDim2.new(1, -32, 0.5, -11)
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(31, 44, 73)
         toggleBtn.Text = ""
         toggleBtn.ZIndex = 4
         toggleBtn.Parent = rowFrame
-        Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 7)
 
         local innerBox = Instance.new("Frame")
-        innerBox.Size = UDim2.new(0, 16, 0, 16)
+        innerBox.Size = UDim2.new(1, -6, 1, -6)
         innerBox.Position = UDim2.new(0, 3, 0, 3)
         innerBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         innerBox.Visible = false
         innerBox.ZIndex = 5
         innerBox.Parent = toggleBtn
-        Instance.new("UICorner", innerBox).CornerRadius = UDim.new(1, 0)
+        Instance.new("UICorner", innerBox).CornerRadius = UDim.new(0, 2)
 
         local state = false
         toggleBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
             state = not state
             innerBox.Visible = state
-            TweenService:Create(toggleBtn, TweenInfo.new(0.13, Enum.EasingStyle.Quad), {
-                BackgroundColor3 = state and Color3.fromRGB(235, 67, 88) or Color3.fromRGB(54, 61, 75)
-            }):Play()
-            innerBox.Position = state and UDim2.new(1, -19, 0, 3) or UDim2.new(0, 3, 0, 3)
             if onToggle then onToggle(state) end
         end)
     end
 
     local function addActionRow(nameText, onClick)
         local rowFrame = Instance.new("Frame")
-        rowFrame.Size = UDim2.new(1, 0, 0, 40)
-        rowFrame.BackgroundColor3 = Color3.fromRGB(25, 29, 38)
+        rowFrame.Size = UDim2.new(1, 0, 0, 34)
+        rowFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
         rowFrame.ZIndex = 3
         rowFrame.Parent = contentHolder
-        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 9)
 
         local rowStroke = Instance.new("UIStroke")
-        rowStroke.Color = Color3.fromRGB(55, 66, 82)
-        rowStroke.Thickness = 0.8
+        rowStroke.Color = currentAccentColor
+        rowStroke.Thickness = 1.2
         rowStroke.Parent = rowFrame
         table.insert(registeredOptionStrokes, rowStroke)
 
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(1, 0, 1, 0)
         btn.BackgroundTransparency = 1
-        btn.Text = "   ›   " .. nameText
-        btn.TextColor3 = Color3.fromRGB(232, 237, 246)
+        btn.Text = nameText
+        btn.TextColor3 = Color3.fromRGB(227, 236, 255)
         btn.Font = Enum.Font.GothamBold
         btn.TextSize = 14
-        btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.TextXAlignment = Enum.TextXAlignment.Center
         btn.ZIndex = 4
         btn.Parent = rowFrame
 
@@ -2819,16 +2760,16 @@ local function addChilliAccordion(titleText, builderFunc)
     headBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
         isOpen = not isOpen
-        headBtn.Text = (isOpen and "  ▾   " or "  ▸   ") .. titleText
+        headBtn.Text = (isOpen and "  ⌄  " or "  ›  ") .. titleText
         contentHolder.Visible = isOpen
 
         if isOpen then
             task.wait(0.02)
             local totalHeight = contentLayout.AbsoluteContentSize.Y + 15
             contentHolder.Size = UDim2.new(1, 0, 0, totalHeight)
-            folderFrame.Size = UDim2.new(1, 0, 0, totalHeight + 48)
+            folderFrame.Size = UDim2.new(1, 0, 0, totalHeight + 40)
         else
-            folderFrame.Size = UDim2.new(1, 0, 0, 44)
+            folderFrame.Size = UDim2.new(1, 0, 0, 36)
         end
 
         task.wait(0.05)
@@ -2854,169 +2795,116 @@ end
 -- التبويبات الرئيسية
 ---------------------------------------------------------
 local BtnMainHome = createProStyleBtn("الرئيسية", "left")
-BtnMainHome.BackgroundColor3 = Color3.fromRGB(170, 45, 61)
 local function showHomePage()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    local pageHead = Instance.new("Frame")
-    pageHead.Name = "KEONDashboardHeader"
-    pageHead.Size = UDim2.new(1, -8, 0, 72)
-    pageHead.BackgroundColor3 = Color3.fromRGB(23, 13, 20)
-    pageHead.BorderSizePixel = 0
-    pageHead.LayoutOrder = 1
-    pageHead.ZIndex = 4
-    pageHead.Parent = CenterScroll
-    Instance.new("UICorner", pageHead).CornerRadius = UDim.new(0, 9)
-    local headStroke = Instance.new("UIStroke")
-    headStroke.Color = currentAccentColor
-    headStroke.Thickness = 1.4
-    headStroke.Parent = pageHead
-
-    local headTitle = Instance.new("TextLabel")
-    headTitle.Size = UDim2.new(1, -24, 0, 30)
-    headTitle.Position = UDim2.new(0, 12, 0, 8)
-    headTitle.BackgroundTransparency = 1
-    headTitle.Text = "الرئيسية"
-    headTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    headTitle.Font = Enum.Font.GothamBlack
-    headTitle.TextSize = 22
-    headTitle.TextXAlignment = Enum.TextXAlignment.Right
-    headTitle.ZIndex = 5
-    headTitle.Parent = pageHead
-
-    local headSub = Instance.new("TextLabel")
-    headSub.Size = UDim2.new(1, -24, 0, 20)
-    headSub.Position = UDim2.new(0, 12, 0, 41)
-    headSub.BackgroundTransparency = 1
-    headSub.Text = "KEON HUB  •  اختر القسم من القائمة الجانبية"
-    headSub.TextColor3 = Color3.fromRGB(185, 185, 198)
-    headSub.Font = Enum.Font.Gotham
-    headSub.TextSize = 11
-    headSub.TextXAlignment = Enum.TextXAlignment.Right
-    headSub.ZIndex = 5
-    headSub.Parent = pageHead
-
-    local sectionLabel = Instance.new("TextLabel")
-    sectionLabel.Size = UDim2.new(1, -8, 0, 26)
-    sectionLabel.BackgroundTransparency = 1
-    sectionLabel.Text = "الأقسام والأدوات"
-    sectionLabel.TextColor3 = Color3.fromRGB(245, 245, 250)
-    sectionLabel.Font = Enum.Font.GothamBold
-    sectionLabel.TextSize = 15
-    sectionLabel.TextXAlignment = Enum.TextXAlignment.Right
-    sectionLabel.LayoutOrder = 2
-    sectionLabel.ZIndex = 4
-    sectionLabel.Parent = CenterScroll
-
-    local rows = {
-        {icon="🥚", title="اسرق البيض", sub="STEAL EGG  •  أدوات الماب", color=Color3.fromRGB(255,92,105), state="جاهز"},
-        {icon="⚡", title="السكربتات", sub="SCRIPTS  •  سكربتات المابات والأدوات", color=Color3.fromRGB(245,170,65), state="متاح"},
-        {icon="🎉", title="موعد الحدث", sub="EVENTS  •  متابعة الأحداث والوقت", color=Color3.fromRGB(65,190,235), state="متاح"},
-        {icon="🏆", title="توب اللاعبين", sub="LEADERBOARD  •  ترتيب اللاعبين", color=Color3.fromRGB(180,115,255), state="متاح"},
-        {icon="♫", title="الميديا والصوت", sub="MEDIA  •  الموسيقى والتحكم بالصوت", color=Color3.fromRGB(70,205,165), state="متاح"},
-        {icon="⚙", title="الإعدادات", sub="SETTINGS  •  الألوان والخلفية والحفظ", color=Color3.fromRGB(235,85,105), state="تخصيص"},
-    }
-
-    for i, item in ipairs(rows) do
-        local row = Instance.new("Frame")
-        row.Name = "KEONDashboardRow_" .. tostring(i)
-        row.Size = UDim2.new(1, -8, 0, 66)
-        row.BackgroundColor3 = Color3.fromRGB(13, 13, 20)
-        row.BorderSizePixel = 0
-        row.LayoutOrder = i + 2
-        row.ZIndex = 4
-        row.Parent = CenterScroll
-        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 7)
-
-        local rowStroke = Instance.new("UIStroke")
-        rowStroke.Color = Color3.fromRGB(55, 45, 55)
-        rowStroke.Thickness = 1
-        rowStroke.Parent = row
-
-        local iconTile = Instance.new("Frame")
-        iconTile.Size = UDim2.new(0, 44, 0, 44)
-        iconTile.Position = UDim2.new(0, 10, 0.5, -22)
-        iconTile.BackgroundColor3 = Color3.fromRGB(29, 20, 29)
-        iconTile.BorderSizePixel = 0
-        iconTile.ZIndex = 5
-        iconTile.Parent = row
-        Instance.new("UICorner", iconTile).CornerRadius = UDim.new(0, 7)
-
-        local iconText = Instance.new("TextLabel")
-        iconText.Size = UDim2.new(1, 0, 1, 0)
-        iconText.BackgroundTransparency = 1
-        iconText.Text = item.icon
-        iconText.TextSize = 23
-        iconText.Font = Enum.Font.GothamBold
-        iconText.ZIndex = 6
-        iconText.Parent = iconTile
-
-        local rowTitle = Instance.new("TextLabel")
-        rowTitle.Size = UDim2.new(1, -165, 0, 25)
-        rowTitle.Position = UDim2.new(0, 66, 0, 9)
-        rowTitle.BackgroundTransparency = 1
-        rowTitle.Text = item.title
-        rowTitle.TextColor3 = Color3.fromRGB(248, 248, 252)
-        rowTitle.Font = Enum.Font.GothamBold
-        rowTitle.TextSize = 14
-        rowTitle.TextXAlignment = Enum.TextXAlignment.Left
-        rowTitle.ZIndex = 6
-        rowTitle.Parent = row
-
-        local rowSub = Instance.new("TextLabel")
-        rowSub.Size = UDim2.new(1, -165, 0, 20)
-        rowSub.Position = UDim2.new(0, 66, 0, 34)
-        rowSub.BackgroundTransparency = 1
-        rowSub.Text = item.sub
-        rowSub.TextColor3 = Color3.fromRGB(155, 155, 170)
-        rowSub.Font = Enum.Font.Gotham
-        rowSub.TextSize = 10
-        rowSub.TextXAlignment = Enum.TextXAlignment.Left
-        rowSub.TextTruncate = Enum.TextTruncate.AtEnd
-        rowSub.ZIndex = 6
-        rowSub.Parent = row
-
-        local state = Instance.new("TextLabel")
-        state.Size = UDim2.new(0, 72, 0, 28)
-        state.Position = UDim2.new(1, -84, 0.5, -14)
-        state.BackgroundColor3 = Color3.fromRGB(25, 22, 30)
-        state.BorderSizePixel = 0
-        state.Text = item.state
-        state.TextColor3 = item.color
-        state.Font = Enum.Font.GothamBold
-        state.TextSize = 11
-        state.ZIndex = 6
-        state.Parent = row
-        Instance.new("UICorner", state).CornerRadius = UDim.new(0, 5)
-
-        local accent = Instance.new("Frame")
-        accent.Size = UDim2.new(0, 3, 1, -16)
-        accent.Position = UDim2.new(1, -4, 0, 8)
-        accent.BackgroundColor3 = item.color
-        accent.BorderSizePixel = 0
-        accent.ZIndex = 7
-        accent.Parent = row
-        Instance.new("UICorner", accent).CornerRadius = UDim.new(0, 2)
-    end
-
-    local footer = Instance.new("TextLabel")
-    footer.Size = UDim2.new(1, -8, 0, 24)
-    footer.BackgroundTransparency = 1
-    footer.Text = "KEON HUB  •  استخدم القائمة الجانبية للتنقل بين الأقسام"
-    footer.TextColor3 = Color3.fromRGB(130, 130, 145)
-    footer.Font = Enum.Font.Gotham
-    footer.TextSize = 10
-    footer.TextXAlignment = Enum.TextXAlignment.Right
-    footer.LayoutOrder = 20
-    footer.ZIndex = 4
-    footer.Parent = CenterScroll
-
-    task.defer(function()
-        if CenterScroll and CenterScroll.Parent then
-            CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 18)
-        end
+    local placeId = game.PlaceId
+    local placeName = "ماب روبلوكس الحالي"
+    pcall(function()
+        local info = MarketplaceService:GetProductInfo(placeId)
+        if info then placeName = info.Name end
     end)
+
+    local mapBanner = Instance.new("ImageLabel")
+    mapBanner.Size = UDim2.new(1, 0, 0, 95)
+    mapBanner.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+    mapBanner.Image = "rbxthumb://type=Asset&id=" .. tostring(placeId) .. "&w=768&h=432"
+    mapBanner.ScaleType = Enum.ScaleType.Crop
+    mapBanner.ImageTransparency = 0
+    mapBanner.ZIndex = 3
+    mapBanner.Parent = CenterScroll
+    Instance.new("UICorner", mapBanner).CornerRadius = UDim.new(0, 11)
+
+    local bannerTitle = Instance.new("TextLabel")
+    bannerTitle.Size = UDim2.new(1, -20, 0, 24)
+    bannerTitle.Position = UDim2.new(0, 10, 1, -28)
+    bannerTitle.BackgroundTransparency = 0.4
+    bannerTitle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bannerTitle.Text = "🎮 " .. placeName
+    bannerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    bannerTitle.Font = Enum.Font.GothamBold
+    bannerTitle.TextSize = 14
+    bannerTitle.TextXAlignment = Enum.TextXAlignment.Center
+    bannerTitle.ZIndex = 4
+    bannerTitle.Parent = mapBanner
+    Instance.new("UICorner", bannerTitle).CornerRadius = UDim.new(0, 9)
+
+    local updatesFrame = Instance.new("Frame")
+    updatesFrame.Size = UDim2.new(1, 0, 0, 142)
+    updatesFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+    updatesFrame.ZIndex = 3
+    updatesFrame.Parent = CenterScroll
+    Instance.new("UICorner", updatesFrame).CornerRadius = UDim.new(0, 11)
+
+    local updatesTitle = Instance.new("TextLabel")
+    updatesTitle.Size = UDim2.new(1, -10, 0, 22)
+    updatesTitle.Position = UDim2.new(0, 5, 0, 4)
+    updatesTitle.BackgroundTransparency = 1
+    updatesTitle.Text = "✨ آخر التحديثات • KEON v62"
+    updatesTitle.TextColor3 = currentAccentColor
+    updatesTitle.Font = Enum.Font.GothamBold
+    updatesTitle.TextSize = 14
+    updatesTitle.TextXAlignment = Enum.TextXAlignment.Right
+    updatesTitle.ZIndex = 4
+    updatesTitle.Parent = updatesFrame
+    table.insert(activeNameLabels, updatesTitle)
+
+    local updatesDesc = Instance.new("TextLabel")
+    updatesDesc.Size = UDim2.new(1, -18, 0, 110)
+    updatesDesc.Position = UDim2.new(0, 9, 0, 27)
+    updatesDesc.BackgroundTransparency = 1
+    updatesDesc.Text = "• إعادة تصميم الرئيسية وبطاقات عرض السكربتات.\n• جعل الخلفيات معتمة بالكامل لزيادة وضوح النصوص.\n• تحسين نافذة الملصقات وتوزيعها داخل الشات.\n• استبدال مشغل الفيديو بمكتبة موسيقى من 8 أغنيات.\n• إضافة إعجاب وعدّاد محبين محلي لكل أغنية.\n• اختيار العلم العربي وحفظ وقت الاستخدام وتوب 100."
+    updatesDesc.TextColor3 = Color3.fromRGB(240, 220, 230)
+    updatesDesc.Font = Enum.Font.GothamBold
+    updatesDesc.TextSize = 11
+    updatesDesc.TextXAlignment = Enum.TextXAlignment.Right
+    updatesDesc.TextYAlignment = Enum.TextYAlignment.Top
+    updatesDesc.ZIndex = 4
+    updatesDesc.Parent = updatesFrame
+
+    local guideFrame = Instance.new("Frame")
+    guideFrame.Name = "HomeInstructionsCard"
+    guideFrame.Size = UDim2.new(1, 0, 0, 150)
+    guideFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
+    guideFrame.BackgroundTransparency = 0
+    guideFrame.ZIndex = 3
+    guideFrame.Parent = CenterScroll
+    Instance.new("UICorner", guideFrame).CornerRadius = UDim.new(0, 14)
+    local guideStroke = Instance.new("UIStroke")
+    guideStroke.Color = currentAccentColor
+    guideStroke.Thickness = 1.6
+    guideStroke.Parent = guideFrame
+    table.insert(registeredOptionStrokes, guideStroke)
+
+    local guideTitle = Instance.new("TextLabel")
+    guideTitle.Size = UDim2.new(1, -20, 0, 28)
+    guideTitle.Position = UDim2.new(0, 10, 0, 8)
+    guideTitle.BackgroundTransparency = 1
+    guideTitle.Text = "📘 التعليمات • اقرأ قبل الاستخدام"
+    guideTitle.TextColor3 = currentAccentColor
+    guideTitle.Font = Enum.Font.GothamBold
+    guideTitle.TextSize = 14
+    guideTitle.TextXAlignment = Enum.TextXAlignment.Right
+    guideTitle.ZIndex = 4
+    guideTitle.Parent = guideFrame
+    table.insert(activeNameLabels, guideTitle)
+
+    local guideDesc = Instance.new("TextLabel")
+    guideDesc.Size = UDim2.new(1, -20, 0, 108)
+    guideDesc.Position = UDim2.new(0, 10, 0, 37)
+    guideDesc.BackgroundTransparency = 1
+    guideDesc.Text = "١) اختر القسم من القائمة الجانبية.\n٢) من (سكربتات) اختر الماب ثم افتح تفاصيل السكربت.\n٣) الخلفيات قابلة للتغيير من الإعدادات، وستبقى معتمة وواضحة.\n٤) الملصقات تعمل عبر الشات العام عند تحميل صورها بنجاح.\n٥) قسم الموسيقى يحتوي على ٨ أغنيات مع زر إعجاب.\n٦) قسم تسجيل الدخول يحفظ العلم ووقت الاستخدام ويعرض التوب 100."
+    guideDesc.TextColor3 = Color3.fromRGB(245, 248, 255)
+    guideDesc.Font = Enum.Font.Gotham
+    guideDesc.TextSize = 11
+    guideDesc.TextXAlignment = Enum.TextXAlignment.Right
+    guideDesc.TextYAlignment = Enum.TextYAlignment.Top
+    guideDesc.TextWrapped = true
+    guideDesc.ZIndex = 4
+    guideDesc.Parent = guideFrame
+
+    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 25)
 end
 BtnMainHome.MouseButton1Click:Connect(showHomePage)
 
@@ -5290,12 +5178,21 @@ task.spawn(function()
     MainFrame.Visible = true
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.Rotation = 0
-    TweenService:Create(MainFrame, TweenInfo.new(0.24, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+    MainFrame.Rotation = -2.5
+    TweenService:Create(MainFrame, TweenInfo.new(0.68, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
         Size = responsiveState.mainSize,
         Position = responsiveState.mainPosition,
         Rotation = 0
     }):Play()
+    task.spawn(function()
+        task.wait(0.68)
+        for _, amount in ipairs({1.2, -1.2, 0.65, -0.65, 0}) do
+            if not MainFrame or not MainFrame.Parent then break end
+            local shake = TweenService:Create(MainFrame, TweenInfo.new(0.045, Enum.EasingStyle.Linear), {Rotation = amount})
+            shake:Play()
+            shake.Completed:Wait()
+        end
+    end)
     task.delay(0.62, function()
         if MainFrame and MainFrame.Visible then
             openHelpPanel()
