@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.0.0)
+-- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v74.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -2826,118 +2826,164 @@ local function showHomePage()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
-    local pageTitle = Instance.new("TextLabel")
-    pageTitle.Name = "HomePageTitle"
-    pageTitle.Size = UDim2.new(1, -24, 0, 42)
-    pageTitle.Position = UDim2.new(0, 12, 0, 0)
-    pageTitle.BackgroundTransparency = 1
-    pageTitle.Text = "الرئيسية"
-    pageTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    pageTitle.Font = Enum.Font.GothamBlack
-    pageTitle.TextSize = 25
-    pageTitle.TextXAlignment = Enum.TextXAlignment.Right
-    pageTitle.ZIndex = 8
-    pageTitle.Parent = CenterScroll
+    local pageHead = Instance.new("Frame")
+    pageHead.Name = "KEONDashboardHeader"
+    pageHead.Size = UDim2.new(1, -8, 0, 72)
+    pageHead.BackgroundColor3 = Color3.fromRGB(23, 13, 20)
+    pageHead.BorderSizePixel = 0
+    pageHead.LayoutOrder = 1
+    pageHead.ZIndex = 4
+    pageHead.Parent = CenterScroll
+    Instance.new("UICorner", pageHead).CornerRadius = UDim.new(0, 9)
+    local headStroke = Instance.new("UIStroke")
+    headStroke.Color = currentAccentColor
+    headStroke.Thickness = 1.4
+    headStroke.Parent = pageHead
 
-    local pageSubtitle = Instance.new("TextLabel")
-    pageSubtitle.Size = UDim2.new(1, -24, 0, 24)
-    pageSubtitle.Position = UDim2.new(0, 12, 0, 40)
-    pageSubtitle.BackgroundTransparency = 1
-    pageSubtitle.Text = "مرحباً بك في KEON HUB"
-    pageSubtitle.TextColor3 = Color3.fromRGB(210, 210, 220)
-    pageSubtitle.Font = Enum.Font.Gotham
-    pageSubtitle.TextSize = 13
-    pageSubtitle.TextXAlignment = Enum.TextXAlignment.Right
-    pageSubtitle.ZIndex = 8
-    pageSubtitle.Parent = CenterScroll
+    local headTitle = Instance.new("TextLabel")
+    headTitle.Size = UDim2.new(1, -24, 0, 30)
+    headTitle.Position = UDim2.new(0, 12, 0, 8)
+    headTitle.BackgroundTransparency = 1
+    headTitle.Text = "الرئيسية"
+    headTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    headTitle.Font = Enum.Font.GothamBlack
+    headTitle.TextSize = 22
+    headTitle.TextXAlignment = Enum.TextXAlignment.Right
+    headTitle.ZIndex = 5
+    headTitle.Parent = pageHead
 
-    local welcomeCard = Instance.new("Frame")
-    welcomeCard.Name = "KEONWelcomeCard"
-    welcomeCard.Size = UDim2.new(1, -8, 0, 128)
-    welcomeCard.Position = UDim2.new(0, 4, 0, 78)
-    welcomeCard.BackgroundColor3 = Color3.fromRGB(12, 10, 17)
-    welcomeCard.BackgroundTransparency = 0.12
-    welcomeCard.BorderSizePixel = 0
-    welcomeCard.ZIndex = 8
-    welcomeCard.Parent = CenterScroll
-    Instance.new("UICorner", welcomeCard).CornerRadius = UDim.new(0, 16)
-    local welcomeStroke = Instance.new("UIStroke")
-    welcomeStroke.Color = Color3.fromRGB(205, 65, 83)
-    welcomeStroke.Thickness = 1.7
-    welcomeStroke.Parent = welcomeCard
+    local headSub = Instance.new("TextLabel")
+    headSub.Size = UDim2.new(1, -24, 0, 20)
+    headSub.Position = UDim2.new(0, 12, 0, 41)
+    headSub.BackgroundTransparency = 1
+    headSub.Text = "KEON HUB  •  اختر القسم من القائمة الجانبية"
+    headSub.TextColor3 = Color3.fromRGB(185, 185, 198)
+    headSub.Font = Enum.Font.Gotham
+    headSub.TextSize = 11
+    headSub.TextXAlignment = Enum.TextXAlignment.Right
+    headSub.ZIndex = 5
+    headSub.Parent = pageHead
 
-    local starIcon = Instance.new("TextLabel")
-    starIcon.Size = UDim2.new(0, 72, 0, 82)
-    starIcon.Position = UDim2.new(0, 24, 0.5, -41)
-    starIcon.BackgroundTransparency = 1
-    starIcon.Text = "★"
-    starIcon.TextColor3 = Color3.fromRGB(255, 91, 111)
-    starIcon.Font = Enum.Font.GothamBlack
-    starIcon.TextSize = 56
-    starIcon.ZIndex = 9
-    starIcon.Parent = welcomeCard
+    local sectionLabel = Instance.new("TextLabel")
+    sectionLabel.Size = UDim2.new(1, -8, 0, 26)
+    sectionLabel.BackgroundTransparency = 1
+    sectionLabel.Text = "الأقسام والأدوات"
+    sectionLabel.TextColor3 = Color3.fromRGB(245, 245, 250)
+    sectionLabel.Font = Enum.Font.GothamBold
+    sectionLabel.TextSize = 15
+    sectionLabel.TextXAlignment = Enum.TextXAlignment.Right
+    sectionLabel.LayoutOrder = 2
+    sectionLabel.ZIndex = 4
+    sectionLabel.Parent = CenterScroll
 
-    local welcomeTitle = Instance.new("TextLabel")
-    welcomeTitle.Size = UDim2.new(1, -125, 0, 32)
-    welcomeTitle.Position = UDim2.new(0, 112, 0, 27)
-    welcomeTitle.BackgroundTransparency = 1
-    welcomeTitle.Text = "KEON HUB"
-    welcomeTitle.TextColor3 = Color3.fromRGB(255, 105, 123)
-    welcomeTitle.Font = Enum.Font.GothamBlack
-    welcomeTitle.TextSize = 20
-    welcomeTitle.TextXAlignment = Enum.TextXAlignment.Left
-    welcomeTitle.ZIndex = 9
-    welcomeTitle.Parent = welcomeCard
+    local rows = {
+        {icon="🥚", title="اسرق البيض", sub="STEAL EGG  •  أدوات الماب", color=Color3.fromRGB(255,92,105), state="جاهز"},
+        {icon="⚡", title="السكربتات", sub="SCRIPTS  •  سكربتات المابات والأدوات", color=Color3.fromRGB(245,170,65), state="متاح"},
+        {icon="🎉", title="موعد الحدث", sub="EVENTS  •  متابعة الأحداث والوقت", color=Color3.fromRGB(65,190,235), state="متاح"},
+        {icon="🏆", title="توب اللاعبين", sub="LEADERBOARD  •  ترتيب اللاعبين", color=Color3.fromRGB(180,115,255), state="متاح"},
+        {icon="♫", title="الميديا والصوت", sub="MEDIA  •  الموسيقى والتحكم بالصوت", color=Color3.fromRGB(70,205,165), state="متاح"},
+        {icon="⚙", title="الإعدادات", sub="SETTINGS  •  الألوان والخلفية والحفظ", color=Color3.fromRGB(235,85,105), state="تخصيص"},
+    }
 
-    local welcomeDesc = Instance.new("TextLabel")
-    welcomeDesc.Size = UDim2.new(1, -130, 0, 38)
-    welcomeDesc.Position = UDim2.new(0, 112, 0, 61)
-    welcomeDesc.BackgroundTransparency = 1
-    welcomeDesc.Text = "واجهة تجريبية • سيتم إضافة الوظائف هنا لاحقاً"
-    welcomeDesc.TextColor3 = Color3.fromRGB(230, 230, 240)
-    welcomeDesc.Font = Enum.Font.GothamMedium
-    welcomeDesc.TextSize = 13
-    welcomeDesc.TextWrapped = true
-    welcomeDesc.TextXAlignment = Enum.TextXAlignment.Left
-    welcomeDesc.ZIndex = 9
-    welcomeDesc.Parent = welcomeCard
+    for i, item in ipairs(rows) do
+        local row = Instance.new("Frame")
+        row.Name = "KEONDashboardRow_" .. tostring(i)
+        row.Size = UDim2.new(1, -8, 0, 66)
+        row.BackgroundColor3 = Color3.fromRGB(13, 13, 20)
+        row.BorderSizePixel = 0
+        row.LayoutOrder = i + 2
+        row.ZIndex = 4
+        row.Parent = CenterScroll
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 7)
 
-    local statusCard = Instance.new("Frame")
-    statusCard.Name = "KEONStatusCard"
-    statusCard.Size = UDim2.new(1, -8, 0, 88)
-    statusCard.Position = UDim2.new(0, 4, 0, 224)
-    statusCard.BackgroundColor3 = Color3.fromRGB(13, 12, 19)
-    statusCard.BackgroundTransparency = 0.10
-    statusCard.BorderSizePixel = 0
-    statusCard.ZIndex = 8
-    statusCard.Parent = CenterScroll
-    Instance.new("UICorner", statusCard).CornerRadius = UDim.new(0, 13)
+        local rowStroke = Instance.new("UIStroke")
+        rowStroke.Color = Color3.fromRGB(55, 45, 55)
+        rowStroke.Thickness = 1
+        rowStroke.Parent = row
 
-    local statusTitle = Instance.new("TextLabel")
-    statusTitle.Size = UDim2.new(1, -24, 0, 28)
-    statusTitle.Position = UDim2.new(0, 12, 0, 12)
-    statusTitle.BackgroundTransparency = 1
-    statusTitle.Text = "حالة الواجهة"
-    statusTitle.TextColor3 = Color3.fromRGB(245, 245, 250)
-    statusTitle.Font = Enum.Font.GothamBold
-    statusTitle.TextSize = 14
-    statusTitle.TextXAlignment = Enum.TextXAlignment.Right
-    statusTitle.ZIndex = 9
-    statusTitle.Parent = statusCard
+        local iconTile = Instance.new("Frame")
+        iconTile.Size = UDim2.new(0, 44, 0, 44)
+        iconTile.Position = UDim2.new(0, 10, 0.5, -22)
+        iconTile.BackgroundColor3 = Color3.fromRGB(29, 20, 29)
+        iconTile.BorderSizePixel = 0
+        iconTile.ZIndex = 5
+        iconTile.Parent = row
+        Instance.new("UICorner", iconTile).CornerRadius = UDim.new(0, 7)
 
-    local statusValue = Instance.new("TextLabel")
-    statusValue.Size = UDim2.new(1, -24, 0, 24)
-    statusValue.Position = UDim2.new(0, 12, 0, 44)
-    statusValue.BackgroundTransparency = 1
-    statusValue.Text = "● الواجهة تعمل بنجاح"
-    statusValue.TextColor3 = Color3.fromRGB(61, 220, 174)
-    statusValue.Font = Enum.Font.GothamBold
-    statusValue.TextSize = 13
-    statusValue.TextXAlignment = Enum.TextXAlignment.Right
-    statusValue.ZIndex = 9
-    statusValue.Parent = statusCard
+        local iconText = Instance.new("TextLabel")
+        iconText.Size = UDim2.new(1, 0, 1, 0)
+        iconText.BackgroundTransparency = 1
+        iconText.Text = item.icon
+        iconText.TextSize = 23
+        iconText.Font = Enum.Font.GothamBold
+        iconText.ZIndex = 6
+        iconText.Parent = iconTile
 
-    CenterScroll.CanvasSize = UDim2.new(0, 0, 0, 340)
+        local rowTitle = Instance.new("TextLabel")
+        rowTitle.Size = UDim2.new(1, -165, 0, 25)
+        rowTitle.Position = UDim2.new(0, 66, 0, 9)
+        rowTitle.BackgroundTransparency = 1
+        rowTitle.Text = item.title
+        rowTitle.TextColor3 = Color3.fromRGB(248, 248, 252)
+        rowTitle.Font = Enum.Font.GothamBold
+        rowTitle.TextSize = 14
+        rowTitle.TextXAlignment = Enum.TextXAlignment.Left
+        rowTitle.ZIndex = 6
+        rowTitle.Parent = row
+
+        local rowSub = Instance.new("TextLabel")
+        rowSub.Size = UDim2.new(1, -165, 0, 20)
+        rowSub.Position = UDim2.new(0, 66, 0, 34)
+        rowSub.BackgroundTransparency = 1
+        rowSub.Text = item.sub
+        rowSub.TextColor3 = Color3.fromRGB(155, 155, 170)
+        rowSub.Font = Enum.Font.Gotham
+        rowSub.TextSize = 10
+        rowSub.TextXAlignment = Enum.TextXAlignment.Left
+        rowSub.TextTruncate = Enum.TextTruncate.AtEnd
+        rowSub.ZIndex = 6
+        rowSub.Parent = row
+
+        local state = Instance.new("TextLabel")
+        state.Size = UDim2.new(0, 72, 0, 28)
+        state.Position = UDim2.new(1, -84, 0.5, -14)
+        state.BackgroundColor3 = Color3.fromRGB(25, 22, 30)
+        state.BorderSizePixel = 0
+        state.Text = item.state
+        state.TextColor3 = item.color
+        state.Font = Enum.Font.GothamBold
+        state.TextSize = 11
+        state.ZIndex = 6
+        state.Parent = row
+        Instance.new("UICorner", state).CornerRadius = UDim.new(0, 5)
+
+        local accent = Instance.new("Frame")
+        accent.Size = UDim2.new(0, 3, 1, -16)
+        accent.Position = UDim2.new(1, -4, 0, 8)
+        accent.BackgroundColor3 = item.color
+        accent.BorderSizePixel = 0
+        accent.ZIndex = 7
+        accent.Parent = row
+        Instance.new("UICorner", accent).CornerRadius = UDim.new(0, 2)
+    end
+
+    local footer = Instance.new("TextLabel")
+    footer.Size = UDim2.new(1, -8, 0, 24)
+    footer.BackgroundTransparency = 1
+    footer.Text = "KEON HUB  •  استخدم القائمة الجانبية للتنقل بين الأقسام"
+    footer.TextColor3 = Color3.fromRGB(130, 130, 145)
+    footer.Font = Enum.Font.Gotham
+    footer.TextSize = 10
+    footer.TextXAlignment = Enum.TextXAlignment.Right
+    footer.LayoutOrder = 20
+    footer.ZIndex = 4
+    footer.Parent = CenterScroll
+
+    task.defer(function()
+        if CenterScroll and CenterScroll.Parent then
+            CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 18)
+        end
+    end)
 end
 BtnMainHome.MouseButton1Click:Connect(showHomePage)
 
