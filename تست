@@ -10,7 +10,8 @@ local SoundService = game:GetService("SoundService")
 local MarketplaceService = game:GetService("MarketplaceService")
 
 local LocalPlayer = Players.LocalPlayer
-local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
+-- تم التعديل هنا لضمان ظهور الواجهة على الشاشة مباشرة دون أن تكون مخفية
+local parent = LocalPlayer:WaitForChild("PlayerGui")
 
 if parent:FindFirstChild("KEONProV47UI") then parent.KEONProV47UI:Destroy() end
 if parent:FindFirstChild("KEONAdminBroadcastGui") then parent.KEONAdminBroadcastGui:Destroy() end
@@ -22,7 +23,7 @@ if parent:FindFirstChild("KEONEventWidgetGui") then parent.KEONEventWidgetGui:De
 if parent:FindFirstChild("KEONReloadWidgetGui") then parent.KEONReloadWidgetGui:Destroy() end
 
 local CONFIG_FILE = "KEON_Config_v58.json"
-local DISCORD_WEBHOOK_URL = "" -- ضع Webhook جديداً بعد تدويره؛ لا تشارك رابطاً مكشوفاً
+local DISCORD_WEBHOOK_URL = "" 
 
 local KEONProfile = {}
 local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
