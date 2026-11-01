@@ -5,12 +5,11 @@
     INSTALL:
       1) Put this LocalScript in StarterPlayer > StarterPlayerScripts
          (or StarterGui).
-      2) To show the supplied anime background, upload REXEL_BACKGROUND.jpg
-         as an image asset in Roblox Studio / Creator Dashboard.
-      3) Paste the resulting image asset id into BACKGROUND_IMAGE below.
-         Roblox ImageLabel cannot display a Top4Top URL directly.
-      4) If BACKGROUND_IMAGE is left empty, the UI still works with a
-         built-in burgundy/cream gradient background.
+      2) The compact UI works immediately with a built-in red/charcoal
+         abstract background; it does not need any image ID.
+      3) To show the exact supplied anime artwork, Roblox requires that
+         image to be uploaded as a Roblox image asset. Then set the ID below.
+         A Top4Top URL or a local JPG file cannot be assigned to ImageLabel.
 
     This is the interface layer. Buttons navigate the UI and do not alter
     another game's server/gameplay. Connect your own authorized game systems
@@ -24,8 +23,8 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Optional: after uploading REXEL_BACKGROUND.jpg, set:
--- local BACKGROUND_IMAGE = "rbxassetid://1234567890"
+-- Leave empty for the built-in background. For the exact artwork,
+-- upload the JPG to Roblox and replace this with rbxassetid://YOUR_ID.
 local BACKGROUND_IMAGE = ""
 
 local old = playerGui:FindFirstChild("RixelStealEgg")
@@ -109,24 +108,25 @@ local function label(parent, text, size, position, textSize, color, font, align,
     }, parent)
 end
 
--- Responsive scale for desktop, tablet and mobile.
+-- Responsive sizing: leave a safe margin so the window never clips off-screen.
 local uiScale = make("UIScale", {Scale = 1}, gui)
 local camera = workspace.CurrentCamera
 local function updateScale()
-    local viewport = camera and camera.ViewportSize or Vector2.new(1200, 800)
-    uiScale.Scale = math.clamp(math.min(viewport.X / 1120, viewport.Y / 760), 0.58, 1)
+    camera = workspace.CurrentCamera
+    local viewport = camera and camera.ViewportSize or Vector2.new(900, 650)
+    local fitX = math.max(1, viewport.X - 24) / 700
+    local fitY = math.max(1, viewport.Y - 24) / 440
+    uiScale.Scale = math.clamp(math.min(fitX, fitY), 0.42, 1)
 end
 updateScale()
-if camera then
-    camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
-end
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale) end
 
 -- Main window.
 local main = make("Frame", {
     Name = "RixelWindow",
     AnchorPoint = Vector2.new(0.5, 0.5),
     Position = UDim2.fromScale(0.5, 0.5),
-    Size = UDim2.fromOffset(820, 510),
+    Size = UDim2.fromOffset(700, 440),
     BackgroundColor3 = C.black,
     BorderSizePixel = 0,
     ClipsDescendants = true
@@ -137,8 +137,8 @@ stroke(main, C.red, 0.28, 1.4)
 -- Background fallback, so the UI looks finished even without an image ID.
 local bgBase = make("Frame", {
     Name = "BackgroundBase",
-    Position = UDim2.fromOffset(138, 48),
-    Size = UDim2.new(1, -138, 1, -48),
+    Position = UDim2.fromOffset(116, 44),
+    Size = UDim2.new(1, -116, 1, -44),
     BackgroundColor3 = Color3.fromRGB(106, 46, 48),
     BorderSizePixel = 0,
     ClipsDescendants = true,
@@ -165,9 +165,10 @@ local bgImage = make("ImageLabel", {
     Size = UDim2.fromScale(1, 1),
     BackgroundTransparency = 1,
     Image = BACKGROUND_IMAGE,
-    ImageTransparency = 0.23,
+    ImageTransparency = 0.12,
     ScaleType = Enum.ScaleType.Crop,
     BorderSizePixel = 0,
+    Visible = BACKGROUND_IMAGE ~= "",
     ZIndex = 2
 }, bgBase)
 
@@ -182,15 +183,15 @@ local bgTint = make("Frame", {
 
 -- Header.
 local header = make("Frame", {
-    Size = UDim2.new(1, 0, 0, 48),
+    Size = UDim2.new(1, 0, 0, 44),
     BackgroundColor3 = Color3.fromRGB(9, 8, 12),
     BorderSizePixel = 0,
     ZIndex = 10
 }, main)
 
 local logo = make("Frame", {
-    Position = UDim2.fromOffset(12, 8),
-    Size = UDim2.fromOffset(31, 31),
+    Position = UDim2.fromOffset(10, 7),
+    Size = UDim2.fromOffset(29, 29),
     BackgroundColor3 = C.red,
     BorderSizePixel = 0,
     ZIndex = 11
@@ -198,8 +199,8 @@ local logo = make("Frame", {
 corner(logo, 8)
 label(logo, "R", UDim2.fromScale(1, 1), UDim2.fromScale(0, 0), 20, C.white, Enum.Font.GothamBlack, Enum.TextXAlignment.Center, 12)
 
-label(header, "ريكسل | REXEL", UDim2.fromOffset(150, 22), UDim2.fromOffset(51, 4), 14, C.white, Enum.Font.GothamBold, Enum.TextXAlignment.Left, 11)
-label(header, "STEAL AN EGG  •  HUB", UDim2.fromOffset(170, 13), UDim2.fromOffset(52, 26), 8, C.muted, Enum.Font.Gotham, Enum.TextXAlignment.Left, 11)
+label(header, "ريكسل | REXEL", UDim2.fromOffset(130, 20), UDim2.fromOffset(46, 3), 12, C.white, Enum.Font.GothamBold, Enum.TextXAlignment.Left, 11)
+label(header, "STEAL AN EGG  •  HUB", UDim2.fromOffset(140, 12), UDim2.fromOffset(47, 23), 7, C.muted, Enum.Font.Gotham, Enum.TextXAlignment.Left, 11)
 
 -- Compact stat pills, similar to the reference.
 local function pill(x, width, iconText, valueText, accentColor)
@@ -218,14 +219,14 @@ local function pill(x, width, iconText, valueText, accentColor)
     return p
 end
 
-pill(235, 74, "◷", "00:18", C.cream)
-pill(315, 82, "◆", "0 مسروق", C.redBright)
-pill(403, 72, "✦", "325", C.gold)
-pill(481, 67, "●", "13 متصل", C.green)
+pill(190, 62, "◷", "00:18", C.cream)
+pill(258, 72, "◆", "0 مسروق", C.redBright)
+pill(336, 62, "✦", "325", C.gold)
+pill(404, 65, "●", "13", C.green)
 
 local search = make("TextBox", {
-    Position = UDim2.new(1, -245, 0, 9),
-    Size = UDim2.fromOffset(145, 30),
+    Position = UDim2.new(1, -184, 0, 8),
+    Size = UDim2.fromOffset(92, 28),
     BackgroundColor3 = C.panel,
     BorderSizePixel = 0,
     PlaceholderText = "بحث...",
@@ -241,8 +242,8 @@ corner(search, 8)
 stroke(search, C.panel3, 0.2, 1)
 
 local minimize = make("TextButton", {
-    Position = UDim2.new(1, -90, 0, 9),
-    Size = UDim2.fromOffset(29, 30),
+    Position = UDim2.new(1, -79, 0, 8),
+    Size = UDim2.fromOffset(26, 28),
     BackgroundColor3 = C.panel2,
     Text = "—",
     TextColor3 = C.white,
@@ -254,8 +255,8 @@ local minimize = make("TextButton", {
 corner(minimize, 7)
 
 local close = make("TextButton", {
-    Position = UDim2.new(1, -49, 0, 9),
-    Size = UDim2.fromOffset(29, 30),
+    Position = UDim2.new(1, -43, 0, 8),
+    Size = UDim2.fromOffset(26, 28),
     BackgroundColor3 = C.redDark,
     Text = "×",
     TextColor3 = C.redBright,
@@ -271,8 +272,8 @@ end)
 
 -- Sidebar.
 local sidebar = make("Frame", {
-    Position = UDim2.fromOffset(0, 48),
-    Size = UDim2.new(0, 138, 1, -48),
+    Position = UDim2.fromOffset(0, 44),
+    Size = UDim2.new(0, 116, 1, -44),
     BackgroundColor3 = Color3.fromRGB(10, 9, 13),
     BorderSizePixel = 0,
     ZIndex = 8
@@ -281,19 +282,19 @@ local sidebar = make("Frame", {
 label(sidebar, "القائمة الرئيسية", UDim2.new(1, -20, 0, 18), UDim2.fromOffset(10, 12), 9, C.muted, Enum.Font.GothamBold, Enum.TextXAlignment.Right, 9)
 
 local navHolder = make("Frame", {
-    Position = UDim2.fromOffset(8, 40),
-    Size = UDim2.new(1, -16, 1, -105),
+    Position = UDim2.fromOffset(7, 37),
+    Size = UDim2.new(1, -14, 1, -96),
     BackgroundTransparency = 1,
     ZIndex = 9
 }, sidebar)
 make("UIListLayout", {
-    Padding = UDim.new(0, 5),
+    Padding = UDim.new(0, 4),
     SortOrder = Enum.SortOrder.LayoutOrder
 }, navHolder)
 
 local profile = make("Frame", {
-    Position = UDim2.new(0, 8, 1, -55),
-    Size = UDim2.new(1, -16, 0, 43),
+    Position = UDim2.new(0, 7, 1, -51),
+    Size = UDim2.new(1, -14, 0, 40),
     BackgroundColor3 = C.panel,
     BorderSizePixel = 0,
     ZIndex = 9
@@ -304,8 +305,8 @@ label(profile, "ريكسل • لاعب", UDim2.new(1, -14, 0, 13), UDim2.fromOf
 
 -- Main content.
 local content = make("Frame", {
-    Position = UDim2.fromOffset(151, 60),
-    Size = UDim2.new(1, -163, 1, -72),
+    Position = UDim2.fromOffset(128, 54),
+    Size = UDim2.new(1, -140, 1, -64),
     BackgroundTransparency = 1,
     ZIndex = 5
 }, main)
@@ -314,8 +315,8 @@ local pageTitle = label(content, "الأحداث", UDim2.new(1, -12, 0, 28), UDi
 local pageSubtitle = label(content, "تابع الفعاليات والخيارات المتاحة", UDim2.new(1, -12, 0, 18), UDim2.fromOffset(6, 29), 9, C.cream2, Enum.Font.Gotham, Enum.TextXAlignment.Right, 6)
 
 local sectionBar = make("Frame", {
-    Position = UDim2.fromOffset(5, 55),
-    Size = UDim2.new(1, -10, 0, 34),
+    Position = UDim2.fromOffset(5, 51),
+    Size = UDim2.new(1, -10, 0, 30),
     BackgroundColor3 = C.black2,
     BackgroundTransparency = 0.16,
     BorderSizePixel = 0,
@@ -326,8 +327,8 @@ label(sectionBar, "الفعاليات والأنظمة", UDim2.new(1, -18, 1, 0)
 
 local list = make("ScrollingFrame", {
     Name = "ItemsList",
-    Position = UDim2.fromOffset(5, 98),
-    Size = UDim2.new(1, -10, 1, -138),
+    Position = UDim2.fromOffset(5, 88),
+    Size = UDim2.new(1, -10, 1, -123),
     BackgroundColor3 = C.black2,
     BackgroundTransparency = 0.21,
     BorderSizePixel = 0,
@@ -376,7 +377,7 @@ local function showItems(data)
     for index, item in ipairs(data) do
         local row = make("Frame", {
             LayoutOrder = index,
-            Size = UDim2.new(1, -2, 0, 48),
+            Size = UDim2.new(1, -2, 0, 43),
             BackgroundColor3 = C.panel,
             BackgroundTransparency = 0.08,
             BorderSizePixel = 0,
@@ -399,7 +400,7 @@ local function showItems(data)
         local tag = make("Frame", {
             AnchorPoint = Vector2.new(1, 0.5),
             Position = UDim2.new(1, -16, 0.5, 0),
-            Size = UDim2.fromOffset(58, 23),
+            Size = UDim2.fromOffset(52, 21),
             BackgroundColor3 = C.panel3,
             BorderSizePixel = 0,
             ZIndex = 8
@@ -442,7 +443,7 @@ local selectedNav
 for index, page in ipairs(pages) do
     local btn = make("TextButton", {
         LayoutOrder = index,
-        Size = UDim2.new(1, 0, 0, 31),
+        Size = UDim2.new(1, 0, 0, 29),
         BackgroundColor3 = C.panel,
         BorderSizePixel = 0,
         Text = page[1],
@@ -525,7 +526,7 @@ minimize.MouseButton1Click:Connect(function()
     sidebar.Visible = not minimized
     content.Visible = not minimized
     bgBase.Visible = not minimized
-    main.Size = minimized and UDim2.fromOffset(280, 48) or UDim2.fromOffset(820, 510)
+    main.Size = minimized and UDim2.fromOffset(240, 44) or UDim2.fromOffset(700, 440)
     minimize.Text = minimized and "+" or "—"
 end)
 
