@@ -1,481 +1,597 @@
 --[[
-    REXEL HUB | ريكسل
-    واجهة Roblox عربية بتصميم أحمر/أسود مستوحى من الصورة المرجعية.
-    الخلفية: ارفع صورة الخلفية إلى Roblox Creator Dashboard ثم ضع رقمها أدناه.
-    مثال: "rbxassetid://1234567890"
-
-    هذه واجهة UI؛ اربط الأزرار بوظائف لعبتك المسموح بها.
+    REXEL NEXUS | ريكسل
+    واجهة Roblox عربية فخمة بدون صور أو Image ID أو أصول خارجية.
+    ضع هذا الكود داخل LocalScript في StarterPlayerScripts أو StarterGui.
+    الأزرار تعرض صفحات الواجهة وتبدّل حالتها محلياً؛ اربطها بوظائف لعبتك المصرّح بها.
 ]]
 
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- خلفية مدمجة داخل السكربت: لا تحتاج إلى Image ID أو رفع صورة
-
-local oldGui = playerGui:FindFirstChild("RixelHub")
-if oldGui then oldGui:Destroy() end
+local old = playerGui:FindFirstChild("RixelNexus")
+if old then old:Destroy() end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "RixelHub"
+gui.Name = "RixelNexus"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
-local function new(className, props, parent)
+local COLORS = {
+    bg = Color3.fromRGB(10, 12, 20),
+    panel = Color3.fromRGB(17, 20, 32),
+    panel2 = Color3.fromRGB(24, 28, 43),
+    panel3 = Color3.fromRGB(31, 36, 53),
+    text = Color3.fromRGB(244, 247, 255),
+    muted = Color3.fromRGB(145, 155, 180),
+    cyan = Color3.fromRGB(70, 224, 255),
+    blue = Color3.fromRGB(83, 119, 255),
+    violet = Color3.fromRGB(168, 105, 255),
+    green = Color3.fromRGB(69, 230, 165),
+    red = Color3.fromRGB(255, 91, 120),
+}
+
+local function create(className, props, parent)
     local obj = Instance.new(className)
-    for key, value in pairs(props) do
-        obj[key] = value
-    end
+    for k, v in pairs(props) do obj[k] = v end
     obj.Parent = parent
     return obj
 end
 
-local function round(obj, radius)
-    new("UICorner", {CornerRadius = UDim.new(0, radius)}, obj)
+local function corner(obj, radius)
+    create("UICorner", {CornerRadius = UDim.new(0, radius)}, obj)
 end
 
-local function outline(obj, color, transparency, thickness)
-    new("UIStroke", {
+local function stroke(obj, color, transparency, thickness)
+    return create("UIStroke", {
         Color = color,
         Transparency = transparency or 0,
-        Thickness = thickness or 1
+        Thickness = thickness or 1,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     }, obj)
 end
 
-local RED = Color3.fromRGB(239, 75, 91)
-local RED_DARK = Color3.fromRGB(125, 34, 48)
-local PANEL = Color3.fromRGB(15, 14, 21)
-local PANEL_2 = Color3.fromRGB(28, 24, 34)
-local WHITE = Color3.fromRGB(245, 241, 246)
-local MUTED = Color3.fromRGB(178, 166, 180)
+local function gradient(obj, c1, c2, rotation)
+    create("UIGradient", {
+        Color = ColorSequence.new(c1, c2),
+        Rotation = rotation or 0
+    }, obj)
+end
 
--- الحجم صغير نسبياً، ويتقلص تلقائياً على الشاشات الصغيرة
-local scale = new("UIScale", {Scale = 1}, gui)
+local function tween(obj, duration, props)
+    TweenService:Create(obj, TweenInfo.new(duration, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), props):Play()
+end
+
+-- Responsive scale
+local uiScale = create("UIScale", {Scale = 1}, gui)
 local camera = workspace.CurrentCamera
-local function updateScale()
-    local viewport = camera and camera.ViewportSize or Vector2.new(1000, 700)
-    scale.Scale = math.clamp(math.min(viewport.X / 900, viewport.Y / 650), 0.68, 1)
+local function resize()
+    local v = camera and camera.ViewportSize or Vector2.new(1100, 760)
+    uiScale.Scale = math.clamp(math.min(v.X / 980, v.Y / 720), 0.62, 1)
 end
-updateScale()
-if camera then
-    camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
-end
+resize()
+if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(resize) end
 
-local main = new("Frame", {
-    Name = "Main",
+-- Main window
+local main = create("Frame", {
+    Name = "Window",
     AnchorPoint = Vector2.new(0.5, 0.5),
     Position = UDim2.fromScale(0.5, 0.5),
-    Size = UDim2.fromOffset(570, 390),
-    BackgroundColor3 = PANEL,
-    BackgroundTransparency = 0.04,
+    Size = UDim2.fromOffset(760, 490),
+    BackgroundColor3 = COLORS.bg,
     BorderSizePixel = 0,
     ClipsDescendants = true
 }, gui)
-round(main, 13)
-outline(main, RED, 0.18, 1.5)
+corner(main, 18)
+stroke(main, COLORS.blue, 0.18, 1.5)
 
--- صورة الخلفية: شفافية منخفضة حتى تكون واضحة
-local background = new("Frame", {
-    Name = "Background",
-    Position = UDim2.new(0, 132, 0, 48),
-    Size = UDim2.new(1, -132, 1, -48),
-    BackgroundColor3 = Color3.fromRGB(72, 20, 39),
+-- Accent line
+local accent = create("Frame", {
+    Size = UDim2.new(1, 0, 0, 3),
+    BackgroundColor3 = COLORS.cyan,
     BorderSizePixel = 0,
-    ClipsDescendants = true,
-    ZIndex = 1
+    ZIndex = 20
 }, main)
+gradient(accent, COLORS.cyan, COLORS.violet, 0)
 
-local bgGradient = new("UIGradient", {
-    Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(105, 29, 51)),
-        ColorSequenceKeypoint.new(0.48, Color3.fromRGB(38, 19, 37)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(13, 13, 24))
-    }),
-    Rotation = 28
-}, background)
-
--- زخارف خلفية مدمجة؛ لا تحتاج إلى صورة أو Asset ID
-for i = 1, 9 do
-    local stripe = new("Frame", {
-        Position = UDim2.new((i - 1) * 0.13, -25, 0, -35),
-        Size = UDim2.new(0, 62, 1, 90),
-        Rotation = 18,
-        BackgroundColor3 = (i % 2 == 0)
-            and Color3.fromRGB(238, 65, 91)
-            or Color3.fromRGB(91, 42, 75),
-        BackgroundTransparency = 0.84,
-        BorderSizePixel = 0,
-        ZIndex = 1
-    }, background)
-end
-
-for i = 1, 18 do
-    local dot = new("Frame", {
-        Position = UDim2.new(((i * 37) % 97) / 100, 0, ((i * 19) % 91) / 100, 0),
-        Size = UDim2.fromOffset(3 + (i % 3), 3 + (i % 3)),
-        BackgroundColor3 = Color3.fromRGB(255, 166, 178),
-        BackgroundTransparency = 0.55,
-        BorderSizePixel = 0,
-        ZIndex = 1
-    }, background)
-    round(dot, 8)
-end
-
--- طبقة شفافة خفيفة للمحافظة على وضوح النصوص
-local tint = new("Frame", {
-    Position = background.Position,
-    Size = background.Size,
-    BackgroundColor3 = Color3.fromRGB(12, 7, 17),
-    BackgroundTransparency = 0.68,
+-- Ambient glow blobs (all native UI shapes, no images)
+local glowA = create("Frame", {
+    Position = UDim2.new(1, -230, 0, 75),
+    Size = UDim2.fromOffset(210, 210),
+    BackgroundColor3 = COLORS.violet,
+    BackgroundTransparency = 0.91,
     BorderSizePixel = 0,
-    ZIndex = 2
+    ZIndex = 0
 }, main)
+corner(glowA, 120)
+local glowB = create("Frame", {
+    Position = UDim2.new(0, 170, 1, -170),
+    Size = UDim2.fromOffset(180, 180),
+    BackgroundColor3 = COLORS.cyan,
+    BackgroundTransparency = 0.94,
+    BorderSizePixel = 0,
+    ZIndex = 0
+}, main)
+corner(glowB, 120)
 
-local top = new("Frame", {
-    Size = UDim2.new(1, 0, 0, 48),
-    BackgroundColor3 = Color3.fromRGB(10, 9, 14),
-    BackgroundTransparency = 0.02,
+-- Header
+local header = create("Frame", {
+    Size = UDim2.new(1, 0, 0, 62),
+    BackgroundColor3 = Color3.fromRGB(13, 16, 27),
     BorderSizePixel = 0,
     ZIndex = 5
 }, main)
 
-local logo = new("Frame", {
-    Position = UDim2.fromOffset(12, 8),
-    Size = UDim2.fromOffset(32, 32),
-    BackgroundColor3 = RED,
+local logo = create("Frame", {
+    Position = UDim2.fromOffset(17, 12),
+    Size = UDim2.fromOffset(38, 38),
+    BackgroundColor3 = COLORS.blue,
     BorderSizePixel = 0,
     ZIndex = 6
-}, top)
-round(logo, 9)
-new("TextLabel", {
+}, header)
+corner(logo, 12)
+gradient(logo, COLORS.cyan, COLORS.violet, 45)
+create("TextLabel", {
     Size = UDim2.fromScale(1, 1),
     BackgroundTransparency = 1,
     Text = "R",
-    TextColor3 = WHITE,
+    TextColor3 = Color3.fromRGB(255,255,255),
     Font = Enum.Font.GothamBlack,
-    TextSize = 21,
+    TextSize = 23,
     ZIndex = 7
 }, logo)
 
-new("TextLabel", {
-    Position = UDim2.fromOffset(53, 5),
-    Size = UDim2.fromOffset(180, 22),
+create("TextLabel", {
+    Position = UDim2.fromOffset(65, 9),
+    Size = UDim2.fromOffset(190, 25),
     BackgroundTransparency = 1,
-    Text = "ريكسل هَب",
-    TextColor3 = WHITE,
-    Font = Enum.Font.GothamBold,
-    TextSize = 16,
+    Text = "REXEL  NEXUS",
+    TextColor3 = COLORS.text,
+    Font = Enum.Font.GothamBlack,
+    TextSize = 17,
     TextXAlignment = Enum.TextXAlignment.Left,
     ZIndex = 6
-}, top)
-
-new("TextLabel", {
-    Position = UDim2.fromOffset(54, 25),
-    Size = UDim2.fromOffset(160, 15),
+}, header)
+create("TextLabel", {
+    Position = UDim2.fromOffset(66, 33),
+    Size = UDim2.fromOffset(210, 16),
     BackgroundTransparency = 1,
-    Text = "REXEL  •  الإصدار 3.0",
-    TextColor3 = MUTED,
+    Text = "مركز التحكم الذكي  •  الإصدار 4.0",
+    TextColor3 = COLORS.muted,
     Font = Enum.Font.Gotham,
     TextSize = 9,
     TextXAlignment = Enum.TextXAlignment.Left,
     ZIndex = 6
-}, top)
+}, header)
 
-local minimize = new("TextButton", {
-    Position = UDim2.new(1, -76, 0, 8),
-    Size = UDim2.fromOffset(28, 30),
-    BackgroundColor3 = PANEL_2,
-    Text = "—",
-    TextColor3 = WHITE,
-    Font = Enum.Font.GothamBold,
-    TextSize = 17,
+local live = create("Frame", {
+    Position = UDim2.new(1, -190, 0, 18),
+    Size = UDim2.fromOffset(82, 27),
+    BackgroundColor3 = Color3.fromRGB(18, 53, 49),
     BorderSizePixel = 0,
     ZIndex = 6
-}, top)
-round(minimize, 7)
+}, header)
+corner(live, 20)
+create("Frame", {
+    Position = UDim2.fromOffset(10, 10),
+    Size = UDim2.fromOffset(7, 7),
+    BackgroundColor3 = COLORS.green,
+    BorderSizePixel = 0,
+    ZIndex = 7
+}, live)
+corner(live:FindFirstChildOfClass("Frame"), 8)
+create("TextLabel", {
+    Position = UDim2.fromOffset(22, 0),
+    Size = UDim2.new(1, -25, 1, 0),
+    BackgroundTransparency = 1,
+    Text = "متصل الآن",
+    TextColor3 = COLORS.green,
+    Font = Enum.Font.GothamBold,
+    TextSize = 9,
+    ZIndex = 7
+}, live)
 
-local close = new("TextButton", {
-    Position = UDim2.new(1, -40, 0, 8),
+local minBtn = create("TextButton", {
+    Position = UDim2.new(1, -83, 0, 15),
     Size = UDim2.fromOffset(28, 30),
-    BackgroundColor3 = RED_DARK,
+    BackgroundColor3 = COLORS.panel3,
+    Text = "—",
+    TextColor3 = COLORS.text,
+    Font = Enum.Font.GothamBold,
+    TextSize = 16,
+    BorderSizePixel = 0,
+    ZIndex = 8
+}, header)
+corner(minBtn, 8)
+
+local closeBtn = create("TextButton", {
+    Position = UDim2.new(1, -45, 0, 15),
+    Size = UDim2.fromOffset(28, 30),
+    BackgroundColor3 = Color3.fromRGB(77, 31, 49),
     Text = "×",
-    TextColor3 = WHITE,
+    TextColor3 = COLORS.red,
     Font = Enum.Font.GothamBold,
     TextSize = 20,
     BorderSizePixel = 0,
-    ZIndex = 6
-}, top)
-round(close, 7)
-close.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
+    ZIndex = 8
+}, header)
+corner(closeBtn, 8)
+closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
 
-local sidebar = new("Frame", {
-    Position = UDim2.fromOffset(0, 48),
-    Size = UDim2.new(0, 132, 1, -48),
-    BackgroundColor3 = Color3.fromRGB(12, 11, 17),
-    BackgroundTransparency = 0.03,
+-- Sidebar
+local sidebar = create("Frame", {
+    Position = UDim2.fromOffset(0, 62),
+    Size = UDim2.new(0, 164, 1, -62),
+    BackgroundColor3 = Color3.fromRGB(13, 16, 27),
     BorderSizePixel = 0,
     ZIndex = 4
 }, main)
 
-new("TextLabel", {
-    Position = UDim2.fromOffset(14, 12),
-    Size = UDim2.new(1, -25, 0, 18),
+create("TextLabel", {
+    Position = UDim2.fromOffset(16, 15),
+    Size = UDim2.new(1, -30, 0, 18),
     BackgroundTransparency = 1,
-    Text = "القائمة الرئيسية",
-    TextColor3 = MUTED,
+    Text = "القائمة",
+    TextColor3 = COLORS.muted,
     Font = Enum.Font.GothamBold,
     TextSize = 10,
     TextXAlignment = Enum.TextXAlignment.Right,
     ZIndex = 5
 }, sidebar)
 
-local navHolder = new("Frame", {
-    Position = UDim2.fromOffset(8, 38),
-    Size = UDim2.new(1, -16, 1, -100),
+local nav = create("Frame", {
+    Position = UDim2.fromOffset(10, 43),
+    Size = UDim2.new(1, -20, 1, -111),
     BackgroundTransparency = 1,
     ZIndex = 5
 }, sidebar)
-
-local navLayout = new("UIListLayout", {
-    Padding = UDim.new(0, 6),
+create("UIListLayout", {
+    Padding = UDim.new(0, 7),
     SortOrder = Enum.SortOrder.LayoutOrder
-}, navHolder)
+}, nav)
 
-local profile = new("Frame", {
-    Position = UDim2.new(0, 8, 1, -53),
-    Size = UDim2.new(1, -16, 0, 42),
-    BackgroundColor3 = PANEL_2,
-    BackgroundTransparency = 0.12,
+local userCard = create("Frame", {
+    Position = UDim2.new(0, 10, 1, -58),
+    Size = UDim2.new(1, -20, 0, 45),
+    BackgroundColor3 = COLORS.panel2,
     BorderSizePixel = 0,
     ZIndex = 5
 }, sidebar)
-round(profile, 8)
-
-new("TextLabel", {
-    Position = UDim2.fromOffset(8, 4),
-    Size = UDim2.new(1, -16, 0, 16),
+corner(userCard, 10)
+create("TextLabel", {
+    Position = UDim2.fromOffset(9, 5),
+    Size = UDim2.new(1, -18, 0, 16),
     BackgroundTransparency = 1,
     Text = player.DisplayName,
-    TextColor3 = WHITE,
+    TextColor3 = COLORS.text,
     Font = Enum.Font.GothamBold,
     TextSize = 10,
     TextXAlignment = Enum.TextXAlignment.Right,
     TextTruncate = Enum.TextTruncate.AtEnd,
     ZIndex = 6
-}, profile)
-
-new("TextLabel", {
-    Position = UDim2.fromOffset(8, 21),
-    Size = UDim2.new(1, -16, 0, 13),
+}, userCard)
+create("TextLabel", {
+    Position = UDim2.fromOffset(9, 23),
+    Size = UDim2.new(1, -18, 0, 13),
     BackgroundTransparency = 1,
-    Text = "مستخدم ريكسل",
-    TextColor3 = MUTED,
+    Text = "عضو في REXEL",
+    TextColor3 = COLORS.muted,
     Font = Enum.Font.Gotham,
     TextSize = 9,
     TextXAlignment = Enum.TextXAlignment.Right,
     ZIndex = 6
-}, profile)
+}, userCard)
 
-local content = new("Frame", {
-    Position = UDim2.fromOffset(143, 58),
-    Size = UDim2.new(1, -154, 1, -69),
+-- Content
+local content = create("Frame", {
+    Position = UDim2.fromOffset(178, 75),
+    Size = UDim2.new(1, -192, 1, -88),
     BackgroundTransparency = 1,
     ZIndex = 3
 }, main)
 
-local heading = new("TextLabel", {
-    Position = UDim2.fromOffset(8, 2),
-    Size = UDim2.new(1, -16, 0, 30),
+local pageTitle = create("TextLabel", {
+    Position = UDim2.fromOffset(4, 0),
+    Size = UDim2.new(1, -8, 0, 30),
     BackgroundTransparency = 1,
-    Text = "الرئيسية",
-    TextColor3 = WHITE,
-    Font = Enum.Font.GothamBold,
-    TextSize = 19,
-    TextXAlignment = Enum.TextXAlignment.Right,
-    ZIndex = 4
-}, content)
-
-local subtitle = new("TextLabel", {
-    Position = UDim2.fromOffset(8, 31),
-    Size = UDim2.new(1, -16, 0, 20),
-    BackgroundTransparency = 1,
-    Text = "مرحباً بك في ريكسل هَب",
-    TextColor3 = Color3.fromRGB(255, 190, 196),
-    Font = Enum.Font.Gotham,
-    TextSize = 11,
-    TextXAlignment = Enum.TextXAlignment.Right,
-    ZIndex = 4
-}, content)
-
-local welcome = new("Frame", {
-    Position = UDim2.fromOffset(7, 62),
-    Size = UDim2.new(1, -14, 0, 91),
-    BackgroundColor3 = Color3.fromRGB(17, 13, 22),
-    BackgroundTransparency = 0.18,
-    BorderSizePixel = 0,
-    ZIndex = 4
-}, content)
-round(welcome, 12)
-outline(welcome, RED, 0.22, 1.2)
-
-new("TextLabel", {
-    Position = UDim2.fromOffset(14, 12),
-    Size = UDim2.fromOffset(42, 58),
-    BackgroundTransparency = 1,
-    Text = "★",
-    TextColor3 = RED,
+    Text = "لوحة القيادة",
+    TextColor3 = COLORS.text,
     Font = Enum.Font.GothamBlack,
-    TextSize = 34,
-    ZIndex = 5
-}, welcome)
-
-new("TextLabel", {
-    Position = UDim2.fromOffset(62, 16),
-    Size = UDim2.new(1, -75, 0, 22),
-    BackgroundTransparency = 1,
-    Text = "ريكسل هَب",
-    TextColor3 = RED,
-    Font = Enum.Font.GothamBold,
-    TextSize = 15,
+    TextSize = 21,
     TextXAlignment = Enum.TextXAlignment.Right,
-    ZIndex = 5
-}, welcome)
+    ZIndex = 4
+}, content)
 
-new("TextLabel", {
-    Position = UDim2.fromOffset(62, 42),
-    Size = UDim2.new(1, -75, 0, 28),
+local pageDesc = create("TextLabel", {
+    Position = UDim2.fromOffset(4, 30),
+    Size = UDim2.new(1, -8, 0, 20),
     BackgroundTransparency = 1,
-    Text = "واجهة عربية بتصميم أنيق وخفيف",
-    TextColor3 = WHITE,
+    Text = "كل أدواتك في مكان واحد. اختر القسم وابدأ.",
+    TextColor3 = COLORS.muted,
     Font = Enum.Font.Gotham,
-    TextSize = 11,
+    TextSize = 10,
     TextXAlignment = Enum.TextXAlignment.Right,
-    ZIndex = 5
-}, welcome)
+    ZIndex = 4
+}, content)
 
-local status = new("Frame", {
-    Position = UDim2.fromOffset(7, 164),
-    Size = UDim2.new(1, -14, 0, 66),
-    BackgroundColor3 = Color3.fromRGB(17, 13, 22),
-    BackgroundTransparency = 0.2,
+local hero = create("Frame", {
+    Position = UDim2.fromOffset(4, 61),
+    Size = UDim2.new(1, -8, 0, 104),
+    BackgroundColor3 = COLORS.panel2,
     BorderSizePixel = 0,
     ZIndex = 4
 }, content)
-round(status, 10)
+corner(hero, 14)
+stroke(hero, COLORS.violet, 0.5, 1)
+gradient(hero, Color3.fromRGB(35, 31, 62), Color3.fromRGB(18, 34, 51), 15)
 
-new("TextLabel", {
-    Position = UDim2.fromOffset(12, 8),
-    Size = UDim2.new(1, -24, 0, 20),
+create("TextLabel", {
+    Position = UDim2.fromOffset(17, 13),
+    Size = UDim2.new(1, -34, 0, 25),
     BackgroundTransparency = 1,
-    Text = "حالة الواجهة",
-    TextColor3 = WHITE,
-    Font = Enum.Font.GothamBold,
-    TextSize = 12,
+    Text = "أهلاً بك في عالم ريكسل",
+    TextColor3 = COLORS.text,
+    Font = Enum.Font.GothamBlack,
+    TextSize = 17,
     TextXAlignment = Enum.TextXAlignment.Right,
     ZIndex = 5
-}, status)
-
-new("TextLabel", {
-    Position = UDim2.fromOffset(12, 33),
-    Size = UDim2.new(1, -24, 0, 18),
+}, hero)
+create("TextLabel", {
+    Position = UDim2.fromOffset(17, 43),
+    Size = UDim2.new(1, -34, 0, 20),
     BackgroundTransparency = 1,
-    Text = "●  الواجهة تعمل بنجاح",
-    TextColor3 = Color3.fromRGB(70, 220, 160),
+    Text = "تصميم جديد • سرعة • تحكم • تجربة أسطورية",
+    TextColor3 = Color3.fromRGB(177, 194, 230),
     Font = Enum.Font.Gotham,
     TextSize = 10,
     TextXAlignment = Enum.TextXAlignment.Right,
     ZIndex = 5
-}, status)
+}, hero)
 
-local pageInfo = new("TextLabel", {
-    Position = UDim2.fromOffset(9, 241),
-    Size = UDim2.new(1, -18, 0, 42),
+local heroTag = create("Frame", {
+    Position = UDim2.new(0, 16, 1, -27),
+    Size = UDim2.fromOffset(94, 18),
+    BackgroundColor3 = Color3.fromRGB(25, 73, 78),
+    BorderSizePixel = 0,
+    ZIndex = 5
+}, hero)
+corner(heroTag, 8)
+create("TextLabel", {
+    Size = UDim2.fromScale(1, 1),
     BackgroundTransparency = 1,
-    Text = "اختر قسماً من القائمة لعرض الخيارات.",
-    TextColor3 = WHITE,
+    Text = "NEXUS  /  04",
+    TextColor3 = COLORS.cyan,
+    Font = Enum.Font.GothamBold,
+    TextSize = 8,
+    ZIndex = 6
+}, heroTag)
+
+-- Three stat cards
+local stats = create("Frame", {
+    Position = UDim2.fromOffset(4, 177),
+    Size = UDim2.new(1, -8, 0, 69),
+    BackgroundTransparency = 1,
+    ZIndex = 4
+}, content)
+create("UIGridLayout", {
+    CellPadding = UDim2.fromOffset(8, 0),
+    CellSize = UDim2.new(1/3, -6, 1, 0),
+    SortOrder = Enum.SortOrder.LayoutOrder
+}, stats)
+
+local function statCard(label, value, color)
+    local card = create("Frame", {
+        BackgroundColor3 = COLORS.panel2,
+        BorderSizePixel = 0,
+        ZIndex = 4
+    }, stats)
+    corner(card, 11)
+    local bar = create("Frame", {
+        Size = UDim2.new(0, 3, 0.65, 0),
+        Position = UDim2.new(0, 0, 0.17, 0),
+        BackgroundColor3 = color,
+        BorderSizePixel = 0,
+        ZIndex = 5
+    }, card)
+    corner(bar, 4)
+    create("TextLabel", {
+        Position = UDim2.fromOffset(9, 9),
+        Size = UDim2.new(1, -18, 0, 17),
+        BackgroundTransparency = 1,
+        Text = value,
+        TextColor3 = color,
+        Font = Enum.Font.GothamBlack,
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        ZIndex = 5
+    }, card)
+    create("TextLabel", {
+        Position = UDim2.fromOffset(9, 34),
+        Size = UDim2.new(1, -18, 0, 15),
+        BackgroundTransparency = 1,
+        Text = label,
+        TextColor3 = COLORS.muted,
+        Font = Enum.Font.Gotham,
+        TextSize = 9,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        ZIndex = 5
+    }, card)
+end
+statCard("حالة الواجهة", "جاهز", COLORS.green)
+statCard("الإصدار", "4.0", COLORS.cyan)
+statCard("النظام", "NEXUS", COLORS.violet)
+
+local sectionLabel = create("TextLabel", {
+    Position = UDim2.fromOffset(5, 258),
+    Size = UDim2.new(1, -10, 0, 20),
+    BackgroundTransparency = 1,
+    Text = "الوصول السريع",
+    TextColor3 = COLORS.text,
+    Font = Enum.Font.GothamBold,
+    TextSize = 12,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 4
+}, content)
+
+local quick = create("Frame", {
+    Position = UDim2.fromOffset(4, 284),
+    Size = UDim2.new(1, -8, 0, 112),
+    BackgroundTransparency = 1,
+    ZIndex = 4
+}, content)
+create("UIGridLayout", {
+    CellPadding = UDim2.fromOffset(8, 8),
+    CellSize = UDim2.new(0.5, -4, 0, 48),
+    SortOrder = Enum.SortOrder.LayoutOrder
+}, quick)
+
+local infoLabel = create("TextLabel", {
+    Position = UDim2.new(0, 5, 1, -2),
+    Size = UDim2.new(1, -10, 0, 15),
+    BackgroundTransparency = 1,
+    Text = "REXEL NEXUS  •  واجهة مستقلة بدون صور خارجية",
+    TextColor3 = COLORS.muted,
     Font = Enum.Font.Gotham,
-    TextSize = 11,
-    TextWrapped = true,
+    TextSize = 8,
     TextXAlignment = Enum.TextXAlignment.Right,
     ZIndex = 4
 }, content)
 
 local pages = {
-    {"الرئيسية", "مرحباً بك! هذه الصفحة الرئيسية لواجهة ريكسل."},
-    {"الأدوات", "هنا يمكنك إضافة أدوات واجهة خاصة بتجربتك."},
-    {"الأحداث", "تابع معلومات الأحداث والتنبيهات هنا."},
-    {"الحيوانات", "اعرض قائمة الحيوانات ومعلوماتها هنا."},
-    {"الفهرس", "مكان لعرض العناصر والمقتنيات."},
-    {"المتجر", "مكان لعرض عناصر المتجر والأسعار."},
-    {"الإعدادات", "تحكم بمظهر الواجهة وخياراتها."},
+    {"الرئيسية", "لوحة القيادة", "كل أدواتك في مكان واحد. اختر القسم وابدأ."},
+    {"الأدوات", "مركز الأدوات", "أضف هنا أدوات وتجارب واجهتك الخاصة."},
+    {"الأحداث", "مركز الأحداث", "تابع التنبيهات ومعلومات الأحداث."},
+    {"الحيوانات", "مجموعتك", "اعرض الحيوانات والمعلومات المرتبطة بها."},
+    {"الفهرس", "الفهرس", "استعرض العناصر والمقتنيات المسجلة."},
+    {"المتجر", "المتجر", "اعرض المنتجات والأسعار الخاصة بتجربتك."},
+    {"الإعدادات", "الإعدادات", "خصص الواجهة بالطريقة التي تناسبك."},
 }
 
-local selectedButton
+local selectedNav
+local function selectPage(item, button)
+    if selectedNav then
+        tween(selectedNav, 0.15, {BackgroundColor3 = COLORS.panel2})
+    end
+    selectedNav = button
+    if selectedNav then
+        tween(selectedNav, 0.15, {BackgroundColor3 = Color3.fromRGB(48, 54, 91)})
+    end
+
+    pageTitle.Text = item[2]
+    pageDesc.Text = item[3]
+    hero.Visible = item[1] == "الرئيسية"
+    stats.Visible = item[1] == "الرئيسية"
+    sectionLabel.Visible = item[1] == "الرئيسية"
+    quick.Visible = item[1] == "الرئيسية"
+    infoLabel.Text = "REXEL  •  " .. item[1] .. "  •  الإصدار 4.0"
+end
+
 for index, item in ipairs(pages) do
-    local button = new("TextButton", {
+    local btn = create("TextButton", {
         LayoutOrder = index,
-        Size = UDim2.new(1, 0, 0, 34),
-        BackgroundColor3 = PANEL_2,
-        BackgroundTransparency = 0.1,
+        Size = UDim2.new(1, 0, 0, 37),
+        BackgroundColor3 = COLORS.panel2,
+        BackgroundTransparency = 0.05,
         BorderSizePixel = 0,
         Text = item[1],
-        TextColor3 = WHITE,
+        TextColor3 = COLORS.text,
         Font = Enum.Font.GothamBold,
         TextSize = 11,
         ZIndex = 6
-    }, navHolder)
-    round(button, 7)
+    }, nav)
+    corner(btn, 9)
 
-    button.MouseButton1Click:Connect(function()
-        if selectedButton then
-            selectedButton.BackgroundColor3 = PANEL_2
+    local marker = create("Frame", {
+        Position = UDim2.new(1, -4, 0.2, 0),
+        Size = UDim2.new(0, 3, 0.6, 0),
+        BackgroundColor3 = COLORS.cyan,
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        ZIndex = 7
+    }, btn)
+    corner(marker, 4)
+
+    btn.MouseButton1Click:Connect(function()
+        selectPage(item, btn)
+        marker.BackgroundTransparency = 0
+        for _, child in ipairs(nav:GetChildren()) do
+            if child:IsA("TextButton") and child ~= btn then
+                local m = child:FindFirstChildOfClass("Frame")
+                if m then m.BackgroundTransparency = 1 end
+            end
         end
-        selectedButton = button
-        button.BackgroundColor3 = RED_DARK
-        heading.Text = item[1]
-        subtitle.Text = "قسم " .. item[1] .. " من ريكسل"
-        pageInfo.Text = item[2]
     end)
 end
 
--- تصغير وإظهار النافذة
+local function makeQuickButton(label, color, order)
+    local btn = create("TextButton", {
+        LayoutOrder = order,
+        BackgroundColor3 = COLORS.panel2,
+        BorderSizePixel = 0,
+        Text = label,
+        TextColor3 = COLORS.text,
+        Font = Enum.Font.GothamBold,
+        TextSize = 10,
+        ZIndex = 5
+    }, quick)
+    corner(btn, 9)
+    stroke(btn, color, 0.65, 1)
+    btn.MouseButton1Click:Connect(function()
+        tween(btn, 0.08, {BackgroundColor3 = Color3.fromRGB(47, 55, 76)})
+        task.delay(0.12, function()
+            if btn.Parent then tween(btn, 0.18, {BackgroundColor3 = COLORS.panel2}) end
+        end)
+        pageDesc.Text = "تم اختيار: " .. label .. "  •  اربط هذا الزر بوظيفتك داخل لعبتك."
+    end)
+end
+makeQuickButton("فتح الأدوات", COLORS.cyan, 1)
+makeQuickButton("عرض الأحداث", COLORS.violet, 2)
+makeQuickButton("خيارات الواجهة", COLORS.green, 3)
+makeQuickButton("معلومات ريكسل", COLORS.red, 4)
+
+-- Subtle animated accent, purely visual
+task.spawn(function()
+    while gui.Parent do
+        tween(accent, 1.8, {BackgroundColor3 = COLORS.violet})
+        task.wait(1.8)
+        if not gui.Parent then break end
+        tween(accent, 1.8, {BackgroundColor3 = COLORS.cyan})
+        task.wait(1.8)
+    end
+end)
+
+-- Minimize / restore
 local minimized = false
-minimize.MouseButton1Click:Connect(function()
+minBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     sidebar.Visible = not minimized
     content.Visible = not minimized
-    background.Visible = not minimized
-    tint.Visible = not minimized
-    main.Size = minimized and UDim2.fromOffset(250, 48) or UDim2.fromOffset(570, 390)
-    minimize.Text = minimized and "+" or "—"
+    main.Size = minimized and UDim2.fromOffset(250, 62) or UDim2.fromOffset(760, 490)
+    minBtn.Text = minimized and "+" or "—"
 end)
 
--- تحريك النافذة باللمس أو الماوس من الشريط العلوي
+-- Drag window from header (mouse + touch)
 local dragging = false
 local dragInput, dragStart, startPosition
 
-top.InputBegan:Connect(function(input)
+header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
         or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPosition = main.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
         end)
     end
 end)
 
-top.InputChanged:Connect(function(input)
+header.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement
         or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
@@ -491,3 +607,6 @@ UserInputService.InputChanged:Connect(function(input)
         )
     end
 end)
+
+-- Initial selected page
+selectPage(pages[1], nil)
