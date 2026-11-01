@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64..0)
+-- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.0.0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -5295,14 +5295,14 @@ task.spawn(function()
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     MainFrame.Rotation = -2.5
-    TweenService:Create(MainFrame, TweenInfo.new(0.68, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
+    TweenService:Create(MainFrame, TweenInfo.new(0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
         Size = responsiveState.mainSize,
         Position = responsiveState.mainPosition,
         Rotation = 0
     }):Play()
     task.spawn(function()
         task.wait(0.68)
-        for _, amount in ipairs({1.2, -1.2, 0.65, -0.65, 0}) do
+        for _, amount in ipairs({}) do
             if not MainFrame or not MainFrame.Parent then break end
             local shake = TweenService:Create(MainFrame, TweenInfo.new(0.045, Enum.EasingStyle.Linear), {Rotation = amount})
             shake:Play()
@@ -5327,6 +5327,124 @@ CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Size = responsiveState.mainSize
     MainFrame.Position = responsiveState.mainPosition
 end)
+
+---------------------------------------------------------
+-- KEON V74: إعادة تصميم شاملة للأزرار والقوائم والبطاقات
+-- أسلوب Tactical Crimson: زوايا حادة، أسطح فحمية، إبراز قرمزي
+---------------------------------------------------------
+local V74_PALETTE = {
+    base = Color3.fromRGB(9, 10, 14),
+    panel = Color3.fromRGB(17, 18, 24),
+    panel2 = Color3.fromRGB(23, 24, 31),
+    red = Color3.fromRGB(220, 55, 68),
+    redBright = Color3.fromRGB(245, 72, 86),
+    muted = Color3.fromRGB(142, 145, 157),
+    white = Color3.fromRGB(244, 245, 248),
+    line = Color3.fromRGB(67, 37, 45)
+}
+-- Correct explicit palette value (kept separate for easy theme editing).
+V74_PALETTE.red = Color3.fromRGB(220, 55, 68)
+
+local function v74Round(obj, radius)
+    if not obj or not obj:IsA('GuiObject') then return end
+    local corner = obj:FindFirstChildOfClass('UICorner')
+    if corner then corner.CornerRadius = UDim.new(0, radius or 3) end
+end
+
+local function v74StyleObject(obj)
+    if not obj or not obj.Parent then return end
+    if obj:IsA('UICorner') then
+        obj.CornerRadius = UDim.new(0, 3)
+    elseif obj:IsA('UIStroke') then
+        if obj.Parent == MainFrame or obj.Parent == CenterBox or obj.Parent == Header then
+            obj.Color = V74_PALETTE.red
+            obj.Thickness = 1.35
+        elseif obj.Parent:IsA('TextButton') or obj.Parent:IsA('TextBox') then
+            obj.Color = V74_PALETTE.line
+            obj.Thickness = 1
+            obj.Transparency = 0.08
+        else
+            obj.Color = V74_PALETTE.line
+            obj.Thickness = math.min(obj.Thickness, 1.1)
+        end
+    elseif obj:IsA('TextButton') then
+        obj.AutoButtonColor = false
+        obj.BackgroundColor3 = V74_PALETTE.panel2
+        obj.TextColor3 = V74_PALETTE.white
+        obj.Font = Enum.Font.GothamBold
+        obj.TextStrokeTransparency = 1
+        v74Round(obj, 3)
+        if obj.Name == 'CloseBtn' or obj.Name:lower():find('close') then
+            obj.BackgroundColor3 = V74_PALETTE.red
+        elseif obj.Name:find('KEONDashboardRow') then
+            obj.BackgroundColor3 = V74_PALETTE.panel
+        elseif obj.Parent == LeftWing then
+            obj.BackgroundColor3 = V74_PALETTE.panel2
+            obj.TextXAlignment = Enum.TextXAlignment.Center
+            obj.Size = UDim2.new(1, -14, 0, 42)
+        elseif obj.Text and (obj.Text:find('تشغيل') or obj.Text:find('إرسال') or obj.Text:find('تفعيل') or obj.Text:find('حفظ')) then
+            obj.BackgroundColor3 = V74_PALETTE.red
+        end
+    elseif obj:IsA('TextBox') then
+        obj.BackgroundColor3 = V74_PALETTE.panel2
+        obj.TextColor3 = V74_PALETTE.white
+        obj.PlaceholderColor3 = V74_PALETTE.muted
+        obj.Font = Enum.Font.Gotham
+        v74Round(obj, 3)
+    elseif obj:IsA('Frame') then
+        v74Round(obj, 3)
+        if obj.Name == 'MainFrame' then
+            obj.BackgroundColor3 = V74_PALETTE.base
+        elseif obj.Name == 'Header' then
+            obj.BackgroundColor3 = Color3.fromRGB(13, 13, 18)
+        elseif obj.Name == 'LeftWing' then
+            obj.BackgroundColor3 = Color3.fromRGB(11, 12, 17)
+        elseif obj.Name == 'CenterBox' then
+            obj.BackgroundColor3 = V74_PALETTE.base
+        elseif obj.Name:find('KEONDashboardHeader') then
+            obj.BackgroundColor3 = Color3.fromRGB(35, 14, 21)
+        elseif obj.Name:find('KEONDashboardRow_') then
+            obj.BackgroundColor3 = V74_PALETTE.panel
+        end
+    elseif obj:IsA('TextLabel') then
+        if obj.TextColor3 ~= V74_PALETTE.red and obj.TextColor3 ~= V74_PALETTE.redBright then
+            if obj.TextSize >= 12 then obj.Font = Enum.Font.GothamBold end
+        end
+    end
+end
+
+-- تغيير تخطيط الهيكل نفسه حتى لا يبقى شكل النسخة السابقة.
+MainFrame.BackgroundColor3 = V74_PALETTE.base
+MainFrame.BorderSizePixel = 0
+if outerFrameStroke then outerFrameStroke.Color = V74_PALETTE.red; outerFrameStroke.Thickness = 1.4 end
+if CenterGlow then CenterGlow.Visible = false end
+if Header then Header.BackgroundColor3 = Color3.fromRGB(13, 13, 18) end
+if LeftWing then LeftWing.BackgroundColor3 = Color3.fromRGB(11, 12, 17) end
+if CenterBox then CenterBox.BackgroundColor3 = V74_PALETTE.base end
+if centerStroke then centerStroke.Color = V74_PALETTE.red; centerStroke.Thickness = 1.1 end
+if HeaderAccentLine then HeaderAccentLine.BackgroundColor3 = V74_PALETTE.red end
+if SidebarLogo then SidebarLogo.BackgroundColor3 = V74_PALETTE.red end
+
+local function v74RefreshTheme()
+    if not MainFrame or not MainFrame.Parent then return end
+    for _, obj in ipairs(MainFrame:GetDescendants()) do
+        pcall(v74StyleObject, obj)
+    end
+    pcall(function()
+        MainFrame.BackgroundColor3 = V74_PALETTE.base
+        LeftWing.BackgroundColor3 = Color3.fromRGB(11, 12, 17)
+        CenterBox.BackgroundColor3 = V74_PALETTE.base
+        Header.BackgroundColor3 = Color3.fromRGB(13, 13, 18)
+    end)
+end
+v74RefreshTheme()
+task.spawn(function()
+    while MainFrame and MainFrame.Parent do
+        task.wait(1.25)
+        v74RefreshTheme()
+    end
+end)
+
 
 dashboardNavTargets = {
     egg = BtnStealEggRight,
