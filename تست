@@ -1,4 +1,4 @@
--- Rixel Hub - Rixul Custom UI (v64.0.0)
+-- Rixel Hub - Rixul Custom UI (v64.1.0)
 -- Developer: كـيـون / تعديل لواجهة ريكسل
 
 local CoreGui = game:GetService("CoreGui")
@@ -36,7 +36,7 @@ local FIREBASE_VOTE_URL = FIREBASE_VOTE_BASE .. ".json"
 local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
 RixelProfile.FIREBASE_USAGE_URL = FIREBASE_BASE_URL .. "/usage_stats.json"
 
-local RIXEL_RESTART_SCRIPT_URL = "" 
+local RIXEL_RESTART_SCRIPT_URL = ""
 
 local function customRequest(options)
     local req = request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request)
@@ -95,19 +95,8 @@ local function fetchAsset(url, fileName)
     return url
 end
 
--- اعتماد صورة الواجهة الأساسية المرفقة (Rixul) للخلفيات الرئيسية والشات
+-- اعتماد الصورة التي أرفقتها كخلفية أساسية ثابتة للواجهة والشات
 local RIXEL_MAIN_BG = fetchAsset("https://i.ibb.co/3ykG4S5/1000021312.jpg", "rixel_bg_main")
-
-local wallUrls = {
-    RIXEL_MAIN_BG,
-    fetchAsset("https://i.ibb.co/kVgc9qDj/73101da42ad70d5caae829c77a61a99f.webp", "bg_animated_v58"),
-    fetchAsset("https://g.top4top.io/p_39494o4fm0.png", "bg_new"),
-    fetchAsset("https://d.top4top.io/p_3947d1izj0.jpg", "bg_1")
-}
-
-local wallNames = {
-    "✨ خلفية ريكسل الأساسية (Rixul)", "🌌 مجرة نيون بنفسجي", "🌃 مدينة سايبربنك", "🟦 بلايستيشن أزرق"
-}
 
 RixelProfile.stickerRawUrls = {
     "https://up6.cc/2026/10/179301030915811.jpg",
@@ -131,7 +120,6 @@ local BROADCAST_SOUND_ID = "rbxassetid://17208361335"
 local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
 
 local neonSpeed = 3.2
--- ضبط الألوان الأساسية على الأحمر الداكن المطابق لواجهة ريكسل في الصورة
 local currentAccentColor = Color3.fromRGB(190, 35, 45)
 local currentHeaderColor = Color3.fromRGB(45, 10, 15)
 local globalMediaVolume = 5.0
@@ -144,15 +132,8 @@ local responsiveState = {
 local applyResponsiveMain
 local applyResponsiveChat
 
-local selectedScriptBgIndex = 1 -- تعيين خلفية ريكسل الافتراضية تلقائياً
-local selectedChatBgIndex = 1
-local showOwnCountryOverhead = true
 local uiScaleValue = 1.0
 local mainUIScaleObject = nil
-RixelProfile.selectedCountryFlag = "🇮🇶"
-RixelProfile.selectedCountryName = "العراق"
-RixelProfile.selectedCountryCode = "IQ"
-local RixelCountryWasSaved = false
 RixelProfile.profileByUserId = {}
 RixelProfile.savedUsageSeconds = 0
 RixelProfile.usageDataLoaded = false
@@ -168,19 +149,13 @@ local activeNameLabels = {}
 local function saveUserSettings()
     if writefile then
         local cfg = {
-            scriptBg = selectedScriptBgIndex,
-            chatBg = selectedChatBgIndex,
-            showOwnCountryOverhead = showOwnCountryOverhead,
             uiScaleValue = uiScaleValue,
             r = currentAccentColor.R,
             g = currentAccentColor.G,
             b = currentAccentColor.B,
             hr = currentHeaderColor.R,
             hg = currentHeaderColor.G,
-            hb = currentHeaderColor.B,
-            countryFlag = RixelProfile.selectedCountryFlag,
-            countryName = RixelProfile.selectedCountryName,
-            countryCode = RixelProfile.selectedCountryCode
+            hb = currentHeaderColor.B
         }
         pcall(function() writefile(CONFIG_FILE, HttpService:JSONEncode(cfg)) end)
     end
@@ -191,20 +166,25 @@ local function loadUserSettings()
         pcall(function()
             local cfg = safeDecode(readfile(CONFIG_FILE))
             if cfg then
-                selectedScriptBgIndex = cfg.scriptBg or 1
-                selectedChatBgIndex = cfg.chatBg or 1
-                if cfg.showOwnCountryOverhead ~= nil then showOwnCountryOverhead = cfg.showOwnCountryOverhead end
                 uiScaleValue = math.clamp(tonumber(cfg.uiScaleValue) or 1.0, 0.75, 1.2)
-                RixelProfile.selectedCountryFlag = cfg.countryFlag or RixelProfile.selectedCountryFlag
-                RixelProfile.selectedCountryName = cfg.countryName or RixelProfile.selectedCountryName
-                RixelProfile.selectedCountryCode = cfg.countryCode or RixelProfile.selectedCountryCode
-                RixelCountryWasSaved = cfg.countryCode ~= nil
+                if cfg.r and cfg.g and cfg.b then
+                    currentAccentColor = Color3.new(cfg.r, cfg.g, cfg.b)
+                end
+                if cfg.hr and cfg.hg and cfg.hb then
+                    currentHeaderColor = Color3.new(cfg.hr, cfg.hg, cfg.hb)
+                end
             end
         end)
     end
 end
 
 loadUserSettings()
+task.spawn(function()
+    while true do
+        task.wait(5)
+        pcall(saveUserSettings)
+    end
+end)
 
 local function playUiSound(soundId, pitch, volume)
     task.spawn(function()
@@ -273,116 +253,11 @@ end
 RixelProfile.profileByUserId[tostring(LocalPlayer.UserId)] = {
     userId = LocalPlayer.UserId,
     name = LocalPlayer.Name,
-    displayName = LocalPlayer.DisplayName,
-    countryFlag = RixelProfile.selectedCountryFlag,
-    countryName = RixelProfile.selectedCountryName,
-    countryCode = RixelProfile.selectedCountryCode
+    displayName = LocalPlayer.DisplayName
 }
 
-function RixelProfile.applyCountryTag(plr, flag, countryName)
-    if not plr or not plr.Character then return end
-    local head = plr.Character:FindFirstChild("Head")
-    if not head then return end
-    local billboard = head:FindFirstChild("RixelCountryFlagTag")
-    if not billboard then
-        billboard = Instance.new("BillboardGui")
-        billboard.Name = "RixelCountryFlagTag"
-        billboard.Size = UDim2.new(0, 190, 0, 46)
-        billboard.StudsOffset = Vector3.new(0, 4.45, 0)
-        billboard.AlwaysOnTop = true
-        billboard.LightInfluence = 0
-        billboard.MaxDistance = 160
-        billboard.Parent = head
-
-        local brand = Instance.new("TextLabel")
-        brand.Name = "RixelBrandLabel"
-        brand.Size = UDim2.new(1, 0, 0, 20)
-        brand.Position = UDim2.new(0, 0, 0, 0)
-        brand.BackgroundColor3 = Color3.fromRGB(24, 8, 12)
-        brand.BackgroundTransparency = 0.05
-        brand.BorderSizePixel = 0
-        brand.Text = "RIXEL HUB"
-        brand.TextColor3 = Color3.fromRGB(255, 120, 130)
-        brand.TextStrokeTransparency = 0.35
-        brand.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-        brand.Font = Enum.Font.GothamBlack
-        brand.TextSize = 14
-        brand.Parent = billboard
-        Instance.new("UICorner", brand).CornerRadius = UDim.new(0, 7)
-        local brandStroke = Instance.new("UIStroke")
-        brandStroke.Color = currentAccentColor
-        brandStroke.Thickness = 1.35
-        brandStroke.Parent = brand
-
-        local country = Instance.new("TextLabel")
-        country.Name = "CountryLabel"
-        country.Size = UDim2.new(1, 0, 0, 22)
-        country.Position = UDim2.new(0, 0, 0, 23)
-        country.BackgroundColor3 = Color3.fromRGB(35, 12, 16)
-        country.BackgroundTransparency = 0.12
-        country.BorderSizePixel = 0
-        country.TextColor3 = Color3.fromRGB(245, 250, 255)
-        country.TextStrokeTransparency = 0.35
-        country.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-        country.Font = Enum.Font.GothamBold
-        country.TextSize = 12
-        country.Parent = billboard
-        Instance.new("UICorner", country).CornerRadius = UDim.new(0, 7)
-        local outline = Instance.new("UIStroke")
-        outline.Color = currentAccentColor
-        outline.Thickness = 1.1
-        outline.Parent = country
-    end
-    local label = billboard:FindFirstChild("CountryLabel")
-    if label then
-        label.Text = tostring(flag or "🌐") .. "  " .. tostring(countryName or "غير محدد")
-        label.Visible = (plr ~= LocalPlayer) or showOwnCountryOverhead
-    end
-    local brand = billboard:FindFirstChild("RixelBrandLabel")
-    if brand then brand.Visible = true end
-end
-
-function RixelProfile.refreshCountryTags()
-    for _, plr in ipairs(Players:GetPlayers()) do
-        local profile = RixelProfile.profileByUserId[tostring(plr.UserId)]
-        if plr == LocalPlayer then
-            RixelProfile.applyCountryTag(plr, RixelProfile.selectedCountryFlag, RixelProfile.selectedCountryName)
-        elseif profile then
-            RixelProfile.applyCountryTag(plr, profile.countryFlag, profile.countryName)
-        end
-    end
-end
-
-function RixelProfile.publishProfileCountry()
-    RixelProfile.profileByUserId[tostring(LocalPlayer.UserId)] = {
-        userId = LocalPlayer.UserId, name = LocalPlayer.Name,
-        displayName = LocalPlayer.DisplayName,
-        countryFlag = RixelProfile.selectedCountryFlag, countryName = RixelProfile.selectedCountryName,
-        countryCode = RixelProfile.selectedCountryCode
-    }
-    saveUserSettings()
-    RixelProfile.refreshCountryTags()
-    task.spawn(function()
-        pcall(function()
-            customRequest({
-                Url = FIREBASE_BASE_URL .. "/active_users/" .. tostring(LocalPlayer.UserId) .. ".json",
-                Method = "PATCH",
-                Headers = { ["Content-Type"] = "application/json" },
-                Body = HttpService:JSONEncode({countryFlag = RixelProfile.selectedCountryFlag, countryName = RixelProfile.selectedCountryName, countryCode = RixelProfile.selectedCountryCode})
-            })
-        end)
-    end)
-end
-
-Players.PlayerAdded:Connect(function(plr)
-    plr.CharacterAdded:Connect(function() task.wait(1); RixelProfile.refreshCountryTags() end)
-end)
-for _, plr in ipairs(Players:GetPlayers()) do
-    plr.CharacterAdded:Connect(function() task.wait(1); RixelProfile.refreshCountryTags() end)
-end
-
 ---------------------------------------------------------
--- شاشة إعادة تشغيل السكربت لجميع المستخدمين
+-- شاشة إعادة تشغيل السكربت
 ---------------------------------------------------------
 local ReloadGui = Instance.new("ScreenGui")
 ReloadGui.Name = "RixelReloadWidgetGui"
@@ -462,7 +337,7 @@ ReloadTimerLbl.ZIndex = 801
 ReloadTimerLbl.Parent = ReloadFrame
 
 ---------------------------------------------------------
--- شاشة واجهة التصويت المباشر التفاعلية
+-- شاشة التصويت المباشر
 ---------------------------------------------------------
 local VoteGui = Instance.new("ScreenGui")
 VoteGui.Name = "RixelVoteBannerGui"
@@ -585,7 +460,7 @@ BtnOptionA.MouseButton1Click:Connect(function() submitUserVote("optA") end)
 BtnOptionB.MouseButton1Click:Connect(function() submitUserVote("optB") end)
 
 ---------------------------------------------------------
--- شاشة التحميل الفخمة (ريكسل)
+-- شاشة التحميل الفخمة
 ---------------------------------------------------------
 local LoadingGui = Instance.new("ScreenGui")
 LoadingGui.Name = "RixelLoadingGui"
@@ -637,7 +512,7 @@ local LoadSub = Instance.new("TextLabel")
 LoadSub.Size = UDim2.new(1, -18, 0, 30)
 LoadSub.Position = UDim2.new(0, 9, 0, 96)
 LoadSub.BackgroundTransparency = 1
-LoadSub.Text = "🔥 مرحباً بك في ريكسل هب - واجهة تجريبية ❤️"
+LoadSub.Text = "🔥 مرحباً بك في ريكسل هب - واجهة مخصصة ❤️"
 LoadSub.TextColor3 = Color3.fromRGB(240, 190, 200)
 LoadSub.Font = Enum.Font.GothamBold
 LoadSub.TextWrapped = true
@@ -662,7 +537,7 @@ local LoadFooter = Instance.new("TextLabel")
 LoadFooter.Size = UDim2.new(1, -20, 0, 18)
 LoadFooter.Position = UDim2.new(0, 10, 0, 154)
 LoadFooter.BackgroundTransparency = 1
-LoadFooter.Text = "واجهة تجريبية • أهلاً بك في ريكسل هب"
+LoadFooter.Text = "RIXEL HUB • ONLINE"
 LoadFooter.TextColor3 = Color3.fromRGB(255, 130, 140)
 LoadFooter.Font = Enum.Font.GothamBold
 LoadFooter.TextSize = 10
@@ -677,7 +552,7 @@ TweenService:Create(LoadFrame, TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.E
 }):Play()
 
 ---------------------------------------------------------
--- الهيكل الرئيسي للواجهة (ريكسل)
+-- الهيكل الرئيسي للواجهة
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "RixelProV47UI"
@@ -722,35 +597,17 @@ CenterBox.ClipsDescendants = true
 CenterBox.Parent = MainFrame
 Instance.new("UICorner", CenterBox).CornerRadius = UDim.new(0, 16)
 
+-- تعيين الخلفية المرفقة رسمياً للواجهة الرئيسية وعدم إتاحة تعديلها من القائمة
 local BgImage = Instance.new("ImageLabel")
 BgImage.Name = "BgImage"
 BgImage.Size = UDim2.new(1, 0, 1, 0)
 BgImage.BackgroundTransparency = 1
-BgImage.ImageTransparency = 0
-BgImage.Visible = false
+BgImage.Image = RIXEL_MAIN_BG
+BgImage.Visible = true
 BgImage.ScaleType = Enum.ScaleType.Crop
 BgImage.ZIndex = 1
 BgImage.Parent = CenterBox
 Instance.new("UICorner", BgImage).CornerRadius = UDim.new(0, 14)
-
-local function applyScriptBackground(idx)
-    idx = tonumber(idx) or 1
-    selectedScriptBgIndex = idx
-    if idx > 0 and wallUrls[idx] then
-        BgImage.Image = wallUrls[idx]
-        BgImage.Visible = true
-        CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(24, 8, 12)
-        BgImage.ImageTransparency = 0
-    else
-        BgImage.Image = ""
-        BgImage.Visible = false
-        CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(24, 8, 12)
-    end
-    saveUserSettings()
-end
-applyScriptBackground(selectedScriptBgIndex)
 
 local centerStroke = Instance.new("UIStroke")
 centerStroke.Color = currentAccentColor
@@ -911,14 +768,8 @@ CenterLayout.SortOrder = Enum.SortOrder.LayoutOrder
 CenterLayout.Padding = UDim.new(0, 8)
 CenterLayout.Parent = CenterScroll
 
-local function getViewportSize()
-    local camera = workspace.CurrentCamera
-    if camera then return camera.ViewportSize end
-    return Vector2.new(1280, 720)
-end
-
 applyResponsiveMain = function()
-    local viewport = getViewportSize()
+    local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
     local narrow = viewport.X < 650 or viewport.Y < 430
     responsiveState.narrow = narrow
 
@@ -927,46 +778,17 @@ applyResponsiveMain = function()
         local height = math.max(300, math.min(560, math.floor(viewport.Y - 16)))
         responsiveState.mainSize = UDim2.new(0, width, 0, height)
         responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
-
         MainFrame.Size = responsiveState.mainSize
         MainFrame.Position = responsiveState.mainPosition
-        CenterBox.Size = UDim2.new(1, 0, 1, 0)
-        CenterBox.Position = UDim2.new(0, 0, 0, 0)
-        CenterGlow.Size = UDim2.new(1, 0, 1, 8)
-        CenterGlow.Position = UDim2.new(0, 0, 0, -4)
-
-        LeftWing.Size = UDim2.new(1, -12, 0, 36)
-        LeftWing.Position = UDim2.new(0, 6, 0, 48)
-        RightWing.Size = UDim2.new(1, -12, 0, 36)
-        RightWing.Position = UDim2.new(0, 6, 0, 88)
-        LeftWing.ScrollingDirection = Enum.ScrollingDirection.X
-        RightWing.ScrollingDirection = Enum.ScrollingDirection.X
-        LeftLayout.FillDirection = Enum.FillDirection.Horizontal
-        RightLayout.FillDirection = Enum.FillDirection.Horizontal
-        CenterScroll.Position = UDim2.new(0, 8, 0, 132)
-        CenterScroll.Size = UDim2.new(1, -16, 1, -140)
     else
         responsiveState.mainSize = UDim2.new(0, 560, 0, 360)
         responsiveState.mainPosition = UDim2.new(0.5, 0, 0.5, 0)
         MainFrame.Size = responsiveState.mainSize
         MainFrame.Position = responsiveState.mainPosition
-        CenterBox.Size = UDim2.new(0, 340, 1, 0)
-        CenterBox.Position = UDim2.new(0.5, -170, 0, 0)
-        CenterGlow.Size = UDim2.new(0, 350, 1, 8)
-        CenterGlow.Position = UDim2.new(0.5, -175, 0, -4)
-        LeftWing.Size = UDim2.new(0, 105, 1, -48)
-        LeftWing.Position = UDim2.new(0.5, -280, 0, 48)
-        RightWing.Size = UDim2.new(0, 105, 1, -48)
-        RightWing.Position = UDim2.new(0.5, 175, 0, 48)
-        CenterScroll.Position = UDim2.new(0, 8, 0, 48)
-        CenterScroll.Size = UDim2.new(1, -16, 1, -54)
     end
 end
 applyResponsiveMain()
 
----------------------------------------------------------
--- القوائم الجانبية وأزرار واجهة ريكسل المطابقة لصورتك
----------------------------------------------------------
 local function createProStyleBtn(text, side)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -4, 0, 40)
@@ -1037,7 +859,7 @@ BtnMainHome.MouseButton1Click:Connect(function()
     wDesc.Size = UDim2.new(1, -20, 0, 60)
     wDesc.Position = UDim2.new(0, 10, 0, 48)
     wDesc.BackgroundTransparency = 1
-    wDesc.Text = "• واجهة تجريبية - ممتعم إضافة الوظائف لاحقاً.\n• الواجهة تعمل بنجاح وبدون مشاكل وبنفس تصميم ريكسل المخصص."
+    wDesc.Text = "• تم تحديث الهوية وتثبيت الخلفية الرسمية بنجاح.\n• جميع أقسام ريكسل هب تعمل بكفاءة عالية وبدون أعلام دول."
     wDesc.TextColor3 = Color3.fromRGB(245, 230, 235)
     wDesc.Font = Enum.Font.GothamBold
     wDesc.TextSize = 12
@@ -1056,15 +878,12 @@ BtnScripts.MouseButton1Click:Connect(function()
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 0, 42)
     btn.BackgroundColor3 = Color3.fromRGB(45, 12, 18)
-    btn.Text = "زر تجريبي (مثال)"
+    btn.Text = "زر تجريبي"
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 13
     btn.Parent = CenterScroll
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-    btn.MouseButton1Click:Connect(function()
-        print("تم النقر على الزر التجريبي!")
-    end)
 end)
 
 local BtnSettings = createProStyleBtn("الإعدادات", "right")
@@ -1099,7 +918,7 @@ BtnSettings.MouseButton1Click:Connect(function()
     sDesc.Size = UDim2.new(1, -20, 0, 36)
     sDesc.Position = UDim2.new(0, 10, 0, 38)
     sDesc.BackgroundTransparency = 1
-    sDesc.Text = "واجهة تجريبية - ممتعم إضافة الوظائف لاحقاً"
+    sDesc.Text = "تم إزالة قوائم الخلفيات المتعددة وأعلام الدول بناءً على طلبك."
     sDesc.TextColor3 = Color3.fromRGB(245, 230, 235)
     sDesc.Font = Enum.Font.GothamBold
     sDesc.TextSize = 11.5
@@ -1108,6 +927,103 @@ BtnSettings.MouseButton1Click:Connect(function()
     sDesc.Parent = setBox
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
+end)
+
+---------------------------------------------------------
+-- نافذة الشات المباشرة (معتمدة على الخلفية الرسمية الثابتة بدون خيارات خلفيات)
+---------------------------------------------------------
+local ChatScreenGui = Instance.new("ScreenGui")
+ChatScreenGui.Name = "RixelTopChatGui"
+ChatScreenGui.DisplayOrder = 30
+ChatScreenGui.ResetOnSpawn = false
+ChatScreenGui.Parent = parent
+
+local FloatingChatBtn = Instance.new("TextButton")
+FloatingChatBtn.Size = UDim2.new(0, 42, 0, 42)
+FloatingChatBtn.Position = UDim2.new(0, 115, 0, 10)
+FloatingChatBtn.BackgroundColor3 = Color3.fromRGB(24, 8, 12)
+FloatingChatBtn.Text = "💬"
+FloatingChatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+FloatingChatBtn.Font = Enum.Font.GothamBold
+FloatingChatBtn.TextSize = 20
+FloatingChatBtn.Active = true
+FloatingChatBtn.Draggable = true
+FloatingChatBtn.Parent = ChatScreenGui
+Instance.new("UICorner", FloatingChatBtn).CornerRadius = UDim.new(0, 14)
+
+local ChatWin = Instance.new("Frame")
+ChatWin.Size = UDim2.new(0, 370, 0, 300)
+ChatWin.Position = UDim2.new(0, 160, 0, 10)
+ChatWin.BackgroundColor3 = Color3.fromRGB(24, 8, 12)
+ChatWin.ClipsDescendants = true
+ChatWin.Active = true
+ChatWin.Draggable = true
+ChatWin.Visible = false
+ChatWin.Parent = ChatScreenGui
+Instance.new("UICorner", ChatWin).CornerRadius = UDim.new(0, 16)
+
+local ChatBgImage = Instance.new("ImageLabel")
+ChatBgImage.Size = UDim2.new(1, 0, 1, 0)
+ChatBgImage.BackgroundTransparency = 1
+ChatBgImage.Image = RIXEL_MAIN_BG
+ChatBgImage.Visible = true
+ChatBgImage.ScaleType = Enum.ScaleType.Crop
+ChatBgImage.ZIndex = 1
+ChatBgImage.Parent = ChatWin
+Instance.new("UICorner", ChatBgImage).CornerRadius = UDim.new(0, 16)
+
+local floatStroke = Instance.new("UIStroke")
+floatStroke.Color = currentAccentColor
+floatStroke.Thickness = 2
+floatStroke.Parent = FloatingChatBtn
+
+local chatStroke = Instance.new("UIStroke")
+chatStroke.Color = currentAccentColor
+chatStroke.Thickness = 1.7
+chatStroke.Parent = ChatWin
+
+local ChatScroll = Instance.new("ScrollingFrame")
+ChatScroll.Size = UDim2.new(1, -20, 1, -45)
+ChatScroll.Position = UDim2.new(0, 10, 0, 0)
+ChatScroll.BackgroundTransparency = 1
+ChatScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+ChatScroll.ScrollBarThickness = 3
+ChatScroll.ZIndex = 2
+ChatScroll.Parent = ChatWin
+
+local ChatLayout = Instance.new("UIListLayout")
+ChatLayout.Padding = UDim.new(0, 6)
+ChatLayout.Parent = ChatScroll
+
+local ChatInput = Instance.new("TextBox")
+ChatInput.Size = UDim2.new(1, -100, 0, 30)
+ChatInput.Position = UDim2.new(0, 10, 1, -36)
+ChatInput.BackgroundColor3 = Color3.fromRGB(45, 12, 18)
+ChatInput.PlaceholderText = "اكتب رسالة…"
+ChatInput.Text = ""
+ChatInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+ChatInput.Font = Enum.Font.GothamBold
+ChatInput.TextSize = 12
+ChatInput.TextXAlignment = Enum.TextXAlignment.Right
+ChatInput.ZIndex = 2
+ChatInput.Parent = ChatWin
+Instance.new("UICorner", ChatInput).CornerRadius = UDim.new(0, 9)
+
+local SendBtn = Instance.new("TextButton")
+SendBtn.Size = UDim2.new(0, 80, 0, 30)
+SendBtn.Position = UDim2.new(1, -90, 1, -36)
+SendBtn.BackgroundColor3 = currentAccentColor
+SendBtn.Text = "إرسال"
+SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SendBtn.Font = Enum.Font.GothamBold
+SendBtn.TextSize = 12
+SendBtn.ZIndex = 2
+SendBtn.Parent = ChatWin
+Instance.new("UICorner", SendBtn).CornerRadius = UDim.new(0, 9)
+
+FloatingChatBtn.MouseButton1Click:Connect(function()
+    playUiSound(SOUND_CLICK, 1, 0.35)
+    ChatWin.Visible = not ChatWin.Visible
 end)
 
 ---------------------------------------------------------
@@ -1147,6 +1063,3 @@ CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Size = responsiveState.mainSize
     MainFrame.Position = responsiveState.mainPosition
 end)
-
--- فتح الصفحة الرئيسية افتراضياً
-BtnMainHome:CaptureFocus and BtnMainHome:CaptureFocus()
