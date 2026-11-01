@@ -1,4 +1,4 @@
--- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v74.0.0)
+-- KEON Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64..0)
 -- Developer: كـيـون
 
 local CoreGui = game:GetService("CoreGui")
@@ -1269,7 +1269,7 @@ HeaderAccentLine.Size = UDim2.new(1, -20, 0, 2)
 HeaderAccentLine.Position = UDim2.new(0, 10, 1, -2)
 HeaderAccentLine.BackgroundColor3 = Color3.fromRGB(210, 65, 78)
 HeaderAccentLine.BorderSizePixel = 0
-HeaderAccentLine.ZIndex = 5
+HeaderAccentLine.ZIndex = 21
 HeaderAccentLine.Parent = Header
 Instance.new("UICorner", HeaderAccentLine).CornerRadius = UDim.new(1, 0)
 
@@ -1282,7 +1282,7 @@ TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.GothamBold
 TitleMain.TextSize = 18
 TitleMain.TextXAlignment = Enum.TextXAlignment.Left
-TitleMain.ZIndex = 4
+TitleMain.ZIndex = 21
 TitleMain.Parent = Header
 
 local MinimizeBtn = Instance.new("TextButton")
@@ -1294,7 +1294,7 @@ MinimizeBtn.Text = "–"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.TextSize = 20
-MinimizeBtn.ZIndex = 4
+MinimizeBtn.ZIndex = 21
 MinimizeBtn.Parent = Header
 Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 8)
 local minimizeStroke = Instance.new("UIStroke")
@@ -1311,7 +1311,7 @@ CloseBtn.Text = "✕"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.TextSize = 16
-CloseBtn.ZIndex = 4
+CloseBtn.ZIndex = 21
 CloseBtn.Parent = Header
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
 
@@ -1324,7 +1324,7 @@ HelpBtn.Text = "?"
 HelpBtn.TextColor3 = Color3.fromRGB(220, 244, 255)
 HelpBtn.Font = Enum.Font.GothamBlack
 HelpBtn.TextSize = 16
-HelpBtn.ZIndex = 4
+HelpBtn.ZIndex = 21
 HelpBtn.Parent = Header
 Instance.new("UICorner", HelpBtn).CornerRadius = UDim.new(0, 8)
 local helpBtnStroke = Instance.new("UIStroke")
@@ -1392,7 +1392,7 @@ LeftWing.Size = UDim2.new(0, 145, 1, -58)
 LeftWing.Position = UDim2.new(0, 0, 0, 58)
 LeftWing.BackgroundColor3 = Color3.fromRGB(10, 10, 16)
 LeftWing.BackgroundTransparency = 0
-LeftWing.BackgroundTransparency = 1
+LeftWing.ZIndex = 4
 LeftWing.BorderSizePixel = 0
 LeftWing.ScrollBarThickness = 0
 LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
@@ -1407,8 +1407,9 @@ LeftLayout.Parent = LeftWing
 -- بطاقة هوية KEON أعلى القائمة الجانبية
 local SidebarBrand = Instance.new("Frame")
 SidebarBrand.Name = "KEONSidebarBrand"
-SidebarBrand.Size = UDim2.new(1, -12, 0, 78)
+SidebarBrand.Size = UDim2.new(1, -12, 0, 65)
 SidebarBrand.BackgroundTransparency = 1
+SidebarBrand.ZIndex = 5
 SidebarBrand.LayoutOrder = -100
 SidebarBrand.Parent = LeftWing
 local SidebarLogo = Instance.new("TextLabel")
@@ -1419,6 +1420,7 @@ SidebarLogo.Text = "K"
 SidebarLogo.TextColor3 = Color3.fromRGB(255, 255, 255)
 SidebarLogo.Font = Enum.Font.GothamBlack
 SidebarLogo.TextSize = 25
+SidebarLogo.ZIndex = 6
 SidebarLogo.Parent = SidebarBrand
 Instance.new("UICorner", SidebarLogo).CornerRadius = UDim.new(0, 12)
 local SidebarName = Instance.new("TextLabel")
@@ -1430,6 +1432,7 @@ SidebarName.TextColor3 = Color3.fromRGB(255, 255, 255)
 SidebarName.Font = Enum.Font.GothamBlack
 SidebarName.TextSize = 13
 SidebarName.TextXAlignment = Enum.TextXAlignment.Left
+SidebarName.ZIndex = 6
 SidebarName.Parent = SidebarBrand
 local SidebarVersion = Instance.new("TextLabel")
 SidebarVersion.Size = UDim2.new(1, -58, 0, 20)
@@ -1440,7 +1443,21 @@ SidebarVersion.TextColor3 = Color3.fromRGB(165, 165, 180)
 SidebarVersion.Font = Enum.Font.Gotham
 SidebarVersion.TextSize = 10
 SidebarVersion.TextXAlignment = Enum.TextXAlignment.Left
+SidebarVersion.ZIndex = 6
 SidebarVersion.Parent = SidebarBrand
+
+local SidebarSectionLabel = Instance.new("TextLabel")
+SidebarSectionLabel.Name = "SidebarSectionLabel"
+SidebarSectionLabel.Size = UDim2.new(1, -14, 0, 20)
+SidebarSectionLabel.BackgroundTransparency = 1
+SidebarSectionLabel.Text = "الأقسام الرئيسية"
+SidebarSectionLabel.TextColor3 = Color3.fromRGB(150, 150, 165)
+SidebarSectionLabel.Font = Enum.Font.GothamBold
+SidebarSectionLabel.TextSize = 11
+SidebarSectionLabel.TextXAlignment = Enum.TextXAlignment.Right
+SidebarSectionLabel.ZIndex = 6
+SidebarSectionLabel.LayoutOrder = -90
+SidebarSectionLabel.Parent = LeftWing
 
 local RightWing = Instance.new("ScrollingFrame")
 RightWing.Size = UDim2.new(0, 0, 1, 0)
@@ -1518,10 +1535,10 @@ applyResponsiveMain = function()
     LeftWing.ScrollBarThickness = 2
     LeftWing.BackgroundTransparency = 0
     LeftWing.BackgroundColor3 = Color3.fromRGB(10, 10, 16)
-    LeftWing.ZIndex = 6
+    LeftWing.ZIndex = 4
     LeftLayout.FillDirection = Enum.FillDirection.Vertical
     LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-    LeftLayout.Padding = UDim.new(0, compact and 5 or 8)
+    LeftLayout.Padding = UDim.new(0, compact and 3 or 4)
 
     RightWing.Visible = false
     RightWing.Size = UDim2.new(0, 0, 0, 0)
@@ -1532,19 +1549,23 @@ applyResponsiveMain = function()
 
     for _, child in ipairs(LeftWing:GetChildren()) do
         if child:IsA("TextButton") then
-            child.Size = UDim2.new(1, -12, 0, compact and 38 or 44)
-            child.TextSize = compact and 11 or 14
+            child.Size = UDim2.new(1, -12, 0, compact and 32 or 34)
+            child.TextSize = compact and 10 or 13
             child.ZIndex = 7
+        elseif child.Name == "KEONSidebarBrand" then
+            child.ZIndex = 5
+        elseif child.Name == "SidebarSectionLabel" then
+            child.ZIndex = 6
         end
     end
-    LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 18)
+    LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 28)
 end
 
 LeftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     if responsiveState.narrow then
         LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
     else
-        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
+        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 28)
     end
 end)
 RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -2613,7 +2634,9 @@ end)
 ---------------------------------------------------------
 -- القوائم الأساسية وأزرار الواجهة
 ---------------------------------------------------------
+local navigationButtonOrder = 0
 local function createProStyleBtn(text, side)
+    navigationButtonOrder = navigationButtonOrder + 1
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -14, 0, 44)
     btn.BackgroundColor3 = Color3.fromRGB(17, 17, 25)
@@ -2626,7 +2649,8 @@ local function createProStyleBtn(text, side)
     btn.TextTruncate = Enum.TextTruncate.AtEnd
     btn.AutoButtonColor = false
     btn.ClipsDescendants = false
-    btn.ZIndex = 5
+    btn.ZIndex = 7
+    btn.LayoutOrder = navigationButtonOrder
     local textConstraint = Instance.new("UITextSizeConstraint")
     textConstraint.MinTextSize = 10
     textConstraint.MaxTextSize = 15
@@ -2820,6 +2844,7 @@ end
 ---------------------------------------------------------
 -- التبويبات الرئيسية
 ---------------------------------------------------------
+local dashboardNavTargets = {}
 local BtnMainHome = createProStyleBtn("الرئيسية", "left")
 BtnMainHome.BackgroundColor3 = Color3.fromRGB(170, 45, 61)
 local function showHomePage()
@@ -2877,20 +2902,25 @@ local function showHomePage()
     sectionLabel.Parent = CenterScroll
 
     local rows = {
-        {icon="🥚", title="اسرق البيض", sub="STEAL EGG  •  أدوات الماب", color=Color3.fromRGB(255,92,105), state="جاهز"},
-        {icon="⚡", title="السكربتات", sub="SCRIPTS  •  سكربتات المابات والأدوات", color=Color3.fromRGB(245,170,65), state="متاح"},
-        {icon="🎉", title="موعد الحدث", sub="EVENTS  •  متابعة الأحداث والوقت", color=Color3.fromRGB(65,190,235), state="متاح"},
-        {icon="🏆", title="توب اللاعبين", sub="LEADERBOARD  •  ترتيب اللاعبين", color=Color3.fromRGB(180,115,255), state="متاح"},
-        {icon="♫", title="الميديا والصوت", sub="MEDIA  •  الموسيقى والتحكم بالصوت", color=Color3.fromRGB(70,205,165), state="متاح"},
-        {icon="⚙", title="الإعدادات", sub="SETTINGS  •  الألوان والخلفية والحفظ", color=Color3.fromRGB(235,85,105), state="تخصيص"},
+        {key="egg", icon="🥚", title="اسرق البيض", sub="STEAL EGG  •  أدوات الماب", color=Color3.fromRGB(255,92,105), state="جاهز"},
+        {key="scripts", icon="⚡", title="السكربتات", sub="SCRIPTS  •  سكربتات المابات والأدوات", color=Color3.fromRGB(245,170,65), state="متاح"},
+        {key="events", icon="🎉", title="موعد الحدث", sub="EVENTS  •  متابعة الأحداث والوقت", color=Color3.fromRGB(65,190,235), state="متاح"},
+        {key="leaderboard", icon="🏆", title="توب اللاعبين", sub="LEADERBOARD  •  ترتيب اللاعبين", color=Color3.fromRGB(180,115,255), state="متاح"},
+        {key="media", icon="♫", title="الميديا والصوت", sub="MEDIA  •  الموسيقى والتحكم بالصوت", color=Color3.fromRGB(70,205,165), state="متاح"},
+        {key="activations", icon="✦", title="التفعيلات", sub="TOOLS  •  أدوات التفعيل", color=Color3.fromRGB(85,180,245), state="متاح"},
+        {key="profile", icon="👤", title="تسجيل الدخول", sub="PROFILE  •  الملف الشخصي", color=Color3.fromRGB(215,125,255), state="حساب"},
+        {key="suggestions", icon="✉", title="الاقتراحات", sub="FEEDBACK  •  إرسال اقتراح", color=Color3.fromRGB(70,205,165), state="متاح"},
+        {key="settings", icon="⚙", title="الإعدادات", sub="SETTINGS  •  الألوان والخلفية والحفظ", color=Color3.fromRGB(235,85,105), state="تخصيص"},
     }
 
     for i, item in ipairs(rows) do
-        local row = Instance.new("Frame")
+        local row = Instance.new("TextButton")
         row.Name = "KEONDashboardRow_" .. tostring(i)
         row.Size = UDim2.new(1, -8, 0, 66)
         row.BackgroundColor3 = Color3.fromRGB(13, 13, 20)
         row.BorderSizePixel = 0
+        row.Text = ""
+        row.AutoButtonColor = false
         row.LayoutOrder = i + 2
         row.ZIndex = 4
         row.Parent = CenterScroll
@@ -2965,6 +2995,13 @@ local function showHomePage()
         accent.ZIndex = 7
         accent.Parent = row
         Instance.new("UICorner", accent).CornerRadius = UDim.new(0, 2)
+
+        row.Activated:Connect(function()
+            local destination = dashboardNavTargets[item.key]
+            if destination and destination.Parent then
+                destination:Activate()
+            end
+        end)
     end
 
     local footer = Instance.new("TextLabel")
@@ -2985,7 +3022,7 @@ local function showHomePage()
         end
     end)
 end
-BtnMainHome.MouseButton1Click:Connect(showHomePage)
+BtnMainHome.Activated:Connect(showHomePage)
 
 ---------------------------------------------------------
 -- تبويب "موعد حدث"
@@ -3097,7 +3134,7 @@ task.spawn(function()
 end)
 
 local BtnEvent = createProStyleBtn("موعد حدث", "left")
-BtnEvent.MouseButton1Click:Connect(function()
+BtnEvent.Activated:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -3451,7 +3488,7 @@ showScriptsPage = function()
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
 end
-BtnScripts.MouseButton1Click:Connect(showScriptsPage)
+BtnScripts.Activated:Connect(showScriptsPage)
 
 ---------------------------------------------------------
 -- ملف اللاعب: اختيار علم + توب 100 وقت استخدام السكربت
@@ -3933,16 +3970,16 @@ KEONProfile.showProfilePage = function(mode)
     end)
 end
 
-KEONProfile.BtnProfile.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("countries") end)
+KEONProfile.BtnProfile.Activated:Connect(function() KEONProfile.showProfilePage("countries") end)
 
 local BtnTopPlayers = createProStyleBtn("توب اللاعبين 🏆", "right")
-BtnTopPlayers.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("top") end)
+BtnTopPlayers.Activated:Connect(function() KEONProfile.showProfilePage("top") end)
 
 ---------------------------------------------------------
 -- تبويب "الميديا والصوتيات"
 ---------------------------------------------------------
 local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
-BtnMedia.MouseButton1Click:Connect(function()
+BtnMedia.Activated:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4311,7 +4348,7 @@ BtnMedia.MouseButton1Click:Connect(function()
 end)
 
 local BtnActivations = createProStyleBtn("تفعيلات", "left")
-BtnActivations.MouseButton1Click:Connect(function()
+BtnActivations.Activated:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4454,7 +4491,7 @@ BtnActivations.MouseButton1Click:Connect(function()
 end)
 
 local BtnSuggestions = createProStyleBtn("اقتراحات", "left")
-BtnSuggestions.MouseButton1Click:Connect(function()
+BtnSuggestions.Activated:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4526,7 +4563,7 @@ end)
 -- زر "اسرق البيض" في الجانب الأيمن (مباشرة جنب الإعدادات)
 ---------------------------------------------------------
 local BtnStealEggRight = createProStyleBtn("اسرق البيض 🥚", "right")
-BtnStealEggRight.MouseButton1Click:Connect(function()
+BtnStealEggRight.Activated:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4608,7 +4645,7 @@ end)
 -- زر الإعدادات في الجانب الأيمن (بجانب اسرق البيض مباشرة)
 ---------------------------------------------------------
 local BtnSettings = createProStyleBtn("الإعدادات", "right")
-BtnSettings.MouseButton1Click:Connect(function()
+BtnSettings.Activated:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4728,7 +4765,7 @@ end)
 ---------------------------------------------------------
 if LocalPlayer.Name == "Dms921" then
     local BtnAdmin = createProStyleBtn("لوحة الأدمن", "right")
-    BtnAdmin.MouseButton1Click:Connect(function()
+    BtnAdmin.Activated:Connect(function()
         if LocalPlayer.Name ~= "Dms921" then return end
         playUiSound(SOUND_CLICK, 1, 0.35)
         clearCenter()
@@ -5291,4 +5328,15 @@ CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Position = responsiveState.mainPosition
 end)
 
+dashboardNavTargets = {
+    egg = BtnStealEggRight,
+    scripts = BtnScripts,
+    events = BtnEvent,
+    leaderboard = BtnTopPlayers,
+    media = BtnMedia,
+    activations = BtnActivations,
+    profile = KEONProfile.BtnProfile,
+    suggestions = BtnSuggestions,
+    settings = BtnSettings,
+}
 showHomePage()
