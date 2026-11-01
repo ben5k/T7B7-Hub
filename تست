@@ -1,4 +1,4 @@
--- VERSION: 9V | REXEL FEATURE MERGE
+-- VERSION: 10V | DELTA COMPATIBILITY PATCH
 -- REXEL UI preserved; imported feature suite is opened with the ✦ button.
 -- Remote loadstring execution has been disabled for safety.
 
@@ -21,7 +21,7 @@
         remains usable and shows the built-in background.
 ]]
 
--- VERSION: 9V
+-- VERSION: 10V
 local BACKGROUND_URL = "https://d.top4top.io/p_3956imcxl0.jpg"
 local BACKGROUND_FILE = "REXEL_BACKGROUND_8V.jpg"
 
@@ -474,7 +474,7 @@ local listLayout = make("UIListLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder
 }, list)
 
-local notice = label(content, "REXEL 8V • جاري تحميل الخلفية الأصلية...", UDim2.new(1, -12, 0, 22), UDim2.new(0, 6, 1, -25), 9, C.gold, Enum.Font.GothamBold, Enum.TextXAlignment.Right, 6)
+local notice = label(content, "REXEL 10V • جاري تحميل الخلفية الأصلية...", UDim2.new(1, -12, 0, 22), UDim2.new(0, 6, 1, -25), 9, C.gold, Enum.Font.GothamBold, Enum.TextXAlignment.Right, 6)
 
 -- Download and show the exact image from the user's link.
 task.spawn(function()
@@ -482,12 +482,12 @@ task.spawn(function()
     if assetUri and gui.Parent then
         bgImage.Image = assetUri
         bgImage.Visible = true
-        notice.Text = "REXEL 9V • تم تحميل خلفيتك الأصلية"
+        notice.Text = "REXEL 10V • تم تحميل خلفيتك الأصلية"
         notice.TextColor3 = C.green
     elseif gui.Parent then
         notice.Text = "الخلفية الأصلية تحتاج منفّذاً يدعم تحميل الصور"
         notice.TextColor3 = C.gold
-        warn("[REXEL 9V] " .. tostring(loadError))
+        warn("[REXEL 10V] " .. tostring(loadError))
     end
 end)
 
@@ -717,7 +717,7 @@ if defaultButton then
 end
 
 -- ================= IMPORTED FEATURE SUITE (9V) =================
-do
+local __rexelAdvancedOk, __rexelAdvancedErr = pcall(function()
 -- REXEL Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.1.0)
 -- Developer: ريكسل
 
@@ -730,7 +730,12 @@ local SoundService = game:GetService("SoundService")
 local MarketplaceService = game:GetService("MarketplaceService")
 
 local LocalPlayer = Players.LocalPlayer
-local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
+local parent = nil
+if type(gethui) == "function" then
+    local ok, result = pcall(gethui)
+    if ok and typeof(result) == "Instance" then parent = result end
+end
+parent = parent or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
 
 if parent:FindFirstChild("REXELAdvancedFeaturesUI") then parent.REXELAdvancedFeaturesUI:Destroy() end
 if parent:FindFirstChild("REXELAdminBroadcastGui") then parent.REXELAdminBroadcastGui:Destroy() end
@@ -6035,4 +6040,7 @@ end
 -- unchanged so its connected features continue to work as authored.
 
 
+end)
+if not __rexelAdvancedOk then
+    warn("[REXEL 10V] Advanced features stopped safely: " .. tostring(__rexelAdvancedErr))
 end -- imported feature suite
