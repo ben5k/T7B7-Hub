@@ -1,9 +1,10 @@
--- VERSION: 10V | DELTA COMPATIBILITY PATCH
+-- VERSION: 11V | REXEL + BEN FEATURES INTEGRATION
+-- REXEL main design preserved; Ben feature suite remains accessible from the REXEL ✦ control.
 -- REXEL UI preserved; imported feature suite is opened with the ✦ button.
 -- Remote loadstring execution has been disabled for safety.
 
 --[[
-    VERSION: 9V  |  REXEL + BEN HUB FEATURE MERGE
+    VERSION: 11V | REXEL + BEN HUB FEATURE INTEGRATION
     CHANGELOG:
       8V: Automatically downloads the exact Top4Top image to executor storage,
           converts it with getcustomasset/getsynasset, and displays it.
@@ -336,7 +337,7 @@ local search = make("TextBox", {
 corner(search, 8)
 stroke(search, C.panel3, 0.2, 1)
 
--- REXEL 9V: opens the imported feature suite without replacing the REXEL design.
+-- REXEL 11V: opens the integrated Ben feature suite from the REXEL interface.
 local advancedButton = make("TextButton", {
     Name = "AdvancedFeaturesButton",
     Position = UDim2.new(1, -226, 0, 8),
@@ -487,7 +488,7 @@ task.spawn(function()
     elseif gui.Parent then
         notice.Text = "الخلفية الأصلية تحتاج منفّذاً يدعم تحميل الصور"
         notice.TextColor3 = C.gold
-        warn("[REXEL 10V] " .. tostring(loadError))
+        warn("[REXEL 11V] " .. tostring(loadError))
     end
 end)
 
@@ -716,7 +717,42 @@ if defaultButton then
     selectedNav = defaultButton
 end
 
--- ================= IMPORTED FEATURE SUITE (9V) =================
+-- Early bridge: resolve GUI instances by name so the REXEL control remains usable
+-- even if an optional Ben feature encounters an executor-specific runtime error.
+_G.REXEL_OpenAdvanced = function()
+    pcall(function()
+        local root = (type(gethui) == "function" and gethui()) or game:GetService("CoreGui")
+        local advanced = root:FindFirstChild("REXELAdvancedFeaturesUI")
+        if not advanced then advanced = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("REXELAdvancedFeaturesUI") end
+        if advanced then
+            advanced.Enabled = true
+            local frame = advanced:FindFirstChild("MainFrame")
+            if frame then frame.Visible = true end
+        end
+        local chat = root:FindFirstChild("REXELTopChatGui")
+        if chat then chat.Enabled = true end
+    end)
+end
+_G.REXEL_CloseAdvanced = function()
+    pcall(function()
+        local roots = {game:GetService("CoreGui")}
+        if type(gethui) == "function" then local ok, r = pcall(gethui); if ok and r then table.insert(roots, r) end end
+        local pg = game:GetService("Players").LocalPlayer:FindFirstChildOfClass("PlayerGui")
+        if pg then table.insert(roots, pg) end
+        for _, root in ipairs(roots) do
+            local advanced = root:FindFirstChild("REXELAdvancedFeaturesUI")
+            if advanced then
+                local frame = advanced:FindFirstChild("MainFrame")
+                if frame then frame.Visible = false end
+                advanced.Enabled = false
+            end
+            local chat = root:FindFirstChild("REXELTopChatGui")
+            if chat then chat.Enabled = false end
+        end
+    end)
+end
+
+-- ================= INTEGRATED BEN FEATURE SUITE (11V) =================
 local __rexelAdvancedOk, __rexelAdvancedErr = pcall(function()
 -- REXEL Hub - PS5 Neon Profile + Global Script User Leaderboards + Compact Stats (v64.1.0)
 -- Developer: ريكسل
@@ -764,6 +800,15 @@ REXELProfile.FIREBASE_USAGE_URL = FIREBASE_BASE_URL .. "/usage_stats.json"
 local REXEL_RESTART_SCRIPT_URL = "" -- رابط RAW فارغ: لا يتم تنزيل أو تنفيذ كود خارجي تلقائياً -- رابط النسخة المعتمدة لإعادة التشغيل للجميع
 
 local function customRequest(options)
+    -- Privacy guard: the original Ben backend collects player identifiers, playtime,
+    -- chat and administrative state. Keep those network features disabled in this build.
+    local targetUrl = tostring(options and options.Url or "")
+    if string.find(string.lower(targetUrl), "arad-hun-default-rtdb.firebaseio.com", 1, true) then
+        return {StatusCode = 403, Body = "REXEL 11V: remote profile/chat backend disabled for privacy"}
+    end
+    if options and string.upper(tostring(options.Method or "GET")) ~= "GET" then
+        return {StatusCode = 403, Body = "REXEL 11V: remote write requests disabled"}
+    end
     local req = request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request)
     if req then
         local success, response = pcall(function() return req(options) end)
@@ -6014,33 +6059,10 @@ end)
 showHomePage()
 
 
--- REXEL 9V bridge: the original REXEL window remains the primary interface.
-_G.REXEL_OpenAdvanced = function()
-    pcall(function()
-        ScreenGui.Enabled = true
-        ChatScreenGui.Enabled = true
-        MainFrame.Visible = true
-        MainFrame.Size = responsiveState.mainSize
-        MainFrame.Position = responsiveState.mainPosition
-        FloatingMinBox.Visible = false
-    end)
-end
-
-_G.REXEL_CloseAdvanced = function()
-    pcall(function()
-        MainFrame.Visible = false
-        ChatScreenGui.Enabled = false
-        ScreenGui.Enabled = false
-        FloatingMinBox.Visible = false
-    end)
-end
-
--- The source hub reports playtime, country, account identifiers, and chat
--- through its pre-existing Firebase configuration. Keep that configuration
--- unchanged so its connected features continue to work as authored.
+-- The early bridge above is authoritative; do not redefine it with local references.
 
 
 end)
 if not __rexelAdvancedOk then
-    warn("[REXEL 10V] Advanced features stopped safely: " .. tostring(__rexelAdvancedErr))
+    warn("[REXEL 11V] Advanced features stopped safely: " .. tostring(__rexelAdvancedErr))
 end -- imported feature suite
