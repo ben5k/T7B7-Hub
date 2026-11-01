@@ -1139,7 +1139,7 @@ local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 880, 0, 560)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 13)
+MainFrame.BackgroundColor3 = Color3.fromRGB(9, 12, 18)
 MainFrame.BackgroundTransparency = 0
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
@@ -1153,8 +1153,8 @@ mainUIScaleObject.Name = "KEONUserInterfaceScale"
 mainUIScaleObject.Scale = uiScaleValue
 mainUIScaleObject.Parent = MainFrame
 local outerFrameStroke = Instance.new("UIStroke")
-outerFrameStroke.Color = Color3.fromRGB(196, 55, 69)
-outerFrameStroke.Thickness = 1.6
+outerFrameStroke.Color = Color3.fromRGB(255, 76, 92)
+outerFrameStroke.Thickness = 2.2
 outerFrameStroke.Parent = MainFrame
 
 local CenterGlow = Instance.new("Frame")
@@ -1172,7 +1172,7 @@ local CenterBox = Instance.new("Frame")
 CenterBox.Name = "CenterBox"
 CenterBox.Size = UDim2.new(1, -145, 1, -58)
 CenterBox.Position = UDim2.new(0, 145, 0, 58)
-CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+CenterBox.BackgroundColor3 = Color3.fromRGB(18, 14, 19)
 CenterBox.BackgroundTransparency = 0
 CenterBox.BorderSizePixel = 0
 CenterBox.ClipsDescendants = true
@@ -1206,13 +1206,13 @@ local function applyScriptBackground(idx)
         BgImage.Image = wallUrls[idx]
         BgImage.Visible = true
         CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+        CenterBox.BackgroundColor3 = Color3.fromRGB(18, 14, 19)
         BgImage.ImageTransparency = 0
     else
         BgImage.Image = ""
         BgImage.Visible = false
         CenterBox.BackgroundTransparency = 0
-        CenterBox.BackgroundColor3 = Color3.fromRGB(7, 13, 26)
+        CenterBox.BackgroundColor3 = Color3.fromRGB(18, 14, 19)
     end
     saveUserSettings()
 end
@@ -1235,8 +1235,8 @@ end)
 
 
 local centerStroke = Instance.new("UIStroke")
-centerStroke.Color = currentAccentColor
-centerStroke.Thickness = 1.7
+centerStroke.Color = Color3.fromRGB(103, 48, 59)
+centerStroke.Thickness = 0.8
 centerStroke.Parent = CenterBox
 
 local centerNeonGradient = Instance.new("UIGradient")
@@ -1257,8 +1257,8 @@ task.spawn(function()
 end)
 
 local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 58)
-Header.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+Header.Size = UDim2.new(1, 0, 0, 64)
+Header.BackgroundColor3 = Color3.fromRGB(14, 18, 26)
 Header.BorderSizePixel = 0
 Header.ZIndex = 20
 Header.Parent = MainFrame
@@ -1267,9 +1267,9 @@ local HeaderAccentLine = Instance.new("Frame")
 HeaderAccentLine.Name = "KEONAccentLine"
 HeaderAccentLine.Size = UDim2.new(1, -20, 0, 2)
 HeaderAccentLine.Position = UDim2.new(0, 10, 1, -2)
-HeaderAccentLine.BackgroundColor3 = Color3.fromRGB(210, 65, 78)
+HeaderAccentLine.BackgroundColor3 = Color3.fromRGB(245, 76, 88)
 HeaderAccentLine.BorderSizePixel = 0
-HeaderAccentLine.ZIndex = 21
+HeaderAccentLine.ZIndex = 5
 HeaderAccentLine.Parent = Header
 Instance.new("UICorner", HeaderAccentLine).CornerRadius = UDim.new(1, 0)
 
@@ -1282,7 +1282,7 @@ TitleMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleMain.Font = Enum.Font.GothamBold
 TitleMain.TextSize = 18
 TitleMain.TextXAlignment = Enum.TextXAlignment.Left
-TitleMain.ZIndex = 21
+TitleMain.ZIndex = 4
 TitleMain.Parent = Header
 
 local MinimizeBtn = Instance.new("TextButton")
@@ -1294,7 +1294,7 @@ MinimizeBtn.Text = "–"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.TextSize = 20
-MinimizeBtn.ZIndex = 21
+MinimizeBtn.ZIndex = 4
 MinimizeBtn.Parent = Header
 Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 8)
 local minimizeStroke = Instance.new("UIStroke")
@@ -1311,7 +1311,7 @@ CloseBtn.Text = "✕"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.TextSize = 16
-CloseBtn.ZIndex = 21
+CloseBtn.ZIndex = 4
 CloseBtn.Parent = Header
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
 
@@ -1324,7 +1324,7 @@ HelpBtn.Text = "?"
 HelpBtn.TextColor3 = Color3.fromRGB(220, 244, 255)
 HelpBtn.Font = Enum.Font.GothamBlack
 HelpBtn.TextSize = 16
-HelpBtn.ZIndex = 21
+HelpBtn.ZIndex = 4
 HelpBtn.Parent = Header
 Instance.new("UICorner", HelpBtn).CornerRadius = UDim.new(0, 8)
 local helpBtnStroke = Instance.new("UIStroke")
@@ -1390,9 +1390,9 @@ end)
 local LeftWing = Instance.new("ScrollingFrame")
 LeftWing.Size = UDim2.new(0, 145, 1, -58)
 LeftWing.Position = UDim2.new(0, 0, 0, 58)
-LeftWing.BackgroundColor3 = Color3.fromRGB(10, 10, 16)
+LeftWing.BackgroundColor3 = Color3.fromRGB(13, 17, 24)
 LeftWing.BackgroundTransparency = 0
-LeftWing.ZIndex = 4
+LeftWing.BackgroundTransparency = 1
 LeftWing.BorderSizePixel = 0
 LeftWing.ScrollBarThickness = 0
 LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
@@ -1407,9 +1407,8 @@ LeftLayout.Parent = LeftWing
 -- بطاقة هوية KEON أعلى القائمة الجانبية
 local SidebarBrand = Instance.new("Frame")
 SidebarBrand.Name = "KEONSidebarBrand"
-SidebarBrand.Size = UDim2.new(1, -12, 0, 65)
+SidebarBrand.Size = UDim2.new(1, -12, 0, 78)
 SidebarBrand.BackgroundTransparency = 1
-SidebarBrand.ZIndex = 5
 SidebarBrand.LayoutOrder = -100
 SidebarBrand.Parent = LeftWing
 local SidebarLogo = Instance.new("TextLabel")
@@ -1420,7 +1419,6 @@ SidebarLogo.Text = "K"
 SidebarLogo.TextColor3 = Color3.fromRGB(255, 255, 255)
 SidebarLogo.Font = Enum.Font.GothamBlack
 SidebarLogo.TextSize = 25
-SidebarLogo.ZIndex = 6
 SidebarLogo.Parent = SidebarBrand
 Instance.new("UICorner", SidebarLogo).CornerRadius = UDim.new(0, 12)
 local SidebarName = Instance.new("TextLabel")
@@ -1432,32 +1430,17 @@ SidebarName.TextColor3 = Color3.fromRGB(255, 255, 255)
 SidebarName.Font = Enum.Font.GothamBlack
 SidebarName.TextSize = 13
 SidebarName.TextXAlignment = Enum.TextXAlignment.Left
-SidebarName.ZIndex = 6
 SidebarName.Parent = SidebarBrand
 local SidebarVersion = Instance.new("TextLabel")
 SidebarVersion.Size = UDim2.new(1, -58, 0, 20)
 SidebarVersion.Position = UDim2.new(0, 55, 0, 34)
 SidebarVersion.BackgroundTransparency = 1
-SidebarVersion.Text = "واجهة التحكم"
+SidebarVersion.Text = "EMBER CONTROL DECK"
 SidebarVersion.TextColor3 = Color3.fromRGB(165, 165, 180)
 SidebarVersion.Font = Enum.Font.Gotham
 SidebarVersion.TextSize = 10
 SidebarVersion.TextXAlignment = Enum.TextXAlignment.Left
-SidebarVersion.ZIndex = 6
 SidebarVersion.Parent = SidebarBrand
-
-local SidebarSectionLabel = Instance.new("TextLabel")
-SidebarSectionLabel.Name = "SidebarSectionLabel"
-SidebarSectionLabel.Size = UDim2.new(1, -14, 0, 20)
-SidebarSectionLabel.BackgroundTransparency = 1
-SidebarSectionLabel.Text = "الأقسام الرئيسية"
-SidebarSectionLabel.TextColor3 = Color3.fromRGB(150, 150, 165)
-SidebarSectionLabel.Font = Enum.Font.GothamBold
-SidebarSectionLabel.TextSize = 11
-SidebarSectionLabel.TextXAlignment = Enum.TextXAlignment.Right
-SidebarSectionLabel.ZIndex = 6
-SidebarSectionLabel.LayoutOrder = -90
-SidebarSectionLabel.Parent = LeftWing
 
 local RightWing = Instance.new("ScrollingFrame")
 RightWing.Size = UDim2.new(0, 0, 1, 0)
@@ -1517,8 +1500,8 @@ applyResponsiveMain = function()
     MainFrame.Size = responsiveState.mainSize
     MainFrame.Position = responsiveState.mainPosition
 
-    local sideWidth = compact and 104 or 145
-    local headerHeight = compact and 50 or 58
+    local sideWidth = compact and 112 or 166
+    local headerHeight = compact and 54 or 64
     CenterBox.Size = UDim2.new(1, -sideWidth, 1, -headerHeight)
     CenterBox.Position = UDim2.new(0, sideWidth, 0, headerHeight)
     CenterGlow.Size = UDim2.new(1, -sideWidth, 1, -headerHeight + 8)
@@ -1534,11 +1517,11 @@ applyResponsiveMain = function()
     LeftWing.ScrollingDirection = Enum.ScrollingDirection.Y
     LeftWing.ScrollBarThickness = 2
     LeftWing.BackgroundTransparency = 0
-    LeftWing.BackgroundColor3 = Color3.fromRGB(10, 10, 16)
-    LeftWing.ZIndex = 4
+    LeftWing.BackgroundColor3 = Color3.fromRGB(13, 17, 24)
+    LeftWing.ZIndex = 6
     LeftLayout.FillDirection = Enum.FillDirection.Vertical
     LeftLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-    LeftLayout.Padding = UDim.new(0, compact and 3 or 4)
+    LeftLayout.Padding = UDim.new(0, compact and 5 or 8)
 
     RightWing.Visible = false
     RightWing.Size = UDim2.new(0, 0, 0, 0)
@@ -1549,23 +1532,19 @@ applyResponsiveMain = function()
 
     for _, child in ipairs(LeftWing:GetChildren()) do
         if child:IsA("TextButton") then
-            child.Size = UDim2.new(1, -12, 0, compact and 32 or 34)
-            child.TextSize = compact and 10 or 13
+            child.Size = UDim2.new(1, -12, 0, compact and 38 or 44)
+            child.TextSize = compact and 11 or 14
             child.ZIndex = 7
-        elseif child.Name == "KEONSidebarBrand" then
-            child.ZIndex = 5
-        elseif child.Name == "SidebarSectionLabel" then
-            child.ZIndex = 6
         end
     end
-    LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 28)
+    LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 18)
 end
 
 LeftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     if responsiveState.narrow then
         LeftWing.CanvasSize = UDim2.new(0, LeftLayout.AbsoluteContentSize.X + 8, 0, 0)
     else
-        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 28)
+        LeftWing.CanvasSize = UDim2.new(0, 0, 0, LeftLayout.AbsoluteContentSize.Y + 8)
     end
 end)
 RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -2634,45 +2613,71 @@ end)
 ---------------------------------------------------------
 -- القوائم الأساسية وأزرار الواجهة
 ---------------------------------------------------------
-local navigationButtonOrder = 0
 local function createProStyleBtn(text, side)
-    navigationButtonOrder = navigationButtonOrder + 1
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -14, 0, 44)
-    btn.BackgroundColor3 = Color3.fromRGB(17, 17, 25)
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Name = "KEON_Nav_" .. tostring(text):gsub("%W", "")
+    btn.Size = UDim2.new(1, -16, 0, 50)
+    btn.BackgroundColor3 = Color3.fromRGB(19, 22, 29)
+    btn.Text = "   ◈   " .. tostring(text)
+    btn.TextColor3 = Color3.fromRGB(190, 199, 213)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 14
-    btn.TextScaled = true
+    btn.TextSize = 13
+    btn.TextScaled = false
     btn.TextWrapped = false
     btn.TextTruncate = Enum.TextTruncate.AtEnd
+    btn.TextXAlignment = Enum.TextXAlignment.Left
     btn.AutoButtonColor = false
-    btn.ClipsDescendants = false
+    btn.ClipsDescendants = true
     btn.ZIndex = 7
-    btn.LayoutOrder = navigationButtonOrder
-    local textConstraint = Instance.new("UITextSizeConstraint")
-    textConstraint.MinTextSize = 10
-    textConstraint.MaxTextSize = 15
-    textConstraint.Parent = btn
     btn.Parent = LeftWing
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 7)
-
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 9)
     local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(55, 55, 68)
-    stroke.Thickness = 0.8
+    stroke.Color = Color3.fromRGB(43, 51, 64)
+    stroke.Thickness = 1
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Parent = btn
-
     table.insert(registeredWingStrokes, stroke)
+
+    local rail = Instance.new("Frame")
+    rail.Name = "ActiveRail"
+    rail.Size = UDim2.new(0, 4, 1, -14)
+    rail.Position = UDim2.new(0, 5, 0, 7)
+    rail.BackgroundColor3 = Color3.fromRGB(255, 73, 91)
+    rail.BorderSizePixel = 0
+    rail.Visible = false
+    rail.ZIndex = 8
+    rail.Parent = btn
+    Instance.new("UICorner", rail).CornerRadius = UDim.new(1, 0)
+
+    local activeGlow = Instance.new("Frame")
+    activeGlow.Name = "ActiveGlow"
+    activeGlow.Size = UDim2.new(0, 30, 1, 0)
+    activeGlow.Position = UDim2.new(0, 0, 0, 0)
+    activeGlow.BackgroundColor3 = Color3.fromRGB(210, 42, 65)
+    activeGlow.BackgroundTransparency = 0.86
+    activeGlow.BorderSizePixel = 0
+    activeGlow.Visible = false
+    activeGlow.ZIndex = 6
+    activeGlow.Parent = btn
+    Instance.new("UICorner", activeGlow).CornerRadius = UDim.new(0, 9)
+
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(145, 38, 53)
+        TweenService:Create(btn, TweenInfo.new(0.12, Enum.EasingStyle.Quad), {
+            BackgroundColor3 = Color3.fromRGB(35, 27, 38),
+            TextColor3 = Color3.fromRGB(255, 255, 255)
         }):Play()
+        stroke.Color = Color3.fromRGB(255, 73, 91)
     end)
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(17, 17, 25)
+        TweenService:Create(btn, TweenInfo.new(0.14, Enum.EasingStyle.Quad), {
+            BackgroundColor3 = Color3.fromRGB(19, 22, 29),
+            TextColor3 = Color3.fromRGB(190, 199, 213)
+        }):Play()
+        stroke.Color = Color3.fromRGB(43, 51, 64)
+    end)
+    btn.MouseButton1Down:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.07), {
+            BackgroundColor3 = Color3.fromRGB(83, 29, 47)
         }):Play()
     end)
     return btn
@@ -2680,25 +2685,25 @@ end
 
 local function addChilliAccordion(titleText, builderFunc)
     local folderFrame = Instance.new("Frame")
-    folderFrame.Size = UDim2.new(1, 0, 0, 36)
-    folderFrame.BackgroundColor3 = Color3.fromRGB(8, 18, 36)
+    folderFrame.Size = UDim2.new(1, 0, 0, 44)
+    folderFrame.BackgroundColor3 = Color3.fromRGB(20, 23, 31)
     folderFrame.BackgroundTransparency = 0
     folderFrame.ZIndex = 3
     folderFrame.Parent = CenterScroll
-    Instance.new("UICorner", folderFrame).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", folderFrame).CornerRadius = UDim.new(0, 9)
     local folderStroke = Instance.new("UIStroke")
-    folderStroke.Color = currentAccentColor
-    folderStroke.Thickness = 1.2
+    folderStroke.Color = Color3.fromRGB(62, 72, 88)
+    folderStroke.Thickness = 1
     folderStroke.Parent = folderFrame
 
     local headBtn = Instance.new("TextButton")
-    headBtn.Size = UDim2.new(1, 0, 0, 36)
+    headBtn.Size = UDim2.new(1, 0, 0, 44)
     headBtn.BackgroundTransparency = 1
-    headBtn.Text = "  ›  " .. titleText
+    headBtn.Text = "  ▸   " .. titleText
     headBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     headBtn.Font = Enum.Font.GothamBold
-    headBtn.TextSize = 14.5
-    headBtn.TextXAlignment = Enum.TextXAlignment.Center
+    headBtn.TextSize = 14
+    headBtn.TextXAlignment = Enum.TextXAlignment.Left
     headBtn.ZIndex = 3
     headBtn.Parent = folderFrame
 
@@ -2709,7 +2714,7 @@ local function addChilliAccordion(titleText, builderFunc)
 
     local contentHolder = Instance.new("Frame")
     contentHolder.Size = UDim2.new(1, 0, 0, 0)
-    contentHolder.Position = UDim2.new(0, 0, 0, 38)
+    contentHolder.Position = UDim2.new(0, 0, 0, 46)
     contentHolder.BackgroundTransparency = 1
     contentHolder.Visible = false
     contentHolder.ZIndex = 3
@@ -2723,15 +2728,15 @@ local function addChilliAccordion(titleText, builderFunc)
 
     local function addToggleRow(nameText, onToggle)
         local rowFrame = Instance.new("Frame")
-        rowFrame.Size = UDim2.new(1, 0, 0, 36)
-        rowFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+        rowFrame.Size = UDim2.new(1, 0, 0, 44)
+        rowFrame.BackgroundColor3 = Color3.fromRGB(25, 29, 38)
         rowFrame.ZIndex = 3
         rowFrame.Parent = contentHolder
-        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 9)
+        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 8)
 
         local rowStroke = Instance.new("UIStroke")
-        rowStroke.Color = currentAccentColor
-        rowStroke.Thickness = 1.2
+        rowStroke.Color = Color3.fromRGB(55, 66, 82)
+        rowStroke.Thickness = 0.8
         rowStroke.Parent = rowFrame
         table.insert(registeredOptionStrokes, rowStroke)
 
@@ -2748,54 +2753,58 @@ local function addChilliAccordion(titleText, builderFunc)
         nameLbl.Parent = rowFrame
 
         local toggleBtn = Instance.new("TextButton")
-        toggleBtn.Size = UDim2.new(0, 22, 0, 22)
-        toggleBtn.Position = UDim2.new(1, -32, 0.5, -11)
-        toggleBtn.BackgroundColor3 = Color3.fromRGB(31, 44, 73)
+        toggleBtn.Size = UDim2.new(0, 42, 0, 22)
+        toggleBtn.Position = UDim2.new(1, -52, 0.5, -11)
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(54, 61, 75)
         toggleBtn.Text = ""
         toggleBtn.ZIndex = 4
         toggleBtn.Parent = rowFrame
-        Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 7)
+        Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 8)
 
         local innerBox = Instance.new("Frame")
-        innerBox.Size = UDim2.new(1, -6, 1, -6)
+        innerBox.Size = UDim2.new(0, 16, 0, 16)
         innerBox.Position = UDim2.new(0, 3, 0, 3)
         innerBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         innerBox.Visible = false
         innerBox.ZIndex = 5
         innerBox.Parent = toggleBtn
-        Instance.new("UICorner", innerBox).CornerRadius = UDim.new(0, 2)
+        Instance.new("UICorner", innerBox).CornerRadius = UDim.new(1, 0)
 
         local state = false
         toggleBtn.MouseButton1Click:Connect(function()
             playUiSound(SOUND_CLICK, 1, 0.35)
             state = not state
             innerBox.Visible = state
+            TweenService:Create(toggleBtn, TweenInfo.new(0.13, Enum.EasingStyle.Quad), {
+                BackgroundColor3 = state and Color3.fromRGB(235, 67, 88) or Color3.fromRGB(54, 61, 75)
+            }):Play()
+            innerBox.Position = state and UDim2.new(1, -19, 0, 3) or UDim2.new(0, 3, 0, 3)
             if onToggle then onToggle(state) end
         end)
     end
 
     local function addActionRow(nameText, onClick)
         local rowFrame = Instance.new("Frame")
-        rowFrame.Size = UDim2.new(1, 0, 0, 34)
-        rowFrame.BackgroundColor3 = Color3.fromRGB(20, 29, 52)
+        rowFrame.Size = UDim2.new(1, 0, 0, 40)
+        rowFrame.BackgroundColor3 = Color3.fromRGB(25, 29, 38)
         rowFrame.ZIndex = 3
         rowFrame.Parent = contentHolder
-        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 9)
+        Instance.new("UICorner", rowFrame).CornerRadius = UDim.new(0, 8)
 
         local rowStroke = Instance.new("UIStroke")
-        rowStroke.Color = currentAccentColor
-        rowStroke.Thickness = 1.2
+        rowStroke.Color = Color3.fromRGB(55, 66, 82)
+        rowStroke.Thickness = 0.8
         rowStroke.Parent = rowFrame
         table.insert(registeredOptionStrokes, rowStroke)
 
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(1, 0, 1, 0)
         btn.BackgroundTransparency = 1
-        btn.Text = nameText
-        btn.TextColor3 = Color3.fromRGB(227, 236, 255)
+        btn.Text = "   ›   " .. nameText
+        btn.TextColor3 = Color3.fromRGB(232, 237, 246)
         btn.Font = Enum.Font.GothamBold
         btn.TextSize = 14
-        btn.TextXAlignment = Enum.TextXAlignment.Center
+        btn.TextXAlignment = Enum.TextXAlignment.Left
         btn.ZIndex = 4
         btn.Parent = rowFrame
 
@@ -2810,16 +2819,16 @@ local function addChilliAccordion(titleText, builderFunc)
     headBtn.MouseButton1Click:Connect(function()
         playUiSound(SOUND_CLICK, 1, 0.35)
         isOpen = not isOpen
-        headBtn.Text = (isOpen and "  ⌄  " or "  ›  ") .. titleText
+        headBtn.Text = (isOpen and "  ▾   " or "  ▸   ") .. titleText
         contentHolder.Visible = isOpen
 
         if isOpen then
             task.wait(0.02)
             local totalHeight = contentLayout.AbsoluteContentSize.Y + 15
             contentHolder.Size = UDim2.new(1, 0, 0, totalHeight)
-            folderFrame.Size = UDim2.new(1, 0, 0, totalHeight + 40)
+            folderFrame.Size = UDim2.new(1, 0, 0, totalHeight + 48)
         else
-            folderFrame.Size = UDim2.new(1, 0, 0, 36)
+            folderFrame.Size = UDim2.new(1, 0, 0, 44)
         end
 
         task.wait(0.05)
@@ -2844,7 +2853,6 @@ end
 ---------------------------------------------------------
 -- التبويبات الرئيسية
 ---------------------------------------------------------
-local dashboardNavTargets = {}
 local BtnMainHome = createProStyleBtn("الرئيسية", "left")
 BtnMainHome.BackgroundColor3 = Color3.fromRGB(170, 45, 61)
 local function showHomePage()
@@ -2902,25 +2910,20 @@ local function showHomePage()
     sectionLabel.Parent = CenterScroll
 
     local rows = {
-        {key="egg", icon="🥚", title="اسرق البيض", sub="STEAL EGG  •  أدوات الماب", color=Color3.fromRGB(255,92,105), state="جاهز"},
-        {key="scripts", icon="⚡", title="السكربتات", sub="SCRIPTS  •  سكربتات المابات والأدوات", color=Color3.fromRGB(245,170,65), state="متاح"},
-        {key="events", icon="🎉", title="موعد الحدث", sub="EVENTS  •  متابعة الأحداث والوقت", color=Color3.fromRGB(65,190,235), state="متاح"},
-        {key="leaderboard", icon="🏆", title="توب اللاعبين", sub="LEADERBOARD  •  ترتيب اللاعبين", color=Color3.fromRGB(180,115,255), state="متاح"},
-        {key="media", icon="♫", title="الميديا والصوت", sub="MEDIA  •  الموسيقى والتحكم بالصوت", color=Color3.fromRGB(70,205,165), state="متاح"},
-        {key="activations", icon="✦", title="التفعيلات", sub="TOOLS  •  أدوات التفعيل", color=Color3.fromRGB(85,180,245), state="متاح"},
-        {key="profile", icon="👤", title="تسجيل الدخول", sub="PROFILE  •  الملف الشخصي", color=Color3.fromRGB(215,125,255), state="حساب"},
-        {key="suggestions", icon="✉", title="الاقتراحات", sub="FEEDBACK  •  إرسال اقتراح", color=Color3.fromRGB(70,205,165), state="متاح"},
-        {key="settings", icon="⚙", title="الإعدادات", sub="SETTINGS  •  الألوان والخلفية والحفظ", color=Color3.fromRGB(235,85,105), state="تخصيص"},
+        {icon="🥚", title="اسرق البيض", sub="STEAL EGG  •  أدوات الماب", color=Color3.fromRGB(255,92,105), state="جاهز"},
+        {icon="⚡", title="السكربتات", sub="SCRIPTS  •  سكربتات المابات والأدوات", color=Color3.fromRGB(245,170,65), state="متاح"},
+        {icon="🎉", title="موعد الحدث", sub="EVENTS  •  متابعة الأحداث والوقت", color=Color3.fromRGB(65,190,235), state="متاح"},
+        {icon="🏆", title="توب اللاعبين", sub="LEADERBOARD  •  ترتيب اللاعبين", color=Color3.fromRGB(180,115,255), state="متاح"},
+        {icon="♫", title="الميديا والصوت", sub="MEDIA  •  الموسيقى والتحكم بالصوت", color=Color3.fromRGB(70,205,165), state="متاح"},
+        {icon="⚙", title="الإعدادات", sub="SETTINGS  •  الألوان والخلفية والحفظ", color=Color3.fromRGB(235,85,105), state="تخصيص"},
     }
 
     for i, item in ipairs(rows) do
-        local row = Instance.new("TextButton")
+        local row = Instance.new("Frame")
         row.Name = "KEONDashboardRow_" .. tostring(i)
         row.Size = UDim2.new(1, -8, 0, 66)
         row.BackgroundColor3 = Color3.fromRGB(13, 13, 20)
         row.BorderSizePixel = 0
-        row.Text = ""
-        row.AutoButtonColor = false
         row.LayoutOrder = i + 2
         row.ZIndex = 4
         row.Parent = CenterScroll
@@ -2995,13 +2998,6 @@ local function showHomePage()
         accent.ZIndex = 7
         accent.Parent = row
         Instance.new("UICorner", accent).CornerRadius = UDim.new(0, 2)
-
-        row.Activated:Connect(function()
-            local destination = dashboardNavTargets[item.key]
-            if destination and destination.Parent then
-                destination:Activate()
-            end
-        end)
     end
 
     local footer = Instance.new("TextLabel")
@@ -3022,7 +3018,7 @@ local function showHomePage()
         end
     end)
 end
-BtnMainHome.Activated:Connect(showHomePage)
+BtnMainHome.MouseButton1Click:Connect(showHomePage)
 
 ---------------------------------------------------------
 -- تبويب "موعد حدث"
@@ -3134,7 +3130,7 @@ task.spawn(function()
 end)
 
 local BtnEvent = createProStyleBtn("موعد حدث", "left")
-BtnEvent.Activated:Connect(function()
+BtnEvent.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -3488,7 +3484,7 @@ showScriptsPage = function()
 
     CenterScroll.CanvasSize = UDim2.new(0, 0, 0, CenterLayout.AbsoluteContentSize.Y + 20)
 end
-BtnScripts.Activated:Connect(showScriptsPage)
+BtnScripts.MouseButton1Click:Connect(showScriptsPage)
 
 ---------------------------------------------------------
 -- ملف اللاعب: اختيار علم + توب 100 وقت استخدام السكربت
@@ -3970,16 +3966,16 @@ KEONProfile.showProfilePage = function(mode)
     end)
 end
 
-KEONProfile.BtnProfile.Activated:Connect(function() KEONProfile.showProfilePage("countries") end)
+KEONProfile.BtnProfile.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("countries") end)
 
 local BtnTopPlayers = createProStyleBtn("توب اللاعبين 🏆", "right")
-BtnTopPlayers.Activated:Connect(function() KEONProfile.showProfilePage("top") end)
+BtnTopPlayers.MouseButton1Click:Connect(function() KEONProfile.showProfilePage("top") end)
 
 ---------------------------------------------------------
 -- تبويب "الميديا والصوتيات"
 ---------------------------------------------------------
 local BtnMedia = createProStyleBtn("الميديا والصوت", "left")
-BtnMedia.Activated:Connect(function()
+BtnMedia.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4348,7 +4344,7 @@ BtnMedia.Activated:Connect(function()
 end)
 
 local BtnActivations = createProStyleBtn("تفعيلات", "left")
-BtnActivations.Activated:Connect(function()
+BtnActivations.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4491,7 +4487,7 @@ BtnActivations.Activated:Connect(function()
 end)
 
 local BtnSuggestions = createProStyleBtn("اقتراحات", "left")
-BtnSuggestions.Activated:Connect(function()
+BtnSuggestions.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4563,7 +4559,7 @@ end)
 -- زر "اسرق البيض" في الجانب الأيمن (مباشرة جنب الإعدادات)
 ---------------------------------------------------------
 local BtnStealEggRight = createProStyleBtn("اسرق البيض 🥚", "right")
-BtnStealEggRight.Activated:Connect(function()
+BtnStealEggRight.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4645,7 +4641,7 @@ end)
 -- زر الإعدادات في الجانب الأيمن (بجانب اسرق البيض مباشرة)
 ---------------------------------------------------------
 local BtnSettings = createProStyleBtn("الإعدادات", "right")
-BtnSettings.Activated:Connect(function()
+BtnSettings.MouseButton1Click:Connect(function()
     playUiSound(SOUND_CLICK, 1, 0.35)
     clearCenter()
 
@@ -4765,7 +4761,7 @@ end)
 ---------------------------------------------------------
 if LocalPlayer.Name == "Dms921" then
     local BtnAdmin = createProStyleBtn("لوحة الأدمن", "right")
-    BtnAdmin.Activated:Connect(function()
+    BtnAdmin.MouseButton1Click:Connect(function()
         if LocalPlayer.Name ~= "Dms921" then return end
         playUiSound(SOUND_CLICK, 1, 0.35)
         clearCenter()
@@ -5294,21 +5290,12 @@ task.spawn(function()
     MainFrame.Visible = true
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.Rotation = -2.5
-    TweenService:Create(MainFrame, TweenInfo.new(0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+    MainFrame.Rotation = 0
+    TweenService:Create(MainFrame, TweenInfo.new(0.24, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
         Size = responsiveState.mainSize,
         Position = responsiveState.mainPosition,
         Rotation = 0
     }):Play()
-    task.spawn(function()
-        task.wait(0.68)
-        for _, amount in ipairs({}) do
-            if not MainFrame or not MainFrame.Parent then break end
-            local shake = TweenService:Create(MainFrame, TweenInfo.new(0.045, Enum.EasingStyle.Linear), {Rotation = amount})
-            shake:Play()
-            shake.Completed:Wait()
-        end
-    end)
     task.delay(0.62, function()
         if MainFrame and MainFrame.Visible then
             openHelpPanel()
@@ -5328,133 +5315,4 @@ CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Position = responsiveState.mainPosition
 end)
 
----------------------------------------------------------
--- KEON V74: إعادة تصميم شاملة للأزرار والقوائم والبطاقات
--- أسلوب Tactical Crimson: زوايا حادة، أسطح فحمية، إبراز قرمزي
----------------------------------------------------------
-local V74_PALETTE = {
-    base = Color3.fromRGB(9, 10, 14),
-    panel = Color3.fromRGB(17, 18, 24),
-    panel2 = Color3.fromRGB(23, 24, 31),
-    red = Color3.fromRGB(220, 55, 68),
-    redBright = Color3.fromRGB(245, 72, 86),
-    muted = Color3.fromRGB(142, 145, 157),
-    white = Color3.fromRGB(244, 245, 248),
-    line = Color3.fromRGB(67, 37, 45)
-}
--- Correct explicit palette value (kept separate for easy theme editing).
-V74_PALETTE.red = Color3.fromRGB(220, 55, 68)
-
-local function v74Round(obj, radius)
-    if not obj or not obj:IsA('GuiObject') then return end
-    local corner = obj:FindFirstChildOfClass('UICorner')
-    if corner then corner.CornerRadius = UDim.new(0, radius or 3) end
-end
-
-local function v74StyleObject(obj)
-    if not obj or not obj.Parent then return end
-    if obj:IsA('UICorner') then
-        obj.CornerRadius = UDim.new(0, 3)
-    elseif obj:IsA('UIStroke') then
-        if obj.Parent == MainFrame or obj.Parent == CenterBox or obj.Parent == Header then
-            obj.Color = V74_PALETTE.red
-            obj.Thickness = 1.35
-        elseif obj.Parent:IsA('TextButton') or obj.Parent:IsA('TextBox') then
-            obj.Color = V74_PALETTE.line
-            obj.Thickness = 1
-            obj.Transparency = 0.08
-        else
-            obj.Color = V74_PALETTE.line
-            obj.Thickness = math.min(obj.Thickness, 1.1)
-        end
-    elseif obj:IsA('TextButton') then
-        obj.AutoButtonColor = false
-        obj.BackgroundColor3 = V74_PALETTE.panel2
-        obj.TextColor3 = V74_PALETTE.white
-        obj.Font = Enum.Font.GothamBold
-        obj.TextStrokeTransparency = 1
-        v74Round(obj, 3)
-        if obj.Name == 'CloseBtn' or obj.Name:lower():find('close') then
-            obj.BackgroundColor3 = V74_PALETTE.red
-        elseif obj.Name:find('KEONDashboardRow') then
-            obj.BackgroundColor3 = V74_PALETTE.panel
-        elseif obj.Parent == LeftWing then
-            obj.BackgroundColor3 = V74_PALETTE.panel2
-            obj.TextXAlignment = Enum.TextXAlignment.Center
-            obj.Size = UDim2.new(1, -14, 0, 42)
-        elseif obj.Text and (obj.Text:find('تشغيل') or obj.Text:find('إرسال') or obj.Text:find('تفعيل') or obj.Text:find('حفظ')) then
-            obj.BackgroundColor3 = V74_PALETTE.red
-        end
-    elseif obj:IsA('TextBox') then
-        obj.BackgroundColor3 = V74_PALETTE.panel2
-        obj.TextColor3 = V74_PALETTE.white
-        obj.PlaceholderColor3 = V74_PALETTE.muted
-        obj.Font = Enum.Font.Gotham
-        v74Round(obj, 3)
-    elseif obj:IsA('Frame') then
-        v74Round(obj, 3)
-        if obj.Name == 'MainFrame' then
-            obj.BackgroundColor3 = V74_PALETTE.base
-        elseif obj.Name == 'Header' then
-            obj.BackgroundColor3 = Color3.fromRGB(13, 13, 18)
-        elseif obj.Name == 'LeftWing' then
-            obj.BackgroundColor3 = Color3.fromRGB(11, 12, 17)
-        elseif obj.Name == 'CenterBox' then
-            obj.BackgroundColor3 = V74_PALETTE.base
-        elseif obj.Name:find('KEONDashboardHeader') then
-            obj.BackgroundColor3 = Color3.fromRGB(35, 14, 21)
-        elseif obj.Name:find('KEONDashboardRow_') then
-            obj.BackgroundColor3 = V74_PALETTE.panel
-        end
-    elseif obj:IsA('TextLabel') then
-        if obj.TextColor3 ~= V74_PALETTE.red and obj.TextColor3 ~= V74_PALETTE.redBright then
-            if obj.TextSize >= 12 then obj.Font = Enum.Font.GothamBold end
-        end
-    end
-end
-
--- تغيير تخطيط الهيكل نفسه حتى لا يبقى شكل النسخة السابقة.
-MainFrame.BackgroundColor3 = V74_PALETTE.base
-MainFrame.BorderSizePixel = 0
-if outerFrameStroke then outerFrameStroke.Color = V74_PALETTE.red; outerFrameStroke.Thickness = 1.4 end
-if CenterGlow then CenterGlow.Visible = false end
-if Header then Header.BackgroundColor3 = Color3.fromRGB(13, 13, 18) end
-if LeftWing then LeftWing.BackgroundColor3 = Color3.fromRGB(11, 12, 17) end
-if CenterBox then CenterBox.BackgroundColor3 = V74_PALETTE.base end
-if centerStroke then centerStroke.Color = V74_PALETTE.red; centerStroke.Thickness = 1.1 end
-if HeaderAccentLine then HeaderAccentLine.BackgroundColor3 = V74_PALETTE.red end
-if SidebarLogo then SidebarLogo.BackgroundColor3 = V74_PALETTE.red end
-
-local function v74RefreshTheme()
-    if not MainFrame or not MainFrame.Parent then return end
-    for _, obj in ipairs(MainFrame:GetDescendants()) do
-        pcall(v74StyleObject, obj)
-    end
-    pcall(function()
-        MainFrame.BackgroundColor3 = V74_PALETTE.base
-        LeftWing.BackgroundColor3 = Color3.fromRGB(11, 12, 17)
-        CenterBox.BackgroundColor3 = V74_PALETTE.base
-        Header.BackgroundColor3 = Color3.fromRGB(13, 13, 18)
-    end)
-end
-v74RefreshTheme()
-task.spawn(function()
-    while MainFrame and MainFrame.Parent do
-        task.wait(1.25)
-        v74RefreshTheme()
-    end
-end)
-
-
-dashboardNavTargets = {
-    egg = BtnStealEggRight,
-    scripts = BtnScripts,
-    events = BtnEvent,
-    leaderboard = BtnTopPlayers,
-    media = BtnMedia,
-    activations = BtnActivations,
-    profile = KEONProfile.BtnProfile,
-    suggestions = BtnSuggestions,
-    settings = BtnSettings,
-}
 showHomePage()
