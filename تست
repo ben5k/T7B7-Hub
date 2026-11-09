@@ -1,595 +1,84 @@
-د--[[
-	BEN HUB x KAIZO v3
-	الإصدار المعدل: شات بالصور، إعلانات علوية، تصويت، كتم، وصور للمابات.
-]]
+-- استدعاء مكتبة Kaizo UI
+local Kaizo = loadstring(game:HttpGet("https://raw.githubusercontent.com/Krypton-Skript/Kaizo-Library/main/Source.lua"))()
 
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local SoundService = game:GetService("SoundService")
-local HttpService = game:GetService("HttpService")
-local CoreGui = game:GetService("CoreGui")
-local LocalPlayer = Players.LocalPlayer
+-- إنشاء النافذة الرئيسية للتطبيق
+local Window = Kaizo:CreateWindow({
+    Title = "لوحة التحكم | السكربت المدمج",
+    Subtitle = "نسخة المطور",
+    Icon = "⭐"
+})
 
-local Config = {
-	Name = "BEN HUB", Subtitle = "V3 Edition", Version = "v3.0",
-	NameImageURL = "https://h.top4top.io/p_39645sug20.png", BubbleImageURL = "https://l.top4top.io/p_3964xkhpt2.png",
-	NameImage = "", BubbleImage = "",
-	Sounds = true, ClickSound = "rbxassetid://203620899", RunSound = "rbxassetid://548143436",
-	ToggleKey = Enum.KeyCode.RightShift,
-}
+-- إنشاء صفحة (Tab)
+local MainTab = Window:AddTab({ Title = "الرئيسية", Icon = "🏠" })
 
-local function C(r, g, b) return Color3.fromRGB(r, g, b) end
-local Theme = {
-	Border = C(44, 54, 98), Header = C(98, 134, 198), HeaderPill = C(134, 162, 216),
-	Side = C(142, 84, 60), SideDark = C(120, 68, 48), SideText = C(255, 255, 255),
-	SideMuted = C(238, 206, 180), TabActive = C(252, 246, 236), Content = C(206, 224, 244),
-	Card = C(251, 247, 239), CardHead = C(236, 226, 208), CardStroke = C(84, 72, 76),
-	Divider = C(210, 196, 174), Field = C(253, 250, 244), Text = C(52, 48, 58),
-	Muted = C(122, 116, 124), Accent = C(66, 130, 196), Red = C(204, 58, 50),
-	Orange = C(224, 124, 40), Gold = C(246, 194, 42), Green = C(88, 186, 92),
-	Off = C(230, 230, 234), White = C(255, 255, 255),
-}
-local TitleColors = { C(239, 75, 63), C(245, 166, 35), C(76, 175, 80), C(59, 130, 246), C(224, 95, 176) }
+-- إنشاء الأقسام (Cards) لتنظيم الأزرار
+local ScriptCard = MainTab:AddCard({ Title = "سكربتات الصيد", Icon = "⚡", Side = "Left" })
+local ServerCard = MainTab:AddCard({ Title = "إدارة السيرفرات", Icon = "🌍", Side = "Right" })
 
---// Firebase API
-local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
-local FIREBASE_CHAT_URL = FIREBASE_BASE_URL .. "/global_chat.json"
-local FIREBASE_BROADCAST_URL = FIREBASE_BASE_URL .. "/global_broadcast.json"
-local FIREBASE_MUTE_URL = FIREBASE_BASE_URL .. "/muted_users.json"
-local FIREBASE_POLL_URL = FIREBASE_BASE_URL .. "/global_poll.json"
-local FIREBASE_PRESENCE = FIREBASE_BASE_URL .. "/presence/"
-
-local function customRequest(options)
-    local req = (typeof(request) == "function" and request) or (typeof(http_request) == "function" and http_request) or (typeof(syn) == "table" and syn.request) or nil
-    if req then
-        local ok, res = pcall(function() return req(options) end)
-        if ok and res then return res end
-    end
-    if options.Method == "GET" then
-        local ok, body = pcall(function() return game:HttpGet(options.Url) end)
-        if ok then return {StatusCode = 200, Body = body} end
-    end
-    return {StatusCode = 400, Body = "null"}
-end
-
-local function safeDecode(jsonStr)
-    if not jsonStr or jsonStr == "" or jsonStr == "null" then return nil end
-    local ok, res = pcall(function() return HttpService:JSONDecode(jsonStr) end)
-    if ok then return res end; return nil
-end
-
---// UI Helpers
-local Y, X = Enum.AutomaticSize.Y, Enum.AutomaticSize.X
-local function new(class, props, kids)
-	local inst = Instance.new(class); local parent
-	for k, v in pairs(props or {}) do if k == "Parent" then parent = v else inst[k] = v end end
-	for _, c in ipairs(kids or {}) do c.Parent = inst end
-	if parent then inst.Parent = parent end; return inst
-end
-local function corner(r) return new("UICorner", { CornerRadius = UDim.new(0, r) }) end
-local function stroke(col, th, tr) return new("UIStroke", { Color = col, Thickness = th or 1.5, Transparency = tr or 0, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }) end
-local function tstroke(col, th, tr) return new("UIStroke", { Color = col, Thickness = th or 2, Transparency = tr or 0, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual, LineJoinMode = Enum.LineJoinMode.Round }) end
-local function gradient(c1, c2, rot) return new("UIGradient", { Color = ColorSequence.new(c1, c2), Rotation = rot or 90 }) end
-local function pad(l, t, r, b) return new("UIPadding", { PaddingLeft = UDim.new(0, l), PaddingTop = UDim.new(0, t), PaddingRight = UDim.new(0, r), PaddingBottom = UDim.new(0, b) }) end
-local function list(p, dir) return new("UIListLayout", { Padding = UDim.new(0, p or 0), SortOrder = Enum.SortOrder.LayoutOrder, FillDirection = dir or Enum.FillDirection.Vertical }) end
-local function tween(o, t, props, style, dir) return TweenService:Create(o, TweenInfo.new(t, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.Out), props) end
-local function label(props)
-	local w = props.Weight; props.Weight = nil
-	local d = { BackgroundTransparency = 1, Font = Enum.Font["Gotham" .. (w or "Bold")], TextSize = 13, Text = "", TextColor3 = Theme.Text, TextXAlignment = Enum.TextXAlignment.Left }
-	for k, v in pairs(props) do d[k] = v end; return new("TextLabel", d)
-end
-local function lighten(c, a) return c:Lerp(Color3.new(1, 1, 1), a or 0.4) end
-local function darken(c, a) return c:Lerp(Color3.new(0, 0, 0), a or 0.25) end
-local function fire(cb, ...) if cb then task.spawn(cb, ...) end end
-local function emoji(parent, e, size, pos, boxSize) return label({ Size = boxSize or UDim2.fromOffset(size + 8, size + 8), Position = pos or UDim2.new(), Text = e, TextSize = size, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, Parent = parent }) end
-
-local function playSound(id, vol)
-	if not Config.Sounds or not id or id == "" then return end
-	pcall(function() local s = Instance.new("Sound"); s.SoundId = id; s.Volume = vol or 0.6; s.Parent = SoundService; s.Ended:Connect(function() s:Destroy() end); s:Play(); task.delay(6, function() if s.Parent then s:Destroy() end end) end)
-end
-local function click() playSound(Config.ClickSound, 0.5) end
-local function pressFx(btn, strength, silent)
-	local sc = new("UIScale", { Parent = btn }); btn.MouseButton1Down:Connect(function() tween(sc, 0.08, { Scale = 1 - (strength or 0.05) }):Play() end)
-	local function up() tween(sc, 0.14, { Scale = 1 }, Enum.EasingStyle.Back):Play() end
-	btn.MouseButton1Up:Connect(up); btn.MouseLeave:Connect(up)
-	if not silent then btn.MouseButton1Click:Connect(click) end
-end
-
---// Image Downloader
-local function downloadImage(url, file)
-	if not url or url == "" then return nil end
-	if typeof(writefile) ~= "function" or typeof(getcustomasset) ~= "function" then return nil end
-	local data
-	local req = (typeof(request) == "function" and request) or (typeof(http_request) == "function" and http_request) or (typeof(syn) == "table" and syn.request) or nil
-	if req then local ok, res = pcall(req, { Url = url, Method = "GET" }); if ok and res and type(res.Body) == "string" then data = res.Body end end
-	if not data then local ok, body = pcall(function() return game:HttpGet(url) end); if ok and type(body) == "string" then data = body end end
-	if not data then return nil end
-	local ok, asset = pcall(function() writefile(file, data); return getcustomasset(file) end)
-	return ok and asset or nil
-end
-
-local PlayerImage
-task.spawn(function()
-	local ok, res = pcall(function() return Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150) end)
-	if ok and res then PlayerImage = res end
-end)
-
-local function findOld(container) pcall(function() local old = container:FindFirstChild("KaizoHub"); if old then old:Destroy() end end) end
-if typeof(gethui) == "function" then pcall(function() findOld(gethui()) end) end
-findOld(CoreGui); findOld(LocalPlayer:WaitForChild("PlayerGui"))
-
-local gui = new("ScreenGui", { Name = "KaizoHub", ResetOnSpawn = false, IgnoreGuiInset = true, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 999 })
-pcall(function() if typeof(gethui) == "function" then gui.Parent = gethui() else gui.Parent = CoreGui end end)
-if not gui.Parent then gui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
-
-local Kaizo = { Tabs = {}, Cards = {}, Config = Config }; local Conns = {}; local alive = true
-local function connect(sig, fn) local c = sig:Connect(fn); table.insert(Conns, c); return c end
-
---// Window Structure
-local WIN_W, WIN_H, HEADER_H, SIDEBAR_W, FOOTER_H = 600, 420, 52, 170, 12
-local isOpen, baseScale = false, 1
-local Window = new("Frame", { Size = UDim2.fromOffset(WIN_W, WIN_H), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, Visible = false, Parent = gui }, { corner(16), stroke(Theme.Border, 3) })
-local WinScale = new("UIScale", { Scale = 0, Parent = Window })
-local Canvas = new("CanvasGroup", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Theme.Header, BorderSizePixel = 0, Parent = Window }, { corner(16) })
-
-local Header = new("Frame", { Size = UDim2.new(1, 0, 0, HEADER_H), BackgroundColor3 = Theme.Header, BorderSizePixel = 0, ZIndex = 2, Parent = Canvas })
-local HLeft = new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 0), Size = UDim2.new(0, 0, 1, 0), AutomaticSize = X, ZIndex = 3, Parent = Header }, { list(8, Enum.FillDirection.Horizontal) })
-local Logo = new("Frame", { Size = UDim2.fromOffset(38, 38), BackgroundColor3 = Theme.Red, LayoutOrder = 1, ZIndex = 3, Parent = HLeft }, { corner(19), stroke(Theme.White, 2.5) })
-emoji(Logo, "⭐", 20, UDim2.fromScale(0.5, 0.5), UDim2.fromOffset(34, 34)).AnchorPoint = Vector2.new(0.5, 0.5)
-label({ Size = UDim2.new(0, 0, 0, 40), AutomaticSize = X, Weight = "Heavy", TextSize = 26, Text = Config.Name, TextColor3=Theme.White, LayoutOrder = 2, ZIndex = 3, Parent = HLeft }, { tstroke(Theme.Border, 2.5) })
-
-local function headerBtn(color, text, xOff, textColor)
-	local b = new("TextButton", { Size = UDim2.fromOffset(34, 34), Position = UDim2.new(1, xOff, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5), BackgroundColor3 = color, Text = "", AutoButtonColor = false, ZIndex = 3, Parent = Header }, { corner(9), stroke(Theme.Border, 2.5) })
-	local l = label({ Size = UDim2.fromScale(1, 1), Text = text, Weight = "Heavy", TextSize = 20, TextColor3 = textColor or Theme.Border, TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 4, Parent = b })
-	pressFx(b, 0.08); return b, l
-end
-local CloseBtn = headerBtn(Theme.Red, "✕", -10, Theme.White); local MinBtn = headerBtn(Theme.Gold, "–", -50)
-
-local Body = new("Frame", { Position = UDim2.fromOffset(0, HEADER_H), Size = UDim2.new(1, 0, 1, -HEADER_H), BackgroundTransparency = 1, Parent = Canvas })
-local Sidebar = new("Frame", { Size = UDim2.new(0, SIDEBAR_W, 1, 0), BackgroundColor3 = Theme.Side, BorderSizePixel = 0, Parent = Body })
-local TabScroll = new("ScrollingFrame", { Size = UDim2.new(1, 0, 1, -62), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 0, AutomaticCanvasSize = Y, CanvasSize = UDim2.new(), Parent = Sidebar }, { list(4), pad(8, 6, 8, 8) })
-
-local Content = new("Frame", { Position = UDim2.fromOffset(SIDEBAR_W, 0), Size = UDim2.new(1, -SIDEBAR_W, 1, 0), BackgroundColor3 = Theme.Content, BorderSizePixel = 0, ClipsDescendants = true, Parent = Body })
-local PageTitle = label({ Position = UDim2.fromOffset(16, 8), Size = UDim2.new(1, -230, 0, 28), Weight = "Heavy", TextSize = 22, TextXAlignment = Enum.TextXAlignment.Right, Parent = Content })
-local Pages = new("Frame", { Position = UDim2.fromOffset(0, 45), Size = UDim2.new(1, 0, 1, -45), BackgroundTransparency = 1, ClipsDescendants = true, Parent = Content })
-
-local function setOpen(v)
-	isOpen = v
-	if v then Window.Visible = true; tween(WinScale, 0.35, { Scale = 1 }, Enum.EasingStyle.Back):Play()
-	else local tw = tween(WinScale, 0.2, { Scale = 0 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In); tw:Play(); tw.Completed:Connect(function() if not isOpen then Window.Visible = false end end) end
-end
-MinBtn.MouseButton1Click:Connect(function() setOpen(false) end)
-CloseBtn.MouseButton1Click:Connect(function() setOpen(false) end)
-connect(UIS.InputBegan, function(input, gp) if not gp and input.KeyCode == Config.ToggleKey then setOpen(not isOpen) end end)
-
---// Tabs System
-local Tab, Card = {}, {}
-Tab.__index, Card.__index = Tab, Card
-
-local currentTab
-local function selectTab(tab)
-	currentTab = tab
-	for _, t in ipairs(Kaizo.Tabs) do
-		local on = t == tab; t.Page.Visible = on
-		tween(t.Button, 0.18, { BackgroundTransparency = on and 0 or 1 }):Play()
-		t.NameLabel.TextColor3 = on and Theme.Text or Theme.SideText
-	end
-	tab.Page.Position = UDim2.fromOffset(0, 16)
-	tween(tab.Page, 0.3, { Position = UDim2.fromOffset(0, 0) }, Enum.EasingStyle.Quint):Play()
-	PageTitle.Text = string.upper(tab.Title)
-end
-
-function Kaizo:AddTab(o)
-	local btn = new("TextButton", { Size = UDim2.new(1, 0, 0, 42), Text = "", AutoButtonColor = false, BackgroundColor3 = Theme.TabActive, BackgroundTransparency = 1, Parent = TabScroll }, { corner(12) })
-	emoji(btn, o.Icon or "•", 20, UDim2.fromOffset(6, 5), UDim2.fromOffset(32, 32))
-	local nameLbl = label({ Size = UDim2.new(1, -48, 1, 0), Position = UDim2.fromOffset(42, 0), TextSize = 13, Weight = "Bold", Text = o.Name, TextColor3 = Theme.SideText, Parent = btn })
-	local page = new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = Theme.Border, AutomaticCanvasSize = Y, CanvasSize = UDim2.new(), Visible = false, Parent = Pages }, { pad(14, 4, 14, 12) })
-	local cols = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, Parent = page }, { list(10, Enum.FillDirection.Horizontal) })
-	local left = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.5, -5, 0, 0), AutomaticSize = Y, LayoutOrder = 1, Parent = cols }, { list(10) })
-	local right = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.5, -5, 0, 0), AutomaticSize = Y, LayoutOrder = 2, Parent = cols }, { list(10) })
-
-	local tab = setmetatable({ Title = o.Title or o.Name, Button = btn, NameLabel = nameLbl, Page = page, Left = left, Right = right, Count = 0 }, Tab)
-	table.insert(Kaizo.Tabs, tab)
-	btn.MouseButton1Click:Connect(function() click(); selectTab(tab) end)
-	if #Kaizo.Tabs == 1 then selectTab(tab) end; return tab
-end
-
-function Tab:AddCard(o)
-	self.Count += 1; local col = (o.Side == "Right") and self.Right or self.Left
-	local frame = new("Frame", { BackgroundTransparency = 1, AutomaticSize = Y, Size = UDim2.new(1, 0, 0, 0), LayoutOrder = self.Count, Parent = col }, { corner(12), stroke(Theme.CardStroke, 2) })
-	local group = new("CanvasGroup", { BackgroundColor3 = Theme.Card, AutomaticSize = Y, Size = UDim2.new(1, 0, 0, 0), BorderSizePixel = 0, Parent = frame }, { corner(12), list(0) })
-	local head = new("TextButton", { Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Theme.CardHead, BorderSizePixel = 0, Text = "", AutoButtonColor = false, LayoutOrder = 1, Parent = group })
-	emoji(head, o.Icon or "★", 18, UDim2.fromOffset(8, 5), UDim2.fromOffset(30, 30))
-	label({ Size = UDim2.new(1, -84, 1, 0), Position = UDim2.fromOffset(42, 0), TextSize = 14, Weight = "Bold", Text = o.Title, Parent = head })
-	new("Frame", { Size = UDim2.new(1, 0, 0, 2), BackgroundColor3 = Theme.Divider, BorderSizePixel = 0, LayoutOrder = 2, Parent = group })
-	local body = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, LayoutOrder = 3, Parent = group }, { list(11), pad(12, 12, 12, 13) })
-	
-	local card = setmetatable({ Frame = frame, Body = body, Elements = {} }, Card); return card
-end
-
--- NEW: Add Image to Card
-function Card:AddImage(url, height)
-	local row = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, height or 120), Parent = self.Body })
-	local img = new("ImageLabel", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Theme.CardHead, ScaleType = Enum.ScaleType.Crop, Parent = row }, { corner(8), stroke(Theme.CardStroke, 2) })
-	if url:match("^rbxassetid") then img.Image = url
-	else
-		task.spawn(function()
-			local a = downloadImage(url, "card_img_"..tostring(math.random(111,999))..".png")
-			if a then img.Image = a else img.BackgroundColor3 = Theme.Muted end
-		end)
-	end
-	return img
-end
-
-function Card:AddLabel(o) return label({ Weight = o.Weight or "Bold", TextSize = o.Size or 12, TextColor3 = o.Color or Theme.Muted, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, TextWrapped = true, Text = o.Text, Parent = self.Body }) end
-function Card:AddButton(o)
-	local b = new("TextButton", { Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = o.Color or Theme.Accent, Text = "", AutoButtonColor = false, Parent = self.Body }, { corner(10), stroke(darken(o.Color or Theme.Accent, 0.45), 2.5) })
-	label({ Size = UDim2.fromScale(1, 1), TextSize = 13, Weight = "Bold", TextColor3 = Theme.White, TextXAlignment = Enum.TextXAlignment.Center, Text = o.Title, Parent = b })
-	pressFx(b, 0.04); b.MouseButton1Click:Connect(function() fire(o.Callback) end); return b
-end
-function Card:AddInput(o)
-	local row = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, Parent = self.Body }, { list(6) })
-	label({ TextSize = 13, Weight = "Bold", Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, Text = o.Title, Parent = row })
-	local box = new("Frame", { Size = UDim2.new(1, 0, 0, 38), BackgroundColor3 = Theme.Field, Parent = row }, { corner(9), stroke(Theme.CardStroke, 2) })
-	local tbx = new("TextBox", { Size = UDim2.new(1, -20, 1, 0), Position = UDim2.fromOffset(10, 0), BackgroundTransparency = 1, Text = "", PlaceholderText = o.Placeholder or "", Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = Theme.Text, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Parent = box })
-	tbx.FocusLost:Connect(function() fire(o.Callback, tbx.Text) end); return tbx
-end
-
---// Notification System (Kaizo Base)
-local ToastHolder = new("Frame", { Size = UDim2.new(0, 300, 1, -20), Position = UDim2.new(1, -14, 0, 10), AnchorPoint = Vector2.new(1, 0), BackgroundTransparency = 1, Parent = gui }, { list(8, Enum.FillDirection.Vertical) })
-ToastHolder:FindFirstChildOfClass("UIListLayout").VerticalAlignment = Enum.VerticalAlignment.Bottom
-ToastHolder:FindFirstChildOfClass("UIListLayout").HorizontalAlignment = Enum.HorizontalAlignment.Right
-
-function Kaizo:Notify(o)
-	local dur = o.Duration or 3.2
-	local holder = new("Frame", { Size = UDim2.new(1, 0, 0, 64), BackgroundTransparency = 1, Parent = ToastHolder })
-	local toast = new("Frame", { Size = UDim2.fromScale(1, 1), Position = UDim2.new(1.15, 0, 0, 0), BackgroundColor3 = Theme.Card, Parent = holder }, { corner(12), stroke(Theme.CardStroke, 2) })
-	emoji(toast, o.Icon or "⭐", 26, UDim2.fromOffset(8, 10), UDim2.fromOffset(42, 42))
-	label({ Size = UDim2.new(1, -66, 0, 18), Position = UDim2.fromOffset(56, 11), Text = o.Title or Config.Name, TextSize = 13, Weight = "Bold", Parent = toast })
-	label({ Size = UDim2.new(1, -66, 0, 28), Position = UDim2.fromOffset(56, 29), Text = o.Text or "", TextSize = 11, TextColor3 = Theme.Muted, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Parent = toast })
-	tween(toast, 0.45, { Position = UDim2.new(0, 0, 0, 0) }, Enum.EasingStyle.Back):Play()
-	task.delay(dur, function()
-		if holder.Parent then
-			local tw = tween(toast, 0.35, { Position = UDim2.new(1.15, 0, 0, 0) }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-			tw:Play(); tw.Completed:Wait(); holder:Destroy()
-		end
-	end)
-end
-
---// NEW: TOP BROADCAST SYSTEM (إعلان الإدارة فوق الشاشة)
-local TopBcGui = new("ScreenGui", {Name = "TopBc", Parent = gui, ZIndexBehavior = Enum.ZIndexBehavior.Sibling})
-local TopBcFrame = new("Frame", {
-    Size = UDim2.fromOffset(450, 75), Position = UDim2.new(0.5, -225, 0, -120),
-    BackgroundColor3 = Theme.Card, Parent = TopBcGui
-}, {corner(12), stroke(Theme.Red, 3)})
-emoji(TopBcFrame, "📢", 30, UDim2.fromOffset(10, 15), UDim2.fromOffset(45, 45))
-local BcTitle = label({Size = UDim2.new(1, -70, 0, 20), Position = UDim2.fromOffset(65, 10), Text = "إعلان إداري", TextColor3 = Theme.Red, Weight = "ExtraBold", TextSize = 15, Parent = TopBcFrame})
-local BcText = label({Size = UDim2.new(1, -70, 0, 35), Position = UDim2.fromOffset(65, 32), Text = "...", TextWrapped = true, TextSize = 13, TextYAlignment = Enum.TextYAlignment.Top, Parent = TopBcFrame})
-
-local function showTopBroadcast(sender, text)
-    BcTitle.Text = "إعلان إداري من: " .. sender
-    BcText.Text = text
-    playSound("rbxassetid://2865227271", 1) -- Notification sound
-    tween(TopBcFrame, 0.6, {Position = UDim2.new(0.5, -225, 0, 30)}, Enum.EasingStyle.Back):Play()
-    task.wait(7)
-    tween(TopBcFrame, 0.5, {Position = UDim2.new(0.5, -225, 0, -120)}, Enum.EasingStyle.Quad, Enum.EasingDirection.In):Play()
-end
-
---// NEW: ADMIN POLL UI (شاشة التصويت المنبثقة)
-local PollGui = new("ScreenGui", {Parent = gui, ZIndexBehavior = Enum.ZIndexBehavior.Sibling})
-local PollFrame = new("Frame", {
-	Size = UDim2.fromOffset(320, 160), Position = UDim2.new(0.5, -160, 0.5, -80), 
-	BackgroundColor3 = Theme.Card, Visible = false, Parent = PollGui
-}, {corner(14), stroke(Theme.Gold, 3)})
-label({Size = UDim2.new(1, 0, 0, 30), Position = UDim2.fromOffset(0, 10), Text = "📊 تصويت جديد", TextColor3 = Theme.Gold, TextSize = 18, Weight = "Heavy", TextXAlignment = Enum.TextXAlignment.Center, Parent = PollFrame})
-local PollQuestion = label({Size = UDim2.new(1, -20, 0, 50), Position = UDim2.fromOffset(10, 50), Text = "هل أنت موافق؟", TextSize = 14, TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Center, Parent = PollFrame})
-local BtnYes = new("TextButton", {Size = UDim2.fromOffset(120, 40), Position = UDim2.fromOffset(25, 105), BackgroundColor3 = Theme.Green, Text = "نعم", TextColor3 = Theme.White, Font = Enum.Font.GothamBold, TextSize = 14, Parent = PollFrame}, {corner(8)})
-local BtnNo = new("TextButton", {Size = UDim2.fromOffset(120, 40), Position = UDim2.fromOffset(175, 105), BackgroundColor3 = Theme.Red, Text = "لا", TextColor3 = Theme.White, Font = Enum.Font.GothamBold, TextSize = 14, Parent = PollFrame}, {corner(8)})
-BtnYes.MouseButton1Click:Connect(function() PollFrame.Visible = false; Kaizo:Notify({Title="التصويت", Text="تم إرسال صوتك (نعم).", Icon="✅"}) end)
-BtnNo.MouseButton1Click:Connect(function() PollFrame.Visible = false; Kaizo:Notify({Title="التصويت", Text="تم إرسال صوتك (لا).", Icon="❌"}) end)
-
-
---// =====================================================================
---//  FIREBASE SYNC LOOP (MUTES, PRESENCE, BROADCASTS, POLLS)
---// =====================================================================
-local MutedUsers = {}
-local renderedBroadcasts = {}
-local lastPollId = nil
-local activeUsersList = {}
-
-task.spawn(function()
-	while alive do
-		pcall(function()
-			-- 1. Presence Update (نبض التواجد)
-			customRequest({Url = FIREBASE_PRESENCE .. LocalPlayer.Name .. ".json", Method = "PUT", Body = '"'..tostring(os.time())..'"' })
-			
-			-- 2. Fetch Mutes (جلب قائمة المكتومين)
-			local mRes = customRequest({Url = FIREBASE_MUTE_URL, Method = "GET"})
-			if mRes and mRes.StatusCode == 200 then MutedUsers = safeDecode(mRes.Body) or {} end
-
-			-- 3. Fetch Broadcasts (جلب الإعلانات العلوية)
-			local bRes = customRequest({Url = FIREBASE_BROADCAST_URL, Method = "GET"})
-			if bRes and bRes.StatusCode == 200 then
-				local data = safeDecode(bRes.Body)
-				if data then
-					for k, b in pairs(data) do
-						if type(b) == "table" and b.text and not renderedBroadcasts[k] then
-							renderedBroadcasts[k] = true
-							if (os.time() - (b.time or 0)) < 30 then showTopBroadcast(b.sender, b.text) end
-						end
-					end
-				end
-			end
-
-			-- 4. Fetch Polls (جلب التصويتات)
-			local pRes = customRequest({Url = FIREBASE_POLL_URL, Method = "GET"})
-			if pRes and pRes.StatusCode == 200 then
-				local data = safeDecode(pRes.Body)
-				if data and data.id ~= lastPollId then
-					lastPollId = data.id
-					if (os.time() - (data.time or 0)) < 60 then
-						PollQuestion.Text = data.q
-						PollFrame.Visible = true
-						playSound("rbxassetid://1310682522", 1)
-					end
-				end
-			end
-			
-			-- 5. Fetch Active Users (For Admin Tab)
-			local uRes = customRequest({Url = FIREBASE_PRESENCE, Method = "GET"})
-			if uRes and uRes.StatusCode == 200 then
-				activeUsersList = safeDecode(uRes.Body) or {}
-			end
-		end)
-		task.wait(5)
-	end
-end)
-
-
---// =====================================================================
---//  GLOBAL CHAT UI (WITH AVATARS & MUTE CHECK)
---// =====================================================================
-local ChatGui = new("ScreenGui", {Name = "KEONTopChatGui", ResetOnSpawn = false, Parent = gui})
-local ChatToggleBtn = new("TextButton", { Size = UDim2.fromOffset(50, 50), Position = UDim2.new(0, 20, 0.5, -100), BackgroundColor3 = Theme.Header, Text = "💬", TextSize = 24, Active = true, Draggable = true, Parent = ChatGui }, { corner(25), stroke(Theme.Border, 3) })
-local ChatWin = new("Frame", { Size = UDim2.fromOffset(360, 340), Position = UDim2.new(0, 80, 0.5, -170), BackgroundColor3 = Theme.Content, Visible = false, Active = true, Draggable = true, Parent = ChatGui }, { corner(12), stroke(Theme.Border, 2) })
-local ChatHeader = new("Frame", { Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Theme.Header, Parent = ChatWin }, { corner(12) })
-label({ Size = UDim2.new(1, -10, 1, 0), Position = UDim2.fromOffset(10, 0), Text = "الدردشة العالمية (Ben Hub)", TextColor3 = Theme.White, Weight = "Heavy", Parent = ChatHeader })
-local ChatScroll = new("ScrollingFrame", { Size = UDim2.new(1, -10, 1, -85), Position = UDim2.fromOffset(5, 45), BackgroundTransparency = 1, ScrollBarThickness = 4, CanvasSize = UDim2.new(), Parent = ChatWin }, { list(5) })
-local ChatInputBox = new("TextBox", { Size = UDim2.new(1, -80, 0, 30), Position = UDim2.new(0, 5, 1, -35), BackgroundColor3 = Theme.Field, Text = "", PlaceholderText = "اكتب رسالة...", TextXAlignment = Enum.TextXAlignment.Right, Font = Enum.Font.GothamBold, TextSize = 12, Parent = ChatWin }, { corner(6), stroke(Theme.Border, 1) })
-local SendBtn = new("TextButton", { Size = UDim2.new(0, 65, 0, 30), Position = UDim2.new(1, -70, 1, -35), BackgroundColor3 = Theme.Accent, Text = "إرسال", TextColor3 = Theme.White, Font = Enum.Font.GothamBold, TextSize = 12, Parent = ChatWin }, { corner(6), stroke(Theme.Border, 1) })
-
-ChatToggleBtn.MouseButton1Click:Connect(function() click(); ChatWin.Visible = not ChatWin.Visible end)
-
-local function sendChatMessage()
-	if MutedUsers[LocalPlayer.Name] then
-		Kaizo:Notify({Title = "حظر شات", Text = "لقد تم كتمك من قبل الإدارة ولن تصل رسائلك.", Icon = "🔇"})
-		return
-	end
-	local msg = ChatInputBox.Text
-	if msg ~= "" then
-		ChatInputBox.Text = ""
-		pcall(function()
-			customRequest({ Url = FIREBASE_CHAT_URL, Method = "POST",
-				Headers = {["Content-Type"] = "application/json"},
-				Body = HttpService:JSONEncode({ sender = LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName or LocalPlayer.Name, userId = LocalPlayer.UserId, text = msg, time = os.time() })
-			})
-		end)
-	end
-end
-SendBtn.MouseButton1Click:Connect(sendChatMessage)
-ChatInputBox.FocusLost:Connect(function(enter) if enter then sendChatMessage() end end)
-
-local renderedMsgs = {}
-task.spawn(function()
-	while alive do
-		pcall(function()
-			local res = customRequest({Url = FIREBASE_CHAT_URL, Method = "GET"})
-			if res and res.StatusCode == 200 then
-				local data = safeDecode(res.Body)
-				if data then
-					for k, m in pairs(data) do
-						if type(m) == "table" and m.text and not renderedMsgs[k] then
-							renderedMsgs[k] = true
-							-- NEW: Chat Avatars System
-							local msgFrame = new("Frame", { Size = UDim2.new(1, 0, 0, 50), BackgroundColor3 = Theme.Card, Parent = ChatScroll }, { corner(6) })
-							local ava = new("ImageLabel", {Size = UDim2.fromOffset(36, 36), Position = UDim2.fromOffset(5, 7), BackgroundColor3 = Theme.CardHead, Parent = msgFrame}, {corner(18), stroke(Theme.CardStroke, 1)})
-							task.spawn(function()
-								local ok, img = pcall(function() return Players:GetUserThumbnailAsync(m.userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48) end)
-								if ok and img then ava.Image = img end
-							end)
-							label({ Size = UDim2.new(1, -55, 0, 15), Position = UDim2.fromOffset(48, 5), Text = m.sender, TextColor3 = Theme.Accent, TextSize = 11, Weight = "Bold", Parent = msgFrame })
-							label({ Size = UDim2.new(1, -55, 0, 25), Position = UDim2.fromOffset(48, 20), Text = m.text, TextSize = 12, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Parent = msgFrame })
-							
-							task.defer(function()
-								local layout = ChatScroll:FindFirstChildOfClass("UIListLayout")
-								if layout then ChatScroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10); ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.AbsoluteCanvasSize.Y) end
-							end)
-						end
-					end
-				end
-			end
-		end)
-		task.wait(2.5)
-	end
-end)
-
-
---// =====================================================================
---//  PAGES & TABS
---// =====================================================================
-
--- 1. MAIN TAB (تعديل وتجميل قسم الرئيسية ووضع البنر)
-local tMain = Kaizo:AddTab({ Name = "الرئيسية", Section = "Main", Icon = "🏠", Title = "الرئيسية" })
-local cBanner = tMain:AddCard({ Title = "ترحيب", Icon = "👋", Side = "Left" })
--- إضافة صورة البنر اللي أرسلتها عبر رابط Top4Top
-cBanner:AddImage("https://h.top4top.io/p_39645sug20.png", 110)
-cBanner:AddLabel({ Text = "أهلاً بك في سكربت BEN HUB الإصدار الخاص والمعدل.", Weight = "ExtraBold", Color = Theme.Accent })
-
-local cUpdates = tMain:AddCard({ Title = "آخر التحديثات", Icon = "✨", Side = "Right" })
-cUpdates:AddLabel({ Text = "✨ صور المابات مدمجة في السكربتات." })
-cUpdates:AddLabel({ Text = "💬 إضافة صور السكنات بداخل الشات العالمي." })
-cUpdates:AddLabel({ Text = "📢 شريط إعلانات إدارية يظهر أعلى الشاشة." })
-cUpdates:AddLabel({ Text = "🛡️ تصويت إداري وكتم لاعبين ومعرفة المتواجدين." })
-cUpdates:AddLabel({ Text = "🎵 مكتبة أغاني مع مشغل Custom ID." })
-
-local cGame = tMain:AddCard({ Title = "معلومات اللاعب", Icon = "👤", Side = "Left" })
-cGame:AddLabel({ Text = "الاسم: " .. LocalPlayer.DisplayName })
-cGame:AddLabel({ Text = "اليوزر: @" .. LocalPlayer.Name })
-
-
--- 2. SCRIPTS TAB (إضافة صور المابات)
-local tScripts = Kaizo:AddTab({ Name = "سكربتات", Section = "Main", Icon = "🧩", Title = "مكتبة السكربتات" })
-local cEgg = tScripts:AddCard({ Title = "ماب سرقة البيض", Icon = "🥚", Side = "Left" })
--- صورة مصغرة للماب الأول (باستخدام ايدي صورة من روبلوكس كمثال لتزيين الكرت)
-cEgg:AddImage("rbxassetid://13589415510", 90)
-cEgg:AddButton({ Title = "🌶️ سكربت فلفل (الأصلي)", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))() end })
-cEgg:AddButton({ Title = "💧 سكربت الأزراق", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"))() end })
-
-local cBreakEgg = tScripts:AddCard({ Title = "ماب كسر البيض", Icon = "💥", Side = "Right" })
--- صورة مصغرة للماب الثاني
-cBreakEgg:AddImage("rbxassetid://16124588508", 90)
-cBreakEgg:AddButton({ Title = "⚡ السكربت الأساسي", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/pooro885-droid/stealanegg/refs/heads/main/sae.lua"))() end })
-cBreakEgg:AddButton({ Title = "🔮 Serenity Hub", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/loader.lua"))() end })
-
-
--- 3. MUSIC TAB (توسيع الأغاني وإضافة مشغل مخصص)
-local mediaVolume = 5
-local activeSound = nil
-local tMusic = Kaizo:AddTab({ Name = "الموسيقى", Section = "Media", Icon = "🎵", Title = "الموسيقى" })
-local cPlayer = tMusic:AddCard({ Title = "مشغل الأغاني", Icon = "▶", Side = "Left" })
-cPlayer:AddSlider({ Title = "مستوى الصوت", Min = 1, Max = 10, Default = 5, Callback = function(v) mediaVolume = v; if activeSound then activeSound.Volume = mediaVolume / 10 end end })
-cPlayer:AddButton({ Title = "إيقاف الموسيقى ■", Color = Theme.Red, Callback = function()
-	if activeSound then activeSound:Stop(); activeSound:Destroy(); activeSound = nil end
-	Kaizo:Notify({ Title = "الموسيقى", Text = "تم إيقاف الموسيقى بنجاح.", Icon = "🛑" })
-end })
-
--- تشغيل من ايدي روبلوكس
-local customSoundId = ""
-cPlayer:AddInput({Title = "تشغيل بـ ID من روبلوكس", Placeholder = "مثال: 12345678", Callback = function(txt) customSoundId = txt end})
-cPlayer:AddButton({Title = "تشغيل الـ ID 🎧", Color = Theme.Green, Callback = function()
-    if customSoundId ~= "" then
-        if activeSound then activeSound:Stop(); activeSound:Destroy() end
-        local snd = Instance.new("Sound")
-        snd.SoundId = "rbxassetid://" .. customSoundId; snd.Volume = mediaVolume / 10; snd.Parent = SoundService
-        snd:Play(); activeSound = snd
-        Kaizo:Notify({ Title = "تشغيل", Text = "جاري تشغيل المعرّف الخاص بك.", Icon = "▶" })
-    end
-end})
-
-local cTracks = tMusic:AddCard({ Title = "قائمة التشغيل (الافتراضية)", Icon = "🎶", Side = "Right" })
-local tracks = {
-	{"🎵 موسيقى حماسية 1", "rbxassetid://1848354536"},
-	{"🎵 موسيقى هادئة 2", "rbxassetid://9048374241"},
-	{"🎵 موسيقى أنمي 3", "rbxassetid://5410086218"},
-	{"🎵 تراك اجنبي 4", "rbxassetid://2866969792"}
-}
-for _, track in ipairs(tracks) do
-	cTracks:AddButton({ Title = track[1], Callback = function()
-        if activeSound then activeSound:Stop(); activeSound:Destroy() end
-        local snd = Instance.new("Sound")
-        snd.SoundId = track[2]; snd.Volume = mediaVolume / 10; snd.Parent = SoundService
-        snd:Play(); activeSound = snd
-    end })
-end
-
-
--- 4. ADMIN TAB (Only for Dms921)
-if LocalPlayer.Name == "Dms921" then
-	local tAdmin = Kaizo:AddTab({ Name = "الأدمن", Section = "Admin", Icon = "🛡️", Title = "لوحة الإدارة (Dms921)" })
-	
-	-- البرودكاست (الإعلان العلوي)
-	local cBc = tAdmin:AddCard({ Title = "نظام البرودكاست (فوق الشاشة)", Icon = "📢", Side = "Left" })
-	local bcText = ""
-	cBc:AddInput({ Title = "نص الإعلان", Placeholder = "اكتب رسالة لتظهر للكل...", Callback = function(txt) bcText = txt end })
-	cBc:AddButton({ Title = "إرسال الإعلان ➤", Callback = function()
-		if bcText ~= "" then
-			pcall(function()
-				customRequest({ Url = FIREBASE_BROADCAST_URL, Method = "POST",
-					Headers = {["Content-Type"] = "application/json"},
-					Body = HttpService:JSONEncode({ sender = LocalPlayer.Name, text = bcText, time = os.time() })
-				})
-			end)
-			Kaizo:Notify({ Title = "الإدارة", Text = "تم إرسال الإعلان العلوي بنجاح.", Icon = "✅" })
-		end
-	end })
-
-    -- التصويت (Poll)
-    local cPoll = tAdmin:AddCard({ Title = "نظام التصويت العام", Icon = "📊", Side = "Right" })
-    local pollQ = ""
-    cPoll:AddInput({Title = "السؤال أو الإستبيان", Placeholder = "اكتب السؤال هنا...", Callback = function(txt) pollQ = txt end})
-    cPoll:AddButton({Title = "إرسال تصويت للجميع", Color = Theme.Gold, Callback = function()
-        if pollQ ~= "" then
-            customRequest({Url = FIREBASE_POLL_URL, Method = "PUT", Body = HttpService:JSONEncode({q = pollQ, time = os.time(), id = math.random(1111,9999)})})
-            Kaizo:Notify({Title = "الأدمن", Text = "تم طرح التصويت في الشاشات بنجاح.", Icon = "📊"})
-        end
-    end})
-
-    -- كتم اللاعبين (Mute)
-    local cMute = tAdmin:AddCard({ Title = "إدارة اللاعبين (كتم وحظر)", Icon = "🔇", Side = "Left" })
-    local targetMute = ""
-    cMute:AddInput({Title = "اسم اللاعب المراد كتمه (اليوزر)", Placeholder = "User Name...", Callback = function(txt) targetMute = txt end})
-    cMute:AddButton({Title = "كتم اللاعب 🔇", Color = Theme.Red, Callback = function()
-        if targetMute ~= "" then
-            customRequest({Url = FIREBASE_BASE_URL .. "/muted_users/" .. targetMute .. ".json", Method = "PUT", Body = '"muted"'})
-            Kaizo:Notify({Title="الإدارة", Text="تم كتم اللاعب: "..targetMute, Icon="✅"})
-        end
-    end})
-    cMute:AddButton({Title = "فك الكتم 🔊", Color = Theme.Green, Callback = function()
-        if targetMute ~= "" then
-            customRequest({Url = FIREBASE_BASE_URL .. "/muted_users/" .. targetMute .. ".json", Method = "DELETE"})
-            Kaizo:Notify({Title="الإدارة", Text="تم إلغاء الكتم عن: "..targetMute, Icon="✅"})
-        end
-    end})
-
-    -- المتواجدين بالشات (النشطين)
-    local cActive = tAdmin:AddCard({ Title = "اللاعبين النشطين (بالشات)", Icon = "🌐", Side = "Right" })
-    cActive:AddButton({Title = "تحديث قائمة المتواجدين 🔄", Callback = function()
-        local count = 0
-        local now = os.time()
-        for user, timestamp in pairs(activeUsersList) do
-            if type(timestamp) == "string" and tonumber(timestamp) then
-                if (now - tonumber(timestamp)) < 30 then -- نشط خلال آخر 30 ثانية
-                    count = count + 1
-                    Kaizo:Notify({Title = "متواجد حالياً", Text = "👤 " .. user, Icon = "🟢", Duration = 5})
-                end
+-- 1. زر تشغيل السكربت الخارجي (مع الحماية من خطأ nil value)
+ScriptCard:AddButton({
+    Title = "تشغيل سكربت فلفل 🌶️",
+    Callback = function()
+        local success, err = pcall(function()
+            local scriptUrl = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"
+            local scriptCode = game:HttpGet(scriptUrl)
+            
+            -- جلب السكربت والتحقق منه قبل التشغيل
+            local loadedScript = loadstring(scriptCode)
+            
+            if loadedScript then
+                loadedScript()
+                Kaizo:Notify({Title="نجاح", Text="تم تفعيل السكربت بنجاح!", Icon="✅"})
+            else
+                Kaizo:Notify({Title="تنبيه", Text="فشل جلب الكود، تأكد من دعم المحرك لـ loadstring", Icon="⚠️"})
             end
+        end)
+
+        if not success then
+            warn("حدث خطأ أثناء التشغيل: " .. tostring(err))
+            Kaizo:Notify({Title="خطأ", Text="حدث خطأ غير متوقع", Icon="❌"})
         end
-        if count == 0 then Kaizo:Notify({Title = "النظام", Text = "لا يوجد أحد متصل حالياً غيرك.", Icon = "⚠"}) end
-    end})
-end
+    end
+})
 
---// =====================================================================
---//  CINEMATIC LOADING SCREEN (KAIZO ORIGINAL)
---// =====================================================================
-playSound(Config.RunSound, 0.7)
-local Overlay = new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = C(4, 8, 26), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 50, Active = true, Parent = gui })
-tween(Overlay, 0.6, { BackgroundTransparency = 0.25 }):Play()
+-- 2. زر ميزة البحث والانتقال لسيرفر آخر (Server Hop)
+ServerCard:AddButton({
+    Title = "الانتقال لسيرفر عشوائي (Server Hop)",
+    Callback = function()
+        Kaizo:Notify({Title="جاري البحث", Text="جاري البحث عن سيرفر مناسب...", Icon="🔍"})
+        
+        local Http = game:GetService("HttpService")
+        local TPS = game:GetService("TeleportService")
+        local Api = "https://games.roblox.com/v1/games/"
+        local _place = game.PlaceId
+        local _servers = Api..tostring(_place).."/servers/Public?sortOrder=Asc&limit=100"
+        
+        -- دالة مساعدة لجلب قائمة السيرفرات
+        local function ListServers(cursor)
+            local Raw = game:HttpGet(_servers .. ((cursor and "&cursor="..cursor) or ""))
+            return Http:JSONDecode(Raw)
+        end
+        
+        -- تنفيذ الانتقال
+        local success, err = pcall(function()
+            local Server, Next; repeat
+                local Servers = ListServers(Next)
+                Server = Servers.data[math.random(1, #Servers.data)] -- اختيار سيرفر عشوائي من القائمة
+                Next = Servers.nextPageCursor
+            until Server
+            
+            TPS:TeleportToPlaceInstance(_place, Server.id, game.Players.LocalPlayer)
+        end)
+        
+        if not success then
+            Kaizo:Notify({Title="خطأ بالانتقال", Text="لم نتمكن من العثور على سيرفر", Icon="❌"})
+        end
+    end
+})
 
-local LoaderWrap = new("Frame", { Size = UDim2.fromOffset(560, 410), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, ZIndex = 51, Parent = Overlay }, { corner(20) })
-local LoaderStroke = stroke(Theme.Border, 3.5, 1); LoaderStroke.Parent = LoaderWrap
-local LScale = new("UIScale", { Scale = 0.8, Parent = LoaderWrap })
-local Loader = new("CanvasGroup", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = C(110, 180, 255), BorderSizePixel = 0, GroupTransparency = 1, ZIndex = 51, Parent = LoaderWrap }, { corner(20), gradient(C(84, 162, 252), C(208, 238, 255), 90) })
-
-tween(Loader, 0.7, { GroupTransparency = 0 }):Play(); tween(LoaderStroke, 0.7, { Transparency = 0 }):Play(); tween(LScale, 0.9, { Scale = 1 }, Enum.EasingStyle.Back):Play()
-
-local LName = label({ Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, 138), Text = LocalPlayer.DisplayName, TextSize = 17, Weight = "Heavy", TextColor3 = Theme.Gold, TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 60, Parent = Loader }, { tstroke(Theme.Border, 2.5) })
-local LStatus = label({ Size = UDim2.fromOffset(340, 22), Position = UDim2.fromOffset(40, 268), Text = "Initializing BEN HUB...", TextSize = 13, Weight = "ExtraBold", TextColor3 = Theme.White, ZIndex = 60, Parent = Loader }, { tstroke(Theme.Border, 2) })
-local Track = new("Frame", { Size = UDim2.fromOffset(480, 18), Position = UDim2.fromOffset(40, 294), BackgroundColor3 = C(20, 32, 84), BackgroundTransparency = 0.3, ZIndex = 60, Parent = Loader }, { corner(9), stroke(Theme.Border, 3) })
-local Fill = new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = Theme.White, BorderSizePixel = 0, ClipsDescendants = true, ZIndex = 61, Parent = Track }, { corner(9), new("UIGradient", { Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Theme.Gold), ColorSequenceKeypoint.new(1, C(240, 70, 60)) }) }) })
-
-task.spawn(function()
-	for i = 1, 100 do
-		Fill.Size = UDim2.fromScale(i/100, 1)
-		LStatus.Text = "Loading... " .. i .. "%"
-		task.wait(0.015)
-	end
-	task.wait(0.5)
-	tween(LScale, 0.55, { Scale = 1.35 }, Enum.EasingStyle.Quint, Enum.EasingDirection.In):Play()
-	tween(Loader, 0.3, { GroupTransparency = 1 }):Play(); tween(Overlay, 0.6, { BackgroundTransparency = 1 }):Play()
-	task.wait(0.6)
-	setOpen(true); Overlay:Destroy()
-end)
-
-return Kaizo
+-- إشعار عند اكتمال تحميل الواجهة بنجاح
+Kaizo:Notify({
+    Title = "مرحباً!",
+    Text = "تم تحميل الواجهة بالكامل وجاهزة للاستخدام.",
+    Icon = "🚀"
+})
