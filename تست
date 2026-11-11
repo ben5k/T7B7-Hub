@@ -1,743 +1,431 @@
---[[
-	KAIZO v3  -  UI template (Roblox / Luau)
-	[ FULLY INTEGRATED WITH REXEL BACKEND, SOUNDS, THEME & CHAT ]
-]]
+local LoadingGui = Instance.new("ScreenGui")
+LoadingGui.Name = "KEONLoadingGui"
+LoadingGui.ResetOnSpawn = false
+LoadingGui.DisplayOrder = 50
+LoadingGui.Parent = parent
 
---// Services
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local SoundService = game:GetService("SoundService")
-local Stats = game:GetService("Stats")
-local CoreGui = game:GetService("CoreGui")
-local HttpService = game:GetService("HttpService")
-local TeleportService = game:GetService("TeleportService")
-local LocalPlayer = Players.LocalPlayer
+local LoadFrame = Instance.new("Frame")
+LoadFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+LoadFrame.Size = UDim2.new(0, 400, 0, 290)
+LoadFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+LoadFrame.BackgroundColor3 = Color3.fromRGB(86, 168, 240)
+LoadFrame.ClipsDescendants = true
+LoadFrame.BorderSizePixel = 0
+LoadFrame.Parent = LoadingGui
+Instance.new("UICorner", LoadFrame).CornerRadius = UDim.new(0, 14)
 
---// Network (from REXEL)
-local function customRequest(options)
-	local req = request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request)
-	if req then
-		local success, response = pcall(function() return req(options) end)
-		if success and response then return response end
-	end
-	if options.Method == "GET" then
-		local success, body = pcall(function() return game:HttpGet(options.Url) end)
-		if success then return {StatusCode = 200, Body = body} end
-	end
-	return {StatusCode = 400, Body = "null"}
-end
+local loadStroke = Instance.new("UIStroke")
+loadStroke.Color = Color3.fromRGB(30, 36, 78)
+loadStroke.Thickness = 3.5
+loadStroke.Parent = LoadFrame
 
-local function safeDecode(jsonStr)
-	if not jsonStr or jsonStr == "" or jsonStr == "null" then return nil end
-	local success, result = pcall(function() return HttpService:JSONDecode(jsonStr) end)
-	if success then return result end
-	return nil
-end
+local LoadSub = Instance.new("TextLabel")
+LoadSub.Size = UDim2.new(0, 230, 0, 24)
+LoadSub.Position = UDim2.new(0.5, -115, 0, 160)
+LoadSub.BackgroundColor3 = Color3.fromRGB(30, 52, 160)
+LoadSub.BorderSizePixel = 0
+LoadSub.Text = "كيون هب • النسخة العربية"
+LoadSub.TextColor3 = Color3.fromRGB(165, 212, 255)
+LoadSub.Font = Enum.Font.GothamBold
+LoadSub.TextSize = 11
+LoadSub.TextXAlignment = Enum.TextXAlignment.Center
+LoadSub.ZIndex = 8
+LoadSub.Parent = LoadFrame
+Instance.new("UICorner", LoadSub).CornerRadius = UDim.new(0, 12)
 
-local function fetchAsset(url, fileName)
-	local assetGetter = getcustomasset or getsynasset
-	if type(writefile) == "function" and type(assetGetter) == "function" then
-		local ext = string.lower(url:match("%.([%w]+)[%?#]?.*$") or "png")
-		if ext ~= "png" and ext ~= "jpg" and ext ~= "jpeg" and ext ~= "webp" then ext = "png" end
-		local file = "KEONHub_" .. fileName .. "." .. ext
-		local haveFile = false
-		if type(isfile) == "function" then pcall(function() haveFile = isfile(file) end) end
+local BarBg = Instance.new("Frame")
+BarBg.Size = UDim2.new(0, 340, 0, 20)
+BarBg.Position = UDim2.new(0, 30, 0, 208)
+BarBg.BackgroundColor3 = Color3.fromRGB(26, 36, 86)
+BarBg.BorderSizePixel = 0
+BarBg.ZIndex = 8
+BarBg.Parent = LoadFrame
+Instance.new("UICorner", BarBg).CornerRadius = UDim.new(0, 10)
 
-		if not haveFile then
-			local response = customRequest({Url = url, Method = "GET"})
-			local body = response and response.Body
-			if type(body) == "string" and #body > 128 then
-				local saved = pcall(function() writefile(file, body) end)
-				if saved then haveFile = true end
-			end
-		end
+local BarFill = Instance.new("Frame")
+BarFill.Size = UDim2.new(0, 0, 1, 0)
+BarFill.BackgroundColor3 = Color3.fromRGB(255, 170, 30)
+BarFill.BorderSizePixel = 0
+BarFill.ZIndex = 9
+BarFill.Parent = BarBg
+Instance.new("UICorner", BarFill).CornerRadius = UDim.new(0, 10)
 
-		if haveFile then
-			local assetOk, assetPath = pcall(function() return assetGetter(file) end)
-			if assetOk and type(assetPath) == "string" and assetPath ~= "" then return assetPath end
-		end
-	end
-	return url
-end
+-- ================= عالم ماريو: كل التزيين داخل pcall حتى لا يؤثر أي خطأ تجميلي على السكربت =================
+pcall(function()
+    local RunService = game:GetService("RunService")
+    local WHITE = Color3.new(1, 1, 1)
+    local INK = Color3.fromRGB(30, 36, 78)
 
---// Config & REXEL Constants
-local Config = {
-	Name = "REXEL",
-	Subtitle = "Kaizo Edition",
-	Version = "v64.0",
-	NameImageURL = "",
-	BubbleImageURL = fetchAsset("https://k.top4top.io/p_3948z05tb0.png", "min_icon"),
-	DiscordLink = "https://discord.gg/rexel",
-	Sounds = true,
-	ToggleKey = Enum.KeyCode.RightShift,
-}
+    -- ملاءمة الحجم للشاشات الصغيرة
+    local fit = 1
+    pcall(function()
+        local cam = workspace.CurrentCamera
+        local vp = cam and cam.ViewportSize or Vector2.new(1280, 720)
+        fit = math.clamp(math.min((vp.X - 20) / 400, (vp.Y - 20) / 290), 0.45, 1)
+    end)
 
-local REXEL_BACKGROUND_URL = fetchAsset("https://d.top4top.io/p_3956imcxl0.jpg", "rexel_fixed_bg")
-local SOUND_OPEN = "rbxassetid://98797174600699"
-local SOUND_CLICK = "rbxassetid://6895079853"
-local BROADCAST_SOUND_ID = "rbxassetid://17208361335"
-local VOTE_START_SOUND_ID = "rbxassetid://18908611063"
-Config.ClickSound = SOUND_CLICK
-Config.RunSound = SOUND_OPEN
+    -- السماء
+    LoadFrame.BackgroundColor3 = WHITE
+    local skyGrad = Instance.new("UIGradient")
+    skyGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(38, 118, 232)),
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(96, 184, 248)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 214, 252))
+    })
+    skyGrad.Rotation = 90
+    skyGrad.Parent = LoadFrame
 
-local FIREBASE_BASE_URL = "https://arad-hun-default-rtdb.firebaseio.com"
-local FIREBASE_CHAT_URL = FIREBASE_BASE_URL .. "/global_chat.json"
-local FIREBASE_USERS_URL = FIREBASE_BASE_URL .. "/active_users.json"
-local FIREBASE_BROADCAST_URL = FIREBASE_BASE_URL .. "/global_broadcast.json"
-local FIREBASE_ADMIN_ACTIONS_URL = FIREBASE_BASE_URL .. "/admin_actions.json"
-local FIREBASE_VOTE_URL = FIREBASE_BASE_URL .. "/global_vote.json"
-local FIREBASE_RELOAD_URL = FIREBASE_BASE_URL .. "/global_reload.json"
+    local entrance = Instance.new("UIScale")
+    entrance.Scale = 0.5
+    entrance.Parent = LoadFrame
+    TweenService:Create(entrance, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = fit}):Play()
 
-local KEONProfile = {
-	selectedCountryFlag = "🇮🇶",
-	selectedCountryName = "العراق",
-	selectedCountryCode = "IQ",
-	profileByUserId = {},
-	savedUsageSeconds = 0,
-	sessionStartedClock = os.clock(),
-	LOCAL_USAGE_FILE = "KEON_Playtime_" .. tostring(LocalPlayer.UserId) .. ".json"
-}
+    local function circle(x, y, d, col, z, parentObj)
+        local f = Instance.new("Frame")
+        f.Size = UDim2.new(0, d, 0, d)
+        f.Position = UDim2.new(0, x, 0, y)
+        f.BackgroundColor3 = col
+        f.BorderSizePixel = 0
+        f.ZIndex = z
+        f.Parent = parentObj or LoadFrame
+        Instance.new("UICorner", f).CornerRadius = UDim.new(1, 0)
+        return f
+    end
 
---// Theme (Kaizo UI with REXEL Accent)
-local function C(r, g, b) return Color3.fromRGB(r, g, b) end
-local Theme = {
-	Border = C(44, 54, 98),
-	Header = C(8, 10, 18), -- REXEL Panel Dark
-	HeaderPill = C(20, 29, 52),
-	Side = C(12, 16, 26),
-	SideDark = C(8, 12, 20),
-	SideText = C(255, 255, 255),
-	SideMuted = C(145, 145, 165),
-	TabActive = C(235, 35, 65), -- REXEL Accent Active
-	Content = C(14, 20, 32),
-	Card = C(18, 26, 42),
-	CardHead = C(24, 34, 54),
-	CardStroke = C(235, 35, 65), -- REXEL Accent
-	Divider = C(34, 44, 64),
-	Field = C(12, 16, 26),
-	Text = C(245, 247, 255),
-	Muted = C(145, 145, 165),
-	Accent = C(235, 35, 65), -- REXEL Accent
-	Red = C(190, 0, 55),
-	Orange = C(255, 120, 20),
-	Gold = C(255, 200, 50),
-	Green = C(40, 230, 100),
-	Off = C(40, 50, 70),
-	White = C(255, 255, 255),
-}
-local TitleColors = { Theme.Accent, Theme.White, Theme.Accent }
+    -- الشمس
+    local sunGlow = circle(318, 14, 74, Color3.fromRGB(255, 244, 150), 2)
+    sunGlow.BackgroundTransparency = 0.65
+    local sun = circle(330, 26, 50, Color3.fromRGB(236, 232, 92), 2)
 
-local FONT = {
-	Regular = Enum.Font.Gotham, Medium = Enum.Font.GothamMedium, SemiBold = Enum.Font.GothamMedium,
-	Bold = Enum.Font.GothamBold, ExtraBold = Enum.Font.GothamBold, Heavy = Enum.Font.GothamBlack,
-}
+    -- الغيوم
+    local clouds = {}
+    local function makeCloud(y, scale, speed, phase)
+        local c = Instance.new("Frame")
+        c.Size = UDim2.new(0, 64 * scale, 0, 30 * scale)
+        c.BackgroundTransparency = 1
+        c.ZIndex = 2
+        c.Parent = LoadFrame
+        local function puff(x, yy, w, h)
+            local p = Instance.new("Frame")
+            p.Position = UDim2.new(0, x * scale, 0, yy * scale)
+            p.Size = UDim2.new(0, w * scale, 0, h * scale)
+            p.BackgroundColor3 = WHITE
+            p.BackgroundTransparency = 0.04
+            p.BorderSizePixel = 0
+            p.ZIndex = 2
+            p.Parent = c
+            Instance.new("UICorner", p).CornerRadius = UDim.new(1, 0)
+        end
+        puff(0, 12, 64, 18)
+        puff(8, 4, 26, 26)
+        puff(24, 0, 30, 30)
+        puff(44, 8, 18, 18)
+        clouds[#clouds + 1] = {obj = c, y = y, speed = speed, phase = phase}
+    end
+    makeCloud(24, 1.0, 9, 0.1)
+    makeCloud(74, 0.7, 6, 0.55)
+    makeCloud(116, 0.85, 7.5, 0.82)
 
---// Translations (Kaizo UI wrapper text)
-local AR = {
-	["MAIN"] = "الرئيسية", ["FARMING"] = "الزراعة", ["PROGRESSION"] = "التقدم", ["MISC"] = "متفرقات",
-	["Search..."] = "ابحث عن سكربت...", ["None"] = "لا شيء",
-	["Main"] = "الرئيسية", ["Scripts"] = "سكربتات", ["Profile"] = "ملفي", ["Media"] = "ميديا", ["Activations"] = "تفعيلات", ["Settings"] = "إعدادات", ["Admin"] = "لوحة الأدمن",
-	["WELCOME BACK"] = "أهلاً بعودتك",
-}
-local Languages = { EN = {}, AR = AR }
+    -- تلال خضراء
+    local function hill(x, y, d, col, rim)
+        local h = circle(x, y, d, col, 3)
+        local s = Instance.new("UIStroke")
+        s.Color = rim
+        s.Thickness = 3
+        s.Parent = h
+        return h
+    end
+    hill(-80, 190, 200, Color3.fromRGB(72, 178, 52), Color3.fromRGB(40, 120, 38))
+    hill(250, 214, 170, Color3.fromRGB(84, 190, 60), Color3.fromRGB(40, 120, 38))
+    hill(150, 246, 90, Color3.fromRGB(110, 205, 80), Color3.fromRGB(50, 140, 44))
 
---// Helpers
-local Y, X = Enum.AutomaticSize.Y, Enum.AutomaticSize.X
-local function new(class, props, kids)
-	local inst = Instance.new(class)
-	local parent
-	for k, v in pairs(props or {}) do if k == "Parent" then parent = v else inst[k] = v end end
-	for _, c in ipairs(kids or {}) do c.Parent = inst end
-	if parent then inst.Parent = parent end
-	return inst
-end
-local function corner(r) return new("UICorner", { CornerRadius = UDim.new(0, r) }) end
-local function stroke(col, th, tr) return new("UIStroke", { Color = col, Thickness = th or 1.5, Transparency = tr or 0, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }) end
-local function tstroke(col, th, tr) return new("UIStroke", { Color = col, Thickness = th or 2, Transparency = tr or 0, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual, LineJoinMode = Enum.LineJoinMode.Round }) end
-local function gradient(c1, c2, rot) return new("UIGradient", { Color = ColorSequence.new(c1, c2), Rotation = rot or 90 }) end
-local function pad(l, t, r, b) return new("UIPadding", { PaddingLeft = UDim.new(0, l), PaddingTop = UDim.new(0, t), PaddingRight = UDim.new(0, r), PaddingBottom = UDim.new(0, b) }) end
-local function list(p, dir) return new("UIListLayout", { Padding = UDim.new(0, p or 0), SortOrder = Enum.SortOrder.LayoutOrder, FillDirection = dir or Enum.FillDirection.Vertical }) end
-local function tween(o, t, props, style, dir) return TweenService:Create(o, TweenInfo.new(t, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.Out), props) end
-local function label(props)
-	local w = props.Weight; props.Weight = nil
-	local d = { BackgroundTransparency = 1, Font = FONT[w or "Bold"], TextSize = 13, Text = "", TextColor3 = Theme.Text, TextXAlignment = Enum.TextXAlignment.Left }
-	for k, v in pairs(props) do d[k] = v end
-	return new("TextLabel", d)
-end
-local function lighten(c, a) return c:Lerp(Color3.new(1, 1, 1), a or 0.4) end
-local function darken(c, a) return c:Lerp(Color3.new(0, 0, 0), a or 0.25) end
-local function fire(cb, ...) if cb then task.spawn(cb, ...) end end
-local function richTitle(text)
-	local out, i = "", 0
-	for ch in text:gmatch(".") do i += 1; out ..= string.format('<font color="#%s">%s</font>', TitleColors[(i - 1) % #TitleColors + 1]:ToHex(), ch) end
-	return out
-end
-local function emoji(parent, e, size, pos, boxSize) return label({ Size = boxSize or UDim2.fromOffset(size + 8, size + 8), Position = pos or UDim2.new(), Text = e, TextSize = size, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, Parent = parent }) end
+    -- الأرض: طوب برتقالي
+    local ground = Instance.new("Frame")
+    ground.Size = UDim2.new(1, 0, 0, 36)
+    ground.Position = UDim2.new(0, 0, 1, -36)
+    ground.BackgroundColor3 = Color3.fromRGB(118, 54, 26)
+    ground.BorderSizePixel = 0
+    ground.ZIndex = 4
+    ground.Parent = LoadFrame
+    Instance.new("UICorner", ground).CornerRadius = UDim.new(0, 14)
+    local groundTop = Instance.new("Frame")
+    groundTop.Size = UDim2.new(1, 0, 0, 18)
+    groundTop.BackgroundColor3 = Color3.fromRGB(118, 54, 26)
+    groundTop.BorderSizePixel = 0
+    groundTop.ZIndex = 4
+    groundTop.Parent = ground
+    local grass = Instance.new("Frame")
+    grass.Size = UDim2.new(1, 0, 0, 5)
+    grass.Position = UDim2.new(0, 0, 0, -3)
+    grass.BackgroundColor3 = Color3.fromRGB(76, 184, 58)
+    grass.BorderSizePixel = 0
+    grass.ZIndex = 5
+    grass.Parent = ground
+    local tiles = Instance.new("Frame")
+    tiles.Size = UDim2.new(1, -24, 1, -2)
+    tiles.Position = UDim2.new(0, 12, 0, 2)
+    tiles.BackgroundTransparency = 1
+    tiles.ClipsDescendants = true
+    tiles.ZIndex = 5
+    tiles.Parent = ground
+    for row = 0, 1 do
+        for col = -1, 9 do
+            local b = Instance.new("Frame")
+            b.Size = UDim2.new(0, 37, 0, 14)
+            b.Position = UDim2.new(0, col * 40 + (row == 1 and 20 or 0) + 1, 0, 3 + row * 16)
+            b.BackgroundColor3 = (row == 0) and Color3.fromRGB(228, 124, 56) or Color3.fromRGB(214, 108, 44)
+            b.BorderSizePixel = 0
+            b.ZIndex = 6
+            b.Parent = tiles
+        end
+    end
 
-local function playSound(id, vol)
-	if not Config.Sounds or not id or id == "" then return end
-	pcall(function()
-		local s = Instance.new("Sound")
-		s.SoundId = id
-		s.Volume = vol or 0.5
-		s.Parent = SoundService
-		s:Play()
-		task.delay(6, function() if s.Parent then s:Destroy() end end)
-	end)
-end
-local function click() playSound(Config.ClickSound, 0.4) end
-local function pressFx(btn, strength, silent)
-	local sc = new("UIScale", { Parent = btn })
-	btn.MouseButton1Down:Connect(function() tween(sc, 0.08, { Scale = 1 - (strength or 0.05) }):Play() end)
-	local function up() tween(sc, 0.14, { Scale = 1 }, Enum.EasingStyle.Back):Play() end
-	btn.MouseButton1Up:Connect(up)
-	btn.MouseLeave:Connect(up)
-	if not silent then btn.MouseButton1Click:Connect(click) end
-end
+    -- بريق صغير في السماء
+    local sparks = {}
+    for i = 1, 10 do
+        local d = circle((i * 83) % 370 + 12, (i * 47) % 150 + 10, (i % 3 == 0) and 4 or 3, Color3.fromRGB(190, 240, 255), 2)
+        sparks[i] = {obj = d, ph = i * 0.9}
+    end
 
---// Assets & Images
-local Assets, Waiters = {}, {}
-local function useAsset(key, fn) if Assets[key] then task.spawn(fn, Assets[key]) else Waiters[key] = Waiters[key] or {}; table.insert(Waiters[key], fn) end end
-local function setAsset(key, a) Assets[key] = a; for _, fn in ipairs(Waiters[key] or {}) do task.spawn(fn, a) end end
-if Config.BubbleImageURL ~= "" then setAsset("bubble", Config.BubbleImageURL) end
+    -- صندوق الـ ؟
+    local qb = Instance.new("Frame")
+    qb.Size = UDim2.new(0, 28, 0, 28)
+    qb.Position = UDim2.new(0, 24, 0, 30)
+    qb.BackgroundColor3 = Color3.fromRGB(252, 190, 30)
+    qb.BorderSizePixel = 0
+    qb.ZIndex = 5
+    qb.Parent = LoadFrame
+    Instance.new("UICorner", qb).CornerRadius = UDim.new(0, 6)
+    local qbStroke = Instance.new("UIStroke")
+    qbStroke.Color = INK
+    qbStroke.Thickness = 2.5
+    qbStroke.Parent = qb
+    local qbl = Instance.new("TextLabel")
+    qbl.Size = UDim2.new(1, 0, 1, 0)
+    qbl.BackgroundTransparency = 1
+    qbl.Text = "?"
+    qbl.TextColor3 = WHITE
+    qbl.Font = Enum.Font.FredokaOne
+    qbl.TextSize = 22
+    qbl.TextStrokeColor3 = INK
+    qbl.TextStrokeTransparency = 0.2
+    qbl.ZIndex = 6
+    qbl.Parent = qb
 
-local PlayerImage
-local PlayerImageWaiters = {}
-task.spawn(function()
-	local img
-	pcall(function() img = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150) end)
-	PlayerImage = img
-	for _, fn in ipairs(PlayerImageWaiters) do task.spawn(fn, img) end
+    -- صورة اللاعب بحلقة ذهبية
+    local ring = circle(166, 12, 68, Color3.fromRGB(251, 208, 0), 6)
+    local ringStroke = Instance.new("UIStroke")
+    ringStroke.Color = INK
+    ringStroke.Thickness = 3
+    ringStroke.Parent = ring
+    local Avatar = Instance.new("ImageLabel")
+    Avatar.Size = UDim2.new(0, 58, 0, 58)
+    Avatar.Position = UDim2.new(0, 5, 0, 5)
+    Avatar.BackgroundColor3 = Color3.fromRGB(60, 70, 120)
+    Avatar.BorderSizePixel = 0
+    Avatar.ZIndex = 7
+    Avatar.Parent = ring
+    Instance.new("UICorner", Avatar).CornerRadius = UDim.new(1, 0)
+    loadAvatarThumbnail(LocalPlayer.UserId, Avatar)
+
+    local nameLbl = Instance.new("TextLabel")
+    nameLbl.Size = UDim2.new(1, 0, 0, 14)
+    nameLbl.Position = UDim2.new(0, 0, 0, 84)
+    nameLbl.BackgroundTransparency = 1
+    nameLbl.Text = tostring(LocalPlayer.DisplayName)
+    nameLbl.TextColor3 = WHITE
+    nameLbl.Font = Enum.Font.GothamBold
+    nameLbl.TextSize = 11
+    nameLbl.TextStrokeColor3 = INK
+    nameLbl.TextStrokeTransparency = 0.55
+    nameLbl.ZIndex = 7
+    nameLbl.Parent = LoadFrame
+
+    -- العنوان الكبير (غيّر الكلمة من هنا)
+    local HUB_TITLE = "K  E  O  N"
+    local titleShadow = Instance.new("TextLabel")
+    titleShadow.Size = UDim2.new(1, 0, 0, 56)
+    titleShadow.Position = UDim2.new(0, 2, 0, 102)
+    titleShadow.BackgroundTransparency = 1
+    titleShadow.Text = HUB_TITLE
+    titleShadow.TextColor3 = Color3.fromRGB(14, 60, 150)
+    titleShadow.TextTransparency = 0.45
+    titleShadow.Font = Enum.Font.GothamBlack
+    titleShadow.TextSize = 46
+    titleShadow.ZIndex = 6
+    titleShadow.Parent = LoadFrame
+    local Title = titleShadow:Clone()
+    Title.Position = UDim2.new(0, 0, 0, 99)
+    Title.TextColor3 = WHITE
+    Title.TextTransparency = 0
+    Title.ZIndex = 7
+    Title.Parent = LoadFrame
+
+    -- الإطارات حول الشريط
+    local barStroke = Instance.new("UIStroke")
+    barStroke.Color = WHITE
+    barStroke.Thickness = 2
+    barStroke.Transparency = 0.15
+    barStroke.Parent = BarBg
+
+    local loadingLbl = Instance.new("TextLabel")
+    loadingLbl.Size = UDim2.new(0, 160, 0, 16)
+    loadingLbl.Position = UDim2.new(0, 30, 0, 188)
+    loadingLbl.BackgroundTransparency = 1
+    loadingLbl.Text = "جاري التحميل…"
+    loadingLbl.TextColor3 = WHITE
+    loadingLbl.Font = Enum.Font.GothamBold
+    loadingLbl.TextSize = 11
+    loadingLbl.TextXAlignment = Enum.TextXAlignment.Left
+    loadingLbl.TextStrokeColor3 = INK
+    loadingLbl.TextStrokeTransparency = 0.6
+    loadingLbl.ZIndex = 8
+    loadingLbl.Parent = LoadFrame
+
+    local PctLbl = Instance.new("TextLabel")
+    PctLbl.Size = UDim2.new(0, 80, 0, 16)
+    PctLbl.Position = UDim2.new(0, 290, 0, 188)
+    PctLbl.BackgroundTransparency = 1
+    PctLbl.Text = "0%"
+    PctLbl.TextColor3 = WHITE
+    PctLbl.Font = Enum.Font.GothamBlack
+    PctLbl.TextSize = 13
+    PctLbl.TextXAlignment = Enum.TextXAlignment.Right
+    PctLbl.TextStrokeColor3 = INK
+    PctLbl.TextStrokeTransparency = 0.4
+    PctLbl.ZIndex = 8
+    PctLbl.Parent = LoadFrame
+
+    -- تعبئة الشريط: برتقالي → أصفر + لمعة تمر فوقها
+    BarFill.BackgroundColor3 = WHITE
+    BarFill.ClipsDescendants = true
+    local fillGrad = Instance.new("UIGradient")
+    fillGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 120, 20)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 222, 70))
+    })
+    fillGrad.Parent = BarFill
+    local sheen = Instance.new("Frame")
+    sheen.Size = UDim2.new(0, 44, 1, 0)
+    sheen.Position = UDim2.new(0, -44, 0, 0)
+    sheen.BackgroundColor3 = WHITE
+    sheen.BorderSizePixel = 0
+    sheen.ZIndex = 10
+    sheen.Parent = BarFill
+    local sheenGrad = Instance.new("UIGradient")
+    sheenGrad.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.5, 0.45),
+        NumberSequenceKeypoint.new(1, 1)
+    })
+    sheenGrad.Parent = sheen
+
+    local head = circle(0, 0, 16, WHITE, 11, BarBg)
+    head.AnchorPoint = Vector2.new(0.5, 0.5)
+    head.Position = UDim2.new(0, 0, 0.5, 0)
+    head.Visible = false
+    local headStroke = Instance.new("UIStroke")
+    headStroke.Color = Color3.fromRGB(255, 150, 30)
+    headStroke.Thickness = 3
+    headStroke.Parent = head
+
+    -- فطر بكسل يركض على الشريط
+    local runner = Instance.new("Frame")
+    runner.Size = UDim2.new(0, 33, 0, 30)
+    runner.Position = UDim2.new(0, 14, 0, 230)
+    runner.BackgroundTransparency = 1
+    runner.ZIndex = 8
+    runner.Parent = LoadFrame
+    local rows = {
+        "...DDDDD...",
+        "..DRRWWRD..",
+        ".DRWWWRRWD.",
+        "DRRWWWRRWWD",
+        "DRRRWRRRWRD",
+        "DRRRRRRRRRD",
+        ".DDDDDDDDD.",
+        "..DSDSDSD..",
+        "..DSSSSSD..",
+        "...DDDDD..."
+    }
+    local palette = {
+        D = Color3.fromRGB(50, 28, 28),
+        R = Color3.fromRGB(229, 37, 33),
+        W = Color3.fromRGB(255, 255, 255),
+        S = Color3.fromRGB(252, 226, 184)
+    }
+    for ry, row in ipairs(rows) do
+        for rx = 1, #row do
+            local col = palette[row:sub(rx, rx)]
+            if col then
+                local px = Instance.new("Frame")
+                px.Size = UDim2.new(0, 3, 0, 3)
+                px.Position = UDim2.new(0, (rx - 1) * 3, 0, (ry - 1) * 3)
+                px.BackgroundColor3 = col
+                px.BorderSizePixel = 0
+                px.ZIndex = 9
+                px.Parent = runner
+            end
+        end
+    end
+
+    -- وميض عند اكتمال التحميل
+    local flash = Instance.new("Frame")
+    flash.Size = UDim2.new(1, 0, 1, 0)
+    flash.BackgroundColor3 = WHITE
+    flash.BackgroundTransparency = 1
+    flash.BorderSizePixel = 0
+    flash.ZIndex = 20
+    flash.Parent = LoadFrame
+    Instance.new("UICorner", flash).CornerRadius = UDim.new(0, 14)
+
+    -- حلقة الحركة الواحدة
+    local t0 = os.clock()
+    local finished = false
+    local conn
+    conn = RunService.Heartbeat:Connect(function()
+        if not LoadingGui.Parent then
+            conn:Disconnect()
+            return
+        end
+        local t = os.clock() - t0
+
+        -- تقدّم تلقائي ناعم أثناء بناء الواجهة (لا ينزل أبداً، ويكمل الشريط الحقيقي بعده)
+        local p = BarFill.Size.X.Scale
+        local fake = math.min(0.9, 1 - math.exp(-t * 0.8))
+        if p < fake then
+            BarFill.Size = UDim2.new(fake, 0, 1, 0)
+            p = fake
+        end
+
+        for _, c in ipairs(clouds) do
+            local x = ((c.phase * 520 + t * c.speed) % 520) - 100
+            c.obj.Position = UDim2.new(0, x, 0, c.y)
+        end
+        sunGlow.BackgroundTransparency = 0.55 + 0.2 * math.sin(t * 2)
+        local gs = 74 + 6 * math.sin(t * 2)
+        sunGlow.Size = UDim2.new(0, gs, 0, gs)
+        sunGlow.Position = UDim2.new(0, 355 - gs / 2, 0, 51 - gs / 2)
+        for _, s in ipairs(sparks) do
+            s.obj.BackgroundTransparency = 0.25 + 0.7 * (0.5 + 0.5 * math.sin(t * 2.5 + s.ph))
+        end
+
+        qb.Position = UDim2.new(0, 24, 0, 30 + math.sin(t * 3) * 2.5)
+        ring.Position = UDim2.new(0, 166, 0, 12 + math.sin(t * 2.4) * 1.5)
+
+        PctLbl.Text = tostring(math.floor(p * 100 + 0.5)) .. "%"
+        local hop = (p < 0.999) and (-math.abs(math.sin(t * 9)) * 7) or 0
+        runner.Position = UDim2.new(0, 30 + p * 340 - 16, 0, 232 + hop)
+        head.Visible = p > 0.01 and p < 0.995
+        head.Position = UDim2.new(p, 0, 0.5, 0)
+        sheen.Position = UDim2.new(0, -44 + ((t / 1.0) % 1) * 400, 0, 0)
+
+        if not finished and p >= 0.999 then
+            finished = true
+            flash.BackgroundTransparency = 0.6
+            TweenService:Create(flash, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+            loadStroke.Thickness = 5.5
+            TweenService:Create(loadStroke, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Thickness = 3.5}):Play()
+        end
+    end)
 end)
-local function usePlayerImage(fn) if PlayerImage then task.spawn(fn, PlayerImage) else table.insert(PlayerImageWaiters, fn) end end
-
-local function loadAvatarThumbnail(userId, imageLabel)
-	task.spawn(function() pcall(function() imageLabel.Image = Players:GetUserThumbnailAsync(tonumber(userId) or userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150) end) end)
-end
-
---// Language
-local Lang = "AR"
-local Translatables, LangRefreshers = {}, {}
-local function tr(s) local t = Languages[Lang]; return (t and t[s]) or s end
-local function bind(obj, key, prop)
-	prop = prop or "Text"
-	local entry = { obj = obj, key = key, prop = prop }
-	if prop == "Text" and obj:IsA("TextLabel") then entry.align = obj.TextXAlignment end
-	table.insert(Translatables, entry)
-	obj[prop] = tr(key)
-	return entry
-end
-
---// Clear old instances (REXEL & Kaizo)
-local function findOld(container)
-	pcall(function()
-		for _, name in ipairs({"KaizoHub", "KEONProV47UI", "KEONAdminBroadcastGui", "KEONTopChatGui", "KEONLoadingGui", "KEONBanScreenGui", "KEONVoteBannerGui", "KEONEventWidgetGui", "KEONReloadWidgetGui"}) do
-			local old = container:FindFirstChild(name)
-			if old then old:Destroy() end
-		end
-	end)
-end
-if typeof(gethui) == "function" then pcall(function() findOld(gethui()) end) end
-findOld(CoreGui)
-findOld(LocalPlayer:WaitForChild("PlayerGui"))
-
-local gui = new("ScreenGui", { Name = "KaizoHub", ResetOnSpawn = false, IgnoreGuiInset = true, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 999 })
-pcall(function() gui.Parent = (typeof(gethui) == "function" and gethui()) or CoreGui end)
-if not gui.Parent then gui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
-
-local Kaizo = { Tabs = {}, Cards = {}, Config = Config }
-local Conns = {}; local alive = true
-local function connect(sig, fn) local c = sig:Connect(fn); table.insert(Conns, c); return c end
-function Kaizo:Destroy() alive = false; for _, c in ipairs(Conns) do pcall(function() c:Disconnect() end) end; gui:Destroy() end
-
---// Window Structure
-local WIN_W, WIN_H, HEADER_H, SIDEBAR_W, FOOTER_H = 640, 420, 52, 170, 12
-local isOpen, baseScale = false, 1
-
-local Window = new("Frame", { Name = "Window", Size = UDim2.fromOffset(WIN_W, WIN_H), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, Visible = false, Parent = gui }, { corner(16), stroke(Theme.Border, 3) })
-local WinScale = new("UIScale", { Scale = 0, Parent = Window })
-local Canvas = new("CanvasGroup", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Theme.Header, BorderSizePixel = 0, Parent = Window }, { corner(16) })
-
--- Background Image (REXEL Theme)
-local BgImage = new("ImageLabel", { Size = UDim2.fromScale(1,1), BackgroundTransparency = 1, Image = REXEL_BACKGROUND_URL, ScaleType = Enum.ScaleType.Crop, ZIndex = 0, Parent = Canvas }, { corner(16) })
-
-local function fit()
-	local cam = workspace.CurrentCamera
-	if cam then baseScale = math.clamp(math.min(cam.ViewportSize.X / (WIN_W + 40), cam.ViewportSize.Y / (WIN_H + 70)), 0.45, 1) end
-	if isOpen then WinScale.Scale = baseScale end
-end
-fit(); if workspace.CurrentCamera then connect(workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"), fit) end
-
---// Header
-local Header = new("Frame", { Size = UDim2.new(1, 0, 0, HEADER_H), BackgroundColor3 = Theme.Header, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 2, Parent = Canvas })
-new("Frame", { Size = UDim2.new(1, 0, 0, 2), AnchorPoint = Vector2.new(0, 1), Position = UDim2.fromScale(0, 1), BackgroundColor3 = Theme.Accent, BorderSizePixel = 0, ZIndex = 4, Parent = Header })
-
-local HLeft = new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 0), Size = UDim2.new(0, 0, 1, 0), AutomaticSize = X, ZIndex = 3, Parent = Header }, { list(8, Enum.FillDirection.Horizontal) })
-local Logo = new("Frame", { Size = UDim2.fromOffset(38, 38), BackgroundColor3 = Theme.Accent, LayoutOrder = 1, ZIndex = 3, Parent = HLeft }, { corner(19), stroke(Theme.White, 2.5) })
-emoji(Logo, "⭐", 20, UDim2.fromScale(0.5, 0.5), UDim2.fromOffset(34, 34)).AnchorPoint = Vector2.new(0.5, 0.5)
-local TitleLbl = label({ Size = UDim2.new(0, 0, 0, 40), AutomaticSize = X, Weight = "Heavy", TextSize = 24, RichText = true, Text = richTitle(Config.Name), LayoutOrder = 2, ZIndex = 3, Parent = HLeft }, { tstroke(Theme.Border, 2.5) })
-
-local function headerBtn(color, text, xOff, textColor)
-	local b = new("TextButton", { Size = UDim2.fromOffset(34, 34), Position = UDim2.new(1, xOff, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5), BackgroundColor3 = color, Text = "", AutoButtonColor = false, ZIndex = 3, Parent = Header }, { corner(9), stroke(Theme.Border, 2.5) })
-	local l = label({ Size = UDim2.fromScale(1, 1), Text = text, Weight = "Heavy", TextSize = 20, TextColor3 = textColor or Theme.Border, TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 4, Parent = b })
-	pressFx(b, 0.08); return b, l
-end
-local CloseBtn, CloseLbl = headerBtn(Theme.Red, "✕", -10, Theme.White); CloseLbl.TextSize = 16
-local MinBtn, MinLbl = headerBtn(Theme.Gold, "–", -50)
-
---// Body & Sidebar
-local Body = new("Frame", { Position = UDim2.fromOffset(0, HEADER_H), Size = UDim2.new(1, 0, 1, -HEADER_H), BackgroundTransparency = 1, Parent = Canvas })
-local Sidebar = new("Frame", { Size = UDim2.new(0, SIDEBAR_W, 1, 0), BackgroundColor3 = Theme.Side, BackgroundTransparency = 0.4, BorderSizePixel = 0, Parent = Body })
-local TabScroll = new("ScrollingFrame", { Size = UDim2.new(1, 0, 1, -62), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 0, AutomaticCanvasSize = Y, CanvasSize = UDim2.new(), Parent = Sidebar }, { list(4), pad(8, 6, 8, 8) })
-
-local PlayerCard = new("Frame", { Size = UDim2.new(1, 0, 0, 62), AnchorPoint = Vector2.new(0, 1), Position = UDim2.fromScale(0, 1), BackgroundColor3 = Theme.SideDark, BorderSizePixel = 0, Parent = Sidebar })
-new("Frame", { Size = UDim2.new(1, 0, 0, 2), BackgroundColor3 = Theme.Accent, BorderSizePixel = 0, Parent = PlayerCard })
-local Avatar = new("ImageLabel", { Size = UDim2.fromOffset(40, 40), Position = UDim2.new(0, 10, 0.5, 1), AnchorPoint = Vector2.new(0, 0.5), BackgroundColor3 = Theme.Field, Parent = PlayerCard }, { corner(20), stroke(Theme.Accent, 2) })
-usePlayerImage(function(img) if img then Avatar.Image = img end end)
-label({ Size = UDim2.new(1, -62, 0, 16), Position = UDim2.new(0, 58, 0.5, -17), Text = LocalPlayer.DisplayName, TextSize = 13, Weight = "ExtraBold", TextColor3 = Theme.White, TextTruncate = Enum.TextTruncate.AtEnd, Parent = PlayerCard })
-label({ Size = UDim2.new(1, -62, 0, 14), Position = UDim2.new(0, 58, 0.5, 1), Text = "@" .. LocalPlayer.Name, Weight = "Medium", TextSize = 11, TextColor3 = Theme.SideMuted, TextTruncate = Enum.TextTruncate.AtEnd, Parent = PlayerCard })
-
-local Content = new("Frame", { Position = UDim2.fromOffset(SIDEBAR_W, 0), Size = UDim2.new(1, -SIDEBAR_W, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true, Parent = Body })
-local PageTitle = label({ Position = UDim2.fromOffset(16, 8), Size = UDim2.new(1, -230, 0, 28), Weight = "Heavy", TextSize = 22, TextTruncate = Enum.TextTruncate.AtEnd, Parent = Content })
-local PageSub = label({ Position = UDim2.fromOffset(16, 37), Size = UDim2.new(1, -230, 0, 16), Weight = "Medium", TextSize = 12, TextColor3 = Theme.Muted, TextTruncate = Enum.TextTruncate.AtEnd, Parent = Content })
-
-local SearchWrap = new("Frame", { Size = UDim2.fromOffset(190, 36), Position = UDim2.new(1, -14, 0, 10), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = Theme.Field, Parent = Content }, { corner(18), stroke(Theme.CardStroke, 2) })
-emoji(SearchWrap, "🔍", 14, UDim2.fromOffset(8, 0), UDim2.fromOffset(26, 36))
-local SearchBox = new("TextBox", { Size = UDim2.new(1, -44, 1, 0), Position = UDim2.fromOffset(36, 0), BackgroundTransparency = 1, Text = "", PlaceholderText = "Search...", PlaceholderColor3 = Theme.Muted, Font = FONT.SemiBold, TextSize = 13, TextColor3 = Theme.Text, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Parent = SearchWrap })
-bind(SearchBox, "Search...", "PlaceholderText")
-
-local Pages = new("Frame", { Position = UDim2.fromOffset(0, 64), Size = UDim2.new(1, 0, 1, -64), BackgroundTransparency = 1, ClipsDescendants = true, Parent = Content })
-
---// Dragging
-do
-	local dragging, dragStart, startPos
-	Header.InputBegan:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-			dragging, dragStart, startPos = true, i.Position, Window.Position
-			i.Changed:Connect(function() if i.UserInputState == Enum.UserInputState.End then dragging = false end end)
-		end
-	end)
-	connect(UIS.InputChanged, function(i)
-		if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-			local d = i.Position - dragStart
-			Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
-		end
-	end)
-end
-
---// Square bubble
-local Bubble = new("Frame", { Name = "Bubble", Size = UDim2.fromOffset(64, 64), Position = UDim2.new(0, 28, 0.5, -32), BackgroundTransparency = 1, Visible = false, ZIndex = 30, Parent = gui })
-local Ripple = new("Frame", { Size = UDim2.fromOffset(56, 56), AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), BackgroundTransparency = 1, ZIndex = 30, Parent = Bubble }, { corner(18), stroke(Theme.Accent, 3, 0.2) })
-local BubbleTile = new("TextButton", { Size = UDim2.fromOffset(56, 56), AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), BackgroundColor3 = Theme.Header, Text = "", AutoButtonColor = false, ZIndex = 31, Parent = Bubble }, { corner(16), stroke(Theme.Border, 3) })
-local BubbleFallback = emoji(BubbleTile, "⭐", 28, UDim2.fromScale(0.5, 0.5), UDim2.fromOffset(50, 50)); BubbleFallback.AnchorPoint = Vector2.new(0.5, 0.5); BubbleFallback.ZIndex = 32
-local BubbleImg = new("ImageLabel", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Crop, Visible = false, ZIndex = 33, Parent = BubbleTile }, { corner(16) })
-useAsset("bubble", function(a) BubbleImg.Image = a; BubbleImg.Visible = true; BubbleFallback.Visible = false end)
-local BubbleScale = new("UIScale", { Parent = BubbleTile })
-
-task.spawn(function()
-	local s = Ripple:FindFirstChildOfClass("UIStroke")
-	while alive do
-		Ripple.Size = UDim2.fromOffset(56, 56); s.Transparency = 0.2
-		local a = tween(Ripple, 1.3, { Size = UDim2.fromOffset(92, 92) })
-		local b = tween(s, 1.3, { Transparency = 1 })
-		a:Play(); b:Play(); a.Completed:Wait(); task.wait(0.35)
-	end
-end)
-do
-	local down, moved, startInput, startPos
-	BubbleTile.InputBegan:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-			down, moved, startInput, startPos = true, false, i.Position, Bubble.Position
-			tween(BubbleScale, 0.08, { Scale = 0.92 }):Play()
-			i.Changed:Connect(function()
-				if i.UserInputState == Enum.UserInputState.End and down then
-					down = false; tween(BubbleScale, 0.15, { Scale = 1 }, Enum.EasingStyle.Back):Play()
-					if not moved then click(); setOpen(true) end
-				end
-			end)
-		end
-	end)
-	connect(UIS.InputChanged, function(i)
-		if down and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-			local d = i.Position - startInput
-			if d.Magnitude > 6 then moved = true end
-			if moved then Bubble.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y) end
-		end
-	end)
-end
-
-function setOpen(v)
-	isOpen = v
-	if v then
-		Bubble.Visible = false; Window.Visible = true
-		tween(WinScale, 0.35, { Scale = baseScale }, Enum.EasingStyle.Back):Play()
-	else
-		local tw = tween(WinScale, 0.2, { Scale = 0 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-		tw:Play(); tw.Completed:Connect(function() if not isOpen then Window.Visible = false; Bubble.Visible = true end end)
-	end
-end
-MinBtn.MouseButton1Click:Connect(function() setOpen(false) end)
-CloseBtn.MouseButton1Click:Connect(function() setOpen(false) end)
-connect(UIS.InputBegan, function(input, gp) if not gp and Config.ToggleKey and input.KeyCode == Config.ToggleKey and Window.Parent then setOpen(not isOpen) end end)
-
---// Tabs System
-local currentTab
-local function refreshHeader()
-	if not currentTab then return end
-	PageTitle.Text = string.upper(tr(currentTab.Title))
-	PageSub.Text = tr(currentTab.Subtitle or "")
-	local rtl = Lang == "AR"
-	PageTitle.TextXAlignment = rtl and Enum.TextXAlignment.Right or Enum.TextXAlignment.Left
-	PageSub.TextXAlignment = rtl and Enum.TextXAlignment.Right or Enum.TextXAlignment.Left
-end
-
-local Tab, Card = {}, {}; Tab.__index, Card.__index = Tab, Card
-local function selectTab(tab)
-	currentTab = tab
-	for _, t in ipairs(Kaizo.Tabs) do
-		local on = (t == tab)
-		t.Page.Visible = on
-		t.Selected = on
-		t.Stroke.Enabled = on
-		tween(t.Button, 0.18, { BackgroundColor3 = on and Theme.TabActive or Theme.Side, BackgroundTransparency = on and 0.2 or 1 }):Play()
-		t.NameLabel.TextColor3 = on and Theme.White or Theme.SideText
-	end
-	tab.Page.Position = UDim2.fromOffset(0, 16)
-	tween(tab.Page, 0.3, { Position = UDim2.fromOffset(0, 0) }, Enum.EasingStyle.Quint):Play()
-	refreshHeader()
-end
-
-local tabOrder, lastSection = 0, nil
-function Kaizo:AddTab(o)
-	tabOrder += 1
-	if o.Section and o.Section ~= lastSection then
-		lastSection = o.Section
-		local sl = label({ Size = UDim2.new(1, 0, 0, 24), TextSize = 10, Weight = "ExtraBold", TextColor3 = Theme.SideMuted, LayoutOrder = tabOrder, Parent = TabScroll }, { pad(6, 8, 6, 0) })
-		bind(sl, string.upper(o.Section)); tabOrder += 1
-	end
-	local btn = new("TextButton", { Size = UDim2.new(1, 0, 0, 42), Text = "", AutoButtonColor = false, BackgroundColor3 = Theme.Side, BackgroundTransparency = 1, LayoutOrder = tabOrder, Parent = TabScroll }, { corner(12) })
-	local st = stroke(Theme.Accent, 2); st.Enabled = false; st.Parent = btn
-	emoji(btn, o.Icon or "•", 20, UDim2.fromOffset(6, 5), UDim2.fromOffset(32, 32))
-	local nameLbl = label({ Size = UDim2.new(1, -48, 1, 0), Position = UDim2.fromOffset(42, 0), TextSize = 13, Weight = "ExtraBold", TextColor3 = Theme.SideText, TextTruncate = Enum.TextTruncate.AtEnd, Parent = btn })
-	bind(nameLbl, o.Name)
-
-	local page = new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 4, AutomaticCanvasSize = Y, CanvasSize = UDim2.new(), Visible = false, Parent = Pages }, { pad(14, 4, 14, 12) })
-	local cols = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, Parent = page }, { list(10, Enum.FillDirection.Horizontal) })
-	local left = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.5, -5, 0, 0), AutomaticSize = Y, LayoutOrder = 1, Parent = cols }, { list(10) })
-	local right = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.5, -5, 0, 0), AutomaticSize = Y, LayoutOrder = 2, Parent = cols }, { list(10) })
-
-	local tab = setmetatable({ Title = o.Title or o.Name, Subtitle = o.Subtitle, Button = btn, Stroke = st, NameLabel = nameLbl, Page = page, Left = left, Right = right, Count = 0, Selected = false }, Tab)
-	table.insert(Kaizo.Tabs, tab)
-	btn.MouseButton1Click:Connect(function() selectTab(tab) end); pressFx(btn, 0.03)
-	if #Kaizo.Tabs == 1 then selectTab(tab) end
-	return tab
-end
-
-function Tab:AddCard(o)
-	self.Count += 1
-	local col = (o.Side == "Right") and self.Right or self.Left
-	local frame = new("Frame", { BackgroundColor3 = Theme.Card, BackgroundTransparency = 0.2, AutomaticSize = Y, Size = UDim2.new(1, 0, 0, 0), LayoutOrder = self.Count, Parent = col }, { corner(12), stroke(Theme.CardStroke, 2) })
-	local group = new("CanvasGroup", { BackgroundTransparency = 1, AutomaticSize = Y, Size = UDim2.new(1, 0, 0, 0), BorderSizePixel = 0, Parent = frame }, { corner(12), list(0) })
-	local head = new("TextButton", { Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Theme.CardHead, BackgroundTransparency = 0.3, BorderSizePixel = 0, Text = "", AutoButtonColor = false, LayoutOrder = 1, Parent = group })
-	emoji(head, o.Icon or "★", 18, UDim2.fromOffset(8, 5), UDim2.fromOffset(30, 30))
-	local titleLbl = label({ Size = UDim2.new(1, -84, 1, 0), Position = UDim2.fromOffset(42, 0), TextSize = 14, Weight = "ExtraBold", TextTruncate = Enum.TextTruncate.AtEnd, Parent = head })
-	bind(titleLbl, o.Title)
-	local chev = label({ Size = UDim2.fromOffset(28, 28), Position = UDim2.new(1, -34, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), Text = "⌄", TextSize = 18, Weight = "Heavy", TextColor3 = Theme.Muted, TextXAlignment = Enum.TextXAlignment.Center, Parent = head })
-	new("Frame", { Size = UDim2.new(1, 0, 0, 2), BackgroundColor3 = Theme.Divider, BorderSizePixel = 0, LayoutOrder = 2, Parent = group })
-	local body = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, LayoutOrder = 3, Parent = group }, { list(11), pad(12, 12, 12, 13) })
-
-	local card = setmetatable({ Frame = frame, Body = body, Elements = {}, Page = self.Page, TitleText = string.lower(o.Title) }, Card)
-	table.insert(Kaizo.Cards, card)
-	local open = true
-	head.MouseButton1Click:Connect(function() click(); open = not open; body.Visible = open; tween(chev, 0.18, { Rotation = open and 0 or -90 }):Play() end)
-	return card
-end
-
-local function register(card, row, o) table.insert(card.Elements, { Frame = row, Text = string.lower((o.Title or o.Text or "") .. " " .. (o.Description or "")) }) end
-local function textBlock(parent, o, size)
-	local f = new("Frame", { BackgroundTransparency = 1, Size = size, AutomaticSize = Y, Parent = parent }, { list(2) })
-	if o.Title then bind(label({ TextSize = 13, Weight = "ExtraBold", Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, TextWrapped = true, TextColor3 = o.TitleColor or Theme.Text, LayoutOrder = 1, Parent = f }), o.Title) end
-	if o.Description then bind(label({ Weight = "Medium", TextSize = 11, TextColor3 = Theme.Muted, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, TextWrapped = true, LayoutOrder = 2, Parent = f }), o.Description) end
-	return f
-end
-
-function Card:AddToggle(o)
-	local state = o.Default == true
-	local row = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 30), AutomaticSize = Y, Parent = self.Body })
-	textBlock(row, o, UDim2.new(1, -60, 0, 0))
-	local sw = new("TextButton", { Size = UDim2.fromOffset(50, 26), AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 0, 0, 2), BackgroundColor3 = state and Theme.Accent or Theme.Off, Text = "", AutoButtonColor = false, Parent = row }, { corner(13), stroke(Theme.CardStroke, 2) })
-	local knob = new("Frame", { Size = UDim2.fromOffset(20, 20), AnchorPoint = Vector2.new(0, 0.5), Position = state and UDim2.new(1, -23, 0.5, 0) or UDim2.new(0, 3, 0.5, 0), BackgroundColor3 = Theme.White, Parent = sw }, { corner(10), stroke(Theme.CardStroke, 1.5) })
-	local obj = {}
-	function obj.Set(v, silent) state = v and true or false; tween(sw, 0.18, { BackgroundColor3 = state and Theme.Accent or Theme.Off }):Play(); tween(knob, 0.2, { Position = state and UDim2.new(1, -23, 0.5, 0) or UDim2.new(0, 3, 0.5, 0) }, Enum.EasingStyle.Back):Play(); if not silent then fire(o.Callback, state) end end
-	function obj.Get() return state end
-	sw.MouseButton1Click:Connect(function() obj.Set(not state) end); pressFx(sw, 0.06); register(self, row, o); return obj
-end
-
-function Card:AddButton(o)
-	local color = o.Color or Theme.Accent
-	local b = new("TextButton", { Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = color, Text = "", AutoButtonColor = false, Parent = self.Body }, { corner(10), stroke(darken(color, 0.45), 2.5) })
-	local t = label({ Size = UDim2.fromScale(1, 1), TextSize = 13, Weight = "ExtraBold", TextColor3 = Theme.White, TextXAlignment = Enum.TextXAlignment.Center, Parent = b }); bind(t, o.Title)
-	pressFx(b, 0.04); b.MouseButton1Click:Connect(function() fire(o.Callback) end); register(self, b, o); return b
-end
-
-function Card:AddLabel(o)
-	local l = label({ Weight = o.Weight or "Medium", TextSize = o.Size or 12, TextColor3 = o.Color or Theme.Muted, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Y, TextWrapped = true, Parent = self.Body })
-	if o.NoTranslate then l.Text = o.Text else bind(l, o.Text) end; register(self, l, o); return l
-end
-
-local function applySearch()
-	local q = string.lower(SearchBox.Text)
-	for _, card in ipairs(Kaizo.Cards) do
-		local titleMatch = q == "" or string.find(card.TitleText, q, 1, true) ~= nil
-		local any = false
-		for _, el in ipairs(card.Elements) do
-			local vis = titleMatch or string.find(el.Text, q, 1, true) ~= nil
-			el.Frame.Visible = vis; any = any or vis
-		end
-		card.Frame.Visible = any or titleMatch
-	end
-end
-connect(SearchBox:GetPropertyChangedSignal("Text"), applySearch)
-
-function Kaizo:Notify(o)
-	print("[Kaizo Notify] " .. tostring(o.Title) .. ": " .. tostring(o.Text))
-end
-
---// =====================================================================
---//  INTEGRATED TABS (REXEL CONTENT)
---// =====================================================================
-
--- 1. Main Home (REXEL Hub updates)
-local tMain = Kaizo:AddTab({ Name = "Main", Section = "Main", Icon = "🏠", Title = "Main", Subtitle = "Dashboard & Updates" })
-local cUpdates = tMain:AddCard({ Title = "Last Updates", Icon = "✨", Side = "Left" })
-cUpdates:AddLabel({ Text = "✨ إعادة ترتيب واجهة REXEL وبطاقات السكربتات.\n💬 تحسين شكل الشات والرسائل.\n🎵 مكتبة موسيقى مع إعجاب لكل أغنية.\n🌍 اختيار العلم العربي.\n🏆 ترتيب أفضل 100 لاعب حسب وقت الاستخدام.", NoTranslate = true, Color = Theme.Text })
-local cEvent = tMain:AddCard({ Title = "Event Schedule", Icon = "🗓️", Side = "Right" })
-cEvent:AddLabel({ Text = "• الموعد: كل أسبوع يوم السبت.\n• الوقت: الساعة 6:00 مساءً (18:00) بتوقيت العراق والسعودية.", NoTranslate = true, Color = Theme.Text })
-
--- 2. Scripts (Egg Maps & Others)
-local tScripts = Kaizo:AddTab({ Name = "Scripts", Section = "Main", Icon = "🧩", Title = "Scripts", Subtitle = "Game Hacks Library" })
-local cEgg = tScripts:AddCard({ Title = "Steal an Egg", Icon = "🥚", Side = "Left" })
-cEgg:AddButton({ Title = "🌶️ سكربت فلفل", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))() end })
-cEgg:AddButton({ Title = "💧 سكربت الأزراق", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"))() end })
-local cBreak = tScripts:AddCard({ Title = "Break an Egg", Icon = "💥", Side = "Right" })
-cBreak:AddButton({ Title = "⚡ الأساسي", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/pooro885-droid/stealanegg/refs/heads/main/sae.lua"))() end })
-
--- 3. Activations (ESP, Server Hop)
-local tActs = Kaizo:AddTab({ Name = "Activations", Section = "Misc", Icon = "⚡", Title = "Activations", Subtitle = "Pro Features" })
-local cEsp = tActs:AddCard({ Title = "Radar & ESP", Icon = "🔎", Side = "Left" })
-local _G_KaizoESP = false
-cEsp:AddToggle({ Title = "Player ESP", Description = "Highlight players through walls", Callback = function(v) 
-	_G_KaizoESP = v
-	for _, p in ipairs(Players:GetPlayers()) do
-		if p ~= LocalPlayer and p.Character then
-			if _G_KaizoESP then
-				if not p.Character:FindFirstChild("KEONProEsp") then
-					local hl = Instance.new("Highlight")
-					hl.Name = "KEONProEsp"; hl.FillColor = Theme.Accent; hl.OutlineColor = Theme.White; hl.FillTransparency = 0.4; hl.OutlineTransparency = 0; hl.Parent = p.Character
-				end
-			else
-				if p.Character:FindFirstChild("KEONProEsp") then p.Character.KEONProEsp:Destroy() end
-			end
-		end
-	end
-end })
-local cWorld = tActs:AddCard({ Title = "Server Control", Icon = "🌐", Side = "Right" })
-cWorld:AddButton({ Title = "Empty Server Hop", Callback = function()
-	Kaizo:Notify({ Title = "Server Hop", Text = "Searching for an empty server..." })
-	task.spawn(function()
-		local Api = "https://games.roblox.com/v1/games/"
-		local cursor = ""; local targetServerId = nil
-		repeat
-			local url = Api .. tostring(game.PlaceId) .. "/servers/Public?sortOrder=Asc&limit=100" .. (cursor ~= "" and "&cursor=" .. cursor or "")
-			local success, raw = pcall(function() return game:HttpGet(url) end)
-			if success and raw then
-				local decoded = HttpService:JSONDecode(raw)
-				if decoded and decoded.data then
-					for _, s in ipairs(decoded.data) do
-						if s.playing and (s.playing == 1 or s.playing == 2) and s.id ~= game.JobId then targetServerId = s.id; break end
-					end
-					cursor = decoded.nextPageCursor
-				else break end
-			else break end
-			task.wait(0.2)
-		until targetServerId or not cursor or cursor == ""
-		if targetServerId then TeleportService:TeleportToPlaceInstance(game.PlaceId, targetServerId, LocalPlayer) else TeleportService:Teleport(game.PlaceId, LocalPlayer) end
-	end)
-end })
-
--- 4. Media (Music Player)
-local tMedia = Kaizo:AddTab({ Name = "Media", Section = "Misc", Icon = "🎵", Title = "Media", Subtitle = "Local Music Player" })
-local cPlayer = tMedia:AddCard({ Title = "Music Library", Icon = "🎧", Side = "Left" })
-local activeSound = nil
-cPlayer:AddButton({ Title = "Stop Music", Callback = function() if activeSound then activeSound:Stop(); activeSound:Destroy(); activeSound = nil end end })
-local tracks = {
-	{n="Track 1", u="https://mp3tourl.com/audio/1793032510554-b02ecb64-2fdf-47af-b6ad-bdbefea3d145.mp3"},
-	{n="Track 2", u="https://mp3tourl.com/audio/1793032488141-ece44ee5-915c-4707-a9db-8ba6263ed1a0.mp3"}
-}
-for i, t in ipairs(tracks) do
-	cPlayer:AddButton({ Title = "▶ " .. t.n, Callback = function()
-		if activeSound then activeSound:Stop(); activeSound:Destroy() end
-		task.spawn(function()
-			local assetPath = fetchAsset(t.u, "music_" .. i)
-			local snd = Instance.new("Sound")
-			snd.SoundId = assetPath; snd.Volume = 0.5; snd.Parent = SoundService; snd:Play()
-			activeSound = snd
-		end)
-	end })
-end
-
--- 5. Profile & Countries
-local tProfile = Kaizo:AddTab({ Name = "Profile", Section = "Misc", Icon = "👤", Title = "Profile", Subtitle = "Identity & Leaderboard" })
-local cCountry = tProfile:AddCard({ Title = "Select Country", Icon = "🌍", Side = "Left" })
-for _, c in ipairs({ {f="🇮🇶", n="العراق", c="IQ"}, {f="🇸🇦", n="السعودية", c="SA"}, {f="🇪🇬", n="مصر", c="EG"} }) do
-	cCountry:AddButton({ Title = c.f .. " " .. c.n, Callback = function()
-		KEONProfile.selectedCountryFlag = c.f; KEONProfile.selectedCountryName = c.n; KEONProfile.selectedCountryCode = c.c
-		Kaizo:Notify({ Title = "Profile", Text = "Country updated to " .. c.n })
-	end })
-end
-local cBoard = tProfile:AddCard({ Title = "Leaderboard", Icon = "🏆", Side = "Right" })
-cBoard:AddLabel({ Text = "Time saved locally.", Color = Theme.Text })
-
---// =====================================================================
---//  GLOBAL CHAT INTEGRATION (REXEL Database, Kaizo Theme)
---// =====================================================================
-
-local ChatScreenGui = new("ScreenGui", {Name = "KaizoChatGui", ResetOnSpawn = false, Parent = gui})
-
-local FloatingChatBtn = new("TextButton", {
-	Size = UDim2.fromOffset(50, 50), Position = UDim2.new(1, -70, 0, 20),
-	BackgroundColor3 = Theme.Header, BackgroundTransparency=0.3, Text = "💬", TextColor3 = Theme.White,
-	TextSize = 24, Active = true, Draggable = true, Parent = ChatScreenGui
-}, { corner(25), stroke(Theme.Accent, 2) })
-
-local ChatWin = new("Frame", {
-	Size = UDim2.fromOffset(360, 420), Position = UDim2.new(1, -440, 0, 80),
-	BackgroundColor3 = Theme.Card, BackgroundTransparency=0.1, Visible = false, Active = true, Draggable = true, Parent = ChatScreenGui
-}, { corner(12), stroke(Theme.Accent, 2) })
-
-local ChatHead = new("Frame", { Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Theme.CardHead, Parent = ChatWin }, { corner(12) })
-label({ Size = UDim2.new(1, -40, 1, 0), Position = UDim2.fromOffset(10, 0), Text = "REXEL Global Chat", TextSize = 14, Weight = "ExtraBold", Parent = ChatHead })
-
-local CloseChatBtn = new("TextButton", { Size = UDim2.fromOffset(26, 26), Position = UDim2.new(1, -34, 0.5, -13), BackgroundColor3 = Theme.Red, Text = "✕", TextColor3 = Theme.White, Font = FONT.Bold, TextSize = 14, Parent = ChatHead }, { corner(8) })
-local ChatScroll = new("ScrollingFrame", { Size = UDim2.new(1, -20, 1, -100), Position = UDim2.fromOffset(10, 50), BackgroundTransparency = 1, ScrollBarThickness = 4, CanvasSize = UDim2.new(), Parent = ChatWin }, { list(6) })
-local ChatBox = new("Frame", { Size = UDim2.new(1, -90, 0, 36), Position = UDim2.new(0, 10, 1, -46), BackgroundColor3 = Theme.Field, Parent = ChatWin }, { corner(9), stroke(Theme.Accent, 2) })
-local ChatInputBox = new("TextBox", { Size = UDim2.new(1, -10, 1, 0), Position = UDim2.fromOffset(5, 0), BackgroundTransparency = 1, PlaceholderText = "Type a message...", PlaceholderColor3 = Theme.Muted, TextColor3 = Theme.Text, Font = FONT.Bold, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Parent = ChatBox })
-local SendChatBtn = new("TextButton", { Size = UDim2.fromOffset(70, 36), Position = UDim2.new(1, -80, 1, -46), BackgroundColor3 = Theme.Accent, Text = "Send", TextColor3 = Theme.White, Font = FONT.Bold, TextSize = 13, Parent = ChatWin }, { corner(9) })
-
-FloatingChatBtn.MouseButton1Click:Connect(function() click(); ChatWin.Visible = not ChatWin.Visible end)
-CloseChatBtn.MouseButton1Click:Connect(function() click(); ChatWin.Visible = false end)
-
-local renderedMsgs = {}
-local chatLayout = ChatScroll:FindFirstChildOfClass("UIListLayout")
-
-local function appendChatMessage(sender, text, k, flag)
-	if renderedMsgs[k] then return end
-	renderedMsgs[k] = true
-	local msgRow = new("Frame", { Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = Theme.Field, Parent = ChatScroll }, { corner(8), pad(6, 6, 6, 6) })
-	label({ Size = UDim2.new(1, 0, 0, 14), Text = (flag or "🌐") .. " " .. sender, TextColor3 = Theme.Accent, Weight = "ExtraBold", Parent = msgRow })
-	label({ Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, Position = UDim2.fromOffset(0, 16), Text = text, TextColor3 = Theme.Text, TextWrapped = true, Parent = msgRow })
-	task.defer(function()
-		ChatScroll.CanvasSize = UDim2.new(0, 0, 0, chatLayout.AbsoluteContentSize.Y + 10)
-		ChatScroll.CanvasPosition = Vector2.new(0, math.max(0, ChatScroll.AbsoluteCanvasSize.Y))
-	end)
-end
-
-local lastChatSentAt = 0
-local function sendChatMessage()
-	local msg = ChatInputBox.Text
-	ChatInputBox.Text = ""
-	if msg == "" or #msg > 250 then return end
-	if os.clock() - lastChatSentAt < 2 then Kaizo:Notify({ Title = "Chat", Text = "Wait 2 seconds." }); return end
-	lastChatSentAt = os.clock()
-
-	task.spawn(function()
-		local isMuted = false
-		pcall(function()
-			local res = customRequest({Url = FIREBASE_ADMIN_ACTIONS_URL, Method = "GET"})
-			if res and res.StatusCode == 200 then
-				local data = safeDecode(res.Body)
-				if data and data.mutes and data.mutes[tostring(LocalPlayer.UserId)] and data.mutes[tostring(LocalPlayer.UserId)].muted then isMuted = true end
-			end
-		end)
-		if isMuted then Kaizo:Notify({ Title = "Muted", Text = "You are muted." }); return end
-		pcall(function()
-			customRequest({
-				Url = FIREBASE_CHAT_URL, Method = "POST",
-				Headers = {["Content-Type"] = "application/json"},
-				Body = HttpService:JSONEncode({ sender = LocalPlayer.DisplayName, userId = LocalPlayer.UserId, text = msg, countryFlag = KEONProfile.selectedCountryFlag, time = os.time() })
-			})
-		end)
-	end)
-end
-
-SendChatBtn.MouseButton1Click:Connect(sendChatMessage)
-ChatInputBox.FocusLost:Connect(function(enter) if enter then sendChatMessage() end end)
-
-task.spawn(function()
-	while alive do
-		pcall(function()
-			local res = customRequest({Url = FIREBASE_CHAT_URL, Method = "GET"})
-			if res and res.StatusCode == 200 then
-				local data = safeDecode(res.Body)
-				if data then
-					for k, m in pairs(data) do
-						if type(m) == "table" and m.text then appendChatMessage(tostring(m.sender or "Unknown"), tostring(m.text), k, m.countryFlag) end
-					end
-				end
-			end
-		end)
-		task.wait(2.5)
-	end
-end)
-
---// Admin Panel
-if LocalPlayer.Name == "Dms921" then
-	local tAdmin = Kaizo:AddTab({ Name = "Admin", Section = "Misc", Icon = "🛡️", Title = "Admin Panel", Subtitle = "REXEL Administration" })
-	local cAdmin = tAdmin:AddCard({ Title = "Broadcast", Icon = "📢", Side = "Left" })
-	local bcInp = cAdmin:AddInput({ Title = "Message", Placeholder = "Broadcast text..." })
-	cAdmin:AddButton({ Title = "Send Broadcast", Callback = function()
-		local t = bcInp.Get()
-		if t ~= "" then
-			customRequest({ Url = FIREBASE_BROADCAST_URL, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = HttpService:JSONEncode({ sender = LocalPlayer.DisplayName, text = t, time = os.time() }) })
-			bcInp.Set("")
-		end
-	end})
-end
-
---// Background Tracking (Usage)
-task.spawn(function()
-	while alive do
-		pcall(function()
-			customRequest({
-				Url = FIREBASE_USERS_URL .. "/" .. tostring(LocalPlayer.UserId) .. ".json",
-				Method = "PUT",
-				Headers = {["Content-Type"] = "application/json"},
-				Body = HttpService:JSONEncode({
-					name = LocalPlayer.Name, displayName = LocalPlayer.DisplayName, userId = LocalPlayer.UserId,
-					placeId = game.PlaceId, jobId = game.JobId, lastSeen = os.time(), totalSeconds = math.floor(os.clock() - KEONProfile.sessionStartedClock)
-				})
-			})
-		end)
-		task.wait(10)
-	end
-end)
-
---// Loading Screen (Cinematic from original Kaizo, adapted)
-local LW, LH, GH = 560, 410, 46
-local TRACK_X, TRACK_W = 40, LW - 80
-local Overlay = new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = C(4, 8, 26), BackgroundTransparency = 0.25, BorderSizePixel = 0, ZIndex = 50, Active = true, Parent = gui })
-local LoaderWrap = new("Frame", { Size = UDim2.fromOffset(LW, LH), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, ZIndex = 51, Parent = Overlay }, { corner(20) })
-local Loader = new("CanvasGroup", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Theme.Card, BorderSizePixel = 0, ZIndex = 51, Parent = LoaderWrap }, { corner(20), stroke(Theme.Accent, 3) })
-local LName = label({ Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, LH/2 - 20), Text = "REXEL KAIZO", TextSize = 24, Weight = "Heavy", TextColor3 = Theme.Accent, TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 60, Parent = Loader }, { tstroke(Theme.Border, 2.5) })
-
-playSound(Config.RunSound, 0.7)
-task.spawn(function()
-	task.wait(3.5)
-	if Overlay then Overlay:Destroy() end
-	setOpen(true)
-end)
-
-applyLang()
-return Kaizo
