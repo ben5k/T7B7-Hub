@@ -1,1 +1,202 @@
+-- Roblox Luau UI Script - Map & Script Selector Panel
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- 1. جدول المابات: يمكنك إضافة أينما تريد من المابات والسكربتات هنا
+local MapsList = {
+    {
+        Name = "Blox Fruits",
+        Description = "سكربت فارم وتلفيل تلقائي",
+        ImageId = "rbxassetid://6034287538", -- ضع أيدي (Asset ID) صورة الماب هنا
+        Script = function()
+            -- ضع كود أو رابط تشغيل السكربت الخاص بالماب هنا
+            print("تم تشغيل سكربت Blox Fruits")
+            -- loadstring(game:HttpGet("رابط_السكربت"))()
+        end
+    },
+    {
+        Name = "King Legacy",
+        Description = "سكربت تجميع أوتوماتيكي",
+        ImageId = "rbxassetid://6034287538",
+        Script = function()
+            print("تم تشغيل سكربت King Legacy")
+        end
+    },
+    {
+        Name = "Anime Adventures",
+        Description = "أوتو جيم ومراحل",
+        ImageId = "rbxassetid://6034287538",
+        Script = function()
+            print("تم تشغيل سكربت Anime Adventures")
+        end
+    }
+}
+
+-- 2. تحديد مسار تشغيل الواجهة (يعمل في Roblox Studio والأجزيكوتر)
+local ParentTarget = (gethui and gethui()) or (syn and syn.protect_gui and syn.protect_gui(ScreenGui)) or game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
+
+-- حذف الواجهة القديمة إذا كانت موجودة
+if ParentTarget:FindFirstChild("MapScriptHub") then
+    ParentTarget.MapScriptHub:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MapScriptHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = ParentTarget
+
+-- الإطار الرئيسي (Main Frame)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 360, 0, 460)
+MainFrame.Position = UDim2.new(0.5, -180, 0.5, -230)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 26)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
+
+-- الحدود باللون الأخضر النيون مثل الصورة
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(0, 255, 120)
+MainStroke.Thickness = 2.5
+MainStroke.Parent = MainFrame
+
+-- شريط العنوان (Header)
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 45)
+Header.BackgroundTransparency = 1
+Header.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -50, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.Text = "قائمة المابات والسكربتات"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.BackgroundTransparency = 1
+Title.Parent = Header
+
+-- زر الإغلاق
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+CloseBtn.Position = UDim2.new(1, -38, 0, 8.5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 14
+CloseBtn.Parent = Header
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- قائمة التمرير (ScrollingFrame)
+local ScrollList = Instance.new("ScrollingFrame")
+ScrollList.Size = UDim2.new(1, -20, 1, -60)
+ScrollList.Position = UDim2.new(0, 10, 0, 50)
+ScrollList.BackgroundTransparency = 1
+ScrollList.BorderSizePixel = 0
+ScrollList.ScrollBarThickness = 4
+ScrollList.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 120)
+ScrollList.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollList.Parent = MainFrame
+
+local UIList = Instance.new("UIListLayout")
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Padding = UDim.new(0, 10)
+UIList.Parent = ScrollList
+
+-- تعديل حجم التمرير تلقائياً حسب عدد العناصر
+UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ScrollList.CanvasSize = UDim2.new(0, 0, 0, UIList.AbsoluteContentSize.Y + 10)
+end)
+
+-- 3. بناء العناصر داخل القائمة
+for _, mapData in ipairs(MapsList) do
+    local RowFrame = Instance.new("Frame")
+    RowFrame.Size = UDim2.new(1, 0, 0, 68)
+    RowFrame.BackgroundColor3 = Color3.fromRGB(24, 30, 38)
+    RowFrame.BorderSizePixel = 0
+    RowFrame.Parent = ScrollList
+
+    local RowCorner = Instance.new("UICorner")
+    RowCorner.CornerRadius = UDim.new(0, 8)
+    RowCorner.Parent = RowFrame
+
+    local RowStroke = Instance.new("UIStroke")
+    RowStroke.Color = Color3.fromRGB(40, 52, 65)
+    RowStroke.Thickness = 1
+    RowStroke.Parent = RowFrame
+
+    -- صورة الماب
+    local MapImage = Instance.new("ImageLabel")
+    MapImage.Size = UDim2.new(0, 52, 0, 52)
+    MapImage.Position = UDim2.new(0, 8, 0.5, -26)
+    MapImage.Image = mapData.ImageId
+    MapImage.BackgroundColor3 = Color3.fromRGB(10, 15, 20)
+    MapImage.BorderSizePixel = 0
+    MapImage.Parent = RowFrame
+
+    local ImageCorner = Instance.new("UICorner")
+    ImageCorner.CornerRadius = UDim.new(0, 6)
+    ImageCorner.Parent = MapImage
+
+    -- اسم الماب
+    local MapTitle = Instance.new("TextLabel")
+    MapTitle.Size = UDim2.new(1, -165, 0, 22)
+    MapTitle.Position = UDim2.new(0, 68, 0, 12)
+    MapTitle.Text = mapData.Name
+    MapTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MapTitle.Font = Enum.Font.GothamBold
+    MapTitle.TextSize = 14
+    MapTitle.TextXAlignment = Enum.TextXAlignment.Left
+    MapTitle.BackgroundTransparency = 1
+    MapTitle.Parent = RowFrame
+
+    -- وصف الماب
+    local MapDesc = Instance.new("TextLabel")
+    MapDesc.Size = UDim2.new(1, -165, 0, 18)
+    MapDesc.Position = UDim2.new(0, 68, 0, 34)
+    MapDesc.Text = mapData.Description
+    MapDesc.TextColor3 = Color3.fromRGB(140, 155, 170)
+    MapDesc.Font = Enum.Font.Gotham
+    MapDesc.TextSize = 11
+    MapDesc.TextXAlignment = Enum.TextXAlignment.Left
+    MapDesc.BackgroundTransparency = 1
+    MapDesc.Parent = RowFrame
+
+    -- زر "عرض" (تشغيل السكربت)
+    local ActionBtn = Instance.new("TextButton")
+    ActionBtn.Size = UDim2.new(0, 75, 0, 34)
+    ActionBtn.Position = UDim2.new(1, -83, 0.5, -17)
+    ActionBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+    ActionBtn.Text = "عرض"
+    ActionBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ActionBtn.Font = Enum.Font.GothamBold
+    ActionBtn.TextSize = 14
+    ActionBtn.Parent = RowFrame
+
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = ActionBtn
+
+    -- عند الضغط على زر عرض
+    ActionBtn.MouseButton1Click:Connect(function()
+        if mapData.Script then
+            mapData.Script()
+        end
+    end)
+end
 
