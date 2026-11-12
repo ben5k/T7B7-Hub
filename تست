@@ -656,6 +656,8 @@ end
 local FIREBASE_SUGGEST_URL = "https://hehhw-dc898-default-rtdb.firebaseio.com/suggestions.json"
 local FIREBASE_CHAT_URL = "https://hehhw-dc898-default-rtdb.firebaseio.com/global_chat.json"
 local FIREBASE_PRESENCE_URL = "https://hehhw-dc898-default-rtdb.firebaseio.com/presence"
+local FIREBASE_BROADCAST_URL = "https://hehhw-dc898-default-rtdb.firebaseio.com/admin_broadcast.json"
+local FIREBASE_MUTED_URL = "https://hehhw-dc898-default-rtdb.firebaseio.com/admin_muted_users.json"
 
 ---------------------------------------------------------
 -- الواجهة الرئيسية
@@ -1188,8 +1190,17 @@ local function checkBadContent(text)
 end
 
 local renderedMsgs = {}
+local mutedUsers = {}
+local function refreshMutedCache()
+    local ok, response = pcall(function() return customRequest({Url = FIREBASE_MUTED_URL, Method = "GET"}) end)
+    if ok and response and response.StatusCode == 200 then
+        local decodedOk, data = pcall(function() return HttpService:JSONDecode(response.Body) end)
+        if decodedOk and type(data) == "table" then mutedUsers = data end
+    end
+end
 
 local function addChatMessage(msgId, userId, sender, msg)
+    if userId and userId ~= 0 and mutedUsers[tostring(userId)] then return end
     if renderedMsgs[msgId] then return end
     renderedMsgs[msgId] = true
 
@@ -1262,6 +1273,11 @@ end
 
 SendChatBtn.MouseButton1Click:Connect(function()
     local text = ChatInputBox.Text
+    if mutedUsers[tostring(LocalPlayer.UserId)] then
+        addChatMessage("sys_muted_" .. tostring(os.time()), 0, "نظام الحماية", "🔇 حسابك مكتوم من الشات العام.")
+        ChatInputBox.Text = ""
+        return
+    end
     if text ~= "" and text ~= " " then
         if tick() - lastSendTime < 2.5 then
             addChatMessage("sys_spam_" .. math.random(1000,9999), 0, "نظام الحماية", "⏳ فضلاً، انتظر قليلاً قبل إرسال رسالة أخرى.")
@@ -1437,6 +1453,7 @@ task.spawn(function()
     local useQuery = true
     local fails = 0
     while ScreenGui and ScreenGui.Parent do
+        refreshMutedCache()
         local now = os.time()
         local currentCycle = math.floor(now / INTERVAL)
         local remaining = INTERVAL - (now % INTERVAL)
@@ -1482,7 +1499,11 @@ task.spawn(function()
                             return tostring(a.key) < tostring(b.key)
                         end)
                         for _, it in ipairs(list) do
-                            addChatMessage(it.key, tonumber(it.msg.userId) or 0, tostring(it.msg.sender or "مجهول"), tostring(it.msg.text or ""))
+                            local incomingText = tostring(it.msg.text or "")
+                            local blockedIncoming = checkBadContent(incomingText)
+                            if not blockedIncoming then
+                                addChatMessage(it.key, tonumber(it.msg.userId) or 0, tostring(it.msg.sender or "مجهول"), incomingText)
+                            end
                         end
                     end
                 end
@@ -1599,6 +1620,18 @@ SettingsTab.BackgroundTransparency = 1
 SettingsTab.Visible = false
 SettingsTab.Parent = PagesHolder
 
+-- لوحة الأدمن لا تُنشأ إلا لحساب المطور المحدد
+local IS_HUB_DEVELOPER = (LocalPlayer.Name == "Dms921")
+local AdminTab = nil
+if IS_HUB_DEVELOPER then
+    AdminTab = Instance.new("Frame")
+    AdminTab.Name = "AdminTab"
+    AdminTab.Size = UDim2.new(1, 0, 1, 0)
+    AdminTab.BackgroundTransparency = 1
+    AdminTab.Visible = false
+    AdminTab.Parent = PagesHolder
+end
+
 local tabButtons = {}
 local function createTabButton(text, iconId, targetTab)
     local btn = Instance.new("TextButton")
@@ -1633,8 +1666,416 @@ createTabButton("الرئيسية", "🏠", HomeTab)
 createTabButton("سكربتات مابات", "🗺️", MapScriptsTab)
 createTabButton("اقتراحات", "💡", SuggestTab)
 createTabButton("الإعدادات", "⚙️", SettingsTab)
+if IS_HUB_DEVELOPER and AdminTab then
+    createTabButton("لوحة الأدمن", "👑", AdminTab)
+end
 
----------------------------------------------------------
+-- لوحة المطور: بروكاست + إدارة الكتم، لا تُعرض إلا لحساب Dms921
+if IS_HUB_DEVELOPER and AdminTab then
+    local AdminTitle = Instance.new("TextLabel")
+    AdminTitle.Size = UDim2.new(1, -16, 0, 26)
+    AdminTitle.Position = UDim2.new(0, 8, 0, 4)
+    AdminTitle.BackgroundTransparency = 1
+    AdminTitle.Text = "لوحة الأدمن"
+    AdminTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
+    AdminTitle.Font = Enum.Font.SourceSansBold
+    AdminTitle.TextSize = 17
+    AdminTitle.TextXAlignment = Enum.TextXAlignment.Right
+    AdminTitle.Parent = AdminTab
+
+    local BroadcastInput = Instance.new("TextBox")
+    BroadcastInput.Size = UDim2.new(1, -16, 0, 42)
+    BroadcastInput.Position = UDim2.new(0, 8, 0, 32)
+    BroadcastInput.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+    BroadcastInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BroadcastInput.PlaceholderColor3 = Color3.fromRGB(135, 135, 150)
+    BroadcastInput.PlaceholderText = "اكتب الرسالة..."
+    BroadcastInput.Text = ""
+    BroadcastInput.ClearTextOnFocus = false
+    BroadcastInput.TextWrapped = true
+    BroadcastInput.TextXAlignment = Enum.TextXAlignment.Right
+    BroadcastInput.Font = Enum.Font.SourceSans
+    BroadcastInput.TextSize = 13
+    BroadcastInput.MultiLine = true
+    BroadcastInput.Parent = AdminTab
+    Instance.new("UICorner", BroadcastInput).CornerRadius = UDim.new(0, 7)
+
+    local BroadcastSend = Instance.new("TextButton")
+    BroadcastSend.Size = UDim2.new(0.42, -10, 0, 28)
+    BroadcastSend.Position = UDim2.new(0.58, 2, 0, 78)
+    BroadcastSend.BackgroundColor3 = Color3.fromRGB(180, 25, 35)
+    BroadcastSend.Text = "إرسال للجميع"
+    BroadcastSend.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BroadcastSend.Font = Enum.Font.SourceSansBold
+    BroadcastSend.TextSize = 12
+    BroadcastSend.Parent = AdminTab
+    Instance.new("UICorner", BroadcastSend).CornerRadius = UDim.new(0, 6)
+
+    local AdminStatus = Instance.new("TextLabel")
+    AdminStatus.Size = UDim2.new(0.58, -8, 0, 28)
+    AdminStatus.Position = UDim2.new(0, 8, 0, 78)
+    AdminStatus.BackgroundTransparency = 1
+    AdminStatus.Text = "جاهز"
+    AdminStatus.TextColor3 = Color3.fromRGB(150, 150, 165)
+    AdminStatus.Font = Enum.Font.SourceSans
+    AdminStatus.TextSize = 10
+    AdminStatus.TextXAlignment = Enum.TextXAlignment.Right
+    AdminStatus.Parent = AdminTab
+
+    local MuteSearch = Instance.new("TextBox")
+    MuteSearch.Size = UDim2.new(1, -16, 0, 27)
+    MuteSearch.Position = UDim2.new(0, 8, 0, 111)
+    MuteSearch.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+    MuteSearch.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MuteSearch.PlaceholderColor3 = Color3.fromRGB(135, 135, 150)
+    MuteSearch.PlaceholderText = "ابحث باسم اللاعب أو UserId للكتم..."
+    MuteSearch.Text = ""
+    MuteSearch.Font = Enum.Font.SourceSans
+    MuteSearch.TextSize = 12
+    MuteSearch.ClearTextOnFocus = false
+    MuteSearch.Parent = AdminTab
+    Instance.new("UICorner", MuteSearch).CornerRadius = UDim.new(0, 6)
+
+    local MuteButton = Instance.new("TextButton")
+    MuteButton.Size = UDim2.new(0.34, -8, 0, 26)
+    MuteButton.Position = UDim2.new(0.66, 0, 0, 143)
+    MuteButton.BackgroundColor3 = Color3.fromRGB(170, 35, 45)
+    MuteButton.Text = "كتم اللاعب"
+    MuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MuteButton.Font = Enum.Font.SourceSansBold
+    MuteButton.TextSize = 11
+    MuteButton.Parent = AdminTab
+    Instance.new("UICorner", MuteButton).CornerRadius = UDim.new(0, 6)
+
+    local MuteStatus = Instance.new("TextLabel")
+    MuteStatus.Size = UDim2.new(0.64, -8, 0, 26)
+    MuteStatus.Position = UDim2.new(0, 8, 0, 143)
+    MuteStatus.BackgroundTransparency = 1
+    MuteStatus.Text = "قائمة المكتومين"
+    MuteStatus.TextColor3 = Color3.fromRGB(200, 200, 210)
+    MuteStatus.Font = Enum.Font.SourceSansBold
+    MuteStatus.TextSize = 11
+    MuteStatus.TextXAlignment = Enum.TextXAlignment.Right
+    MuteStatus.Parent = AdminTab
+
+    local MutedScroll = Instance.new("ScrollingFrame")
+    MutedScroll.Size = UDim2.new(1, -16, 0, 91)
+    MutedScroll.Position = UDim2.new(0, 8, 0, 174)
+    MutedScroll.BackgroundColor3 = Color3.fromRGB(18, 18, 25)
+    MutedScroll.BorderSizePixel = 0
+    MutedScroll.ScrollBarThickness = 3
+    MutedScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    MutedScroll.Parent = AdminTab
+    Instance.new("UICorner", MutedScroll).CornerRadius = UDim.new(0, 6)
+    local MutedLayout = Instance.new("UIListLayout")
+    MutedLayout.Padding = UDim.new(0, 3)
+    MutedLayout.Parent = MutedScroll
+
+    local function fetchMutedUsers()
+        local response = customRequest({Url = FIREBASE_MUTED_URL, Method = "GET"})
+        if response and response.StatusCode == 200 and response.Body and response.Body ~= "" and response.Body ~= "null" then
+            local decoded = HttpService:JSONDecode(response.Body)
+            return type(decoded) == "table" and decoded or {}
+        end
+        return {}
+    end
+
+    local function refreshMutedList()
+        if LocalPlayer.Name ~= "Dms921" then return end
+        local data = {}
+        pcall(function() data = fetchMutedUsers() end)
+        for _, child in ipairs(MutedScroll:GetChildren()) do
+            if child:IsA("Frame") then child:Destroy() end
+        end
+        local count = 0
+        for uid, info in pairs(data) do
+            if type(info) == "table" then
+                count += 1
+                local row = Instance.new("Frame")
+                row.Size = UDim2.new(1, -6, 0, 25)
+                row.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+                row.Parent = MutedScroll
+                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 5)
+                local label = Instance.new("TextLabel")
+                label.Size = UDim2.new(1, -82, 1, 0)
+                label.Position = UDim2.new(0, 5, 0, 0)
+                label.BackgroundTransparency = 1
+                label.Text = tostring(info.name or uid) .. "  (" .. tostring(uid) .. ")"
+                label.TextColor3 = Color3.fromRGB(235, 235, 240)
+                label.Font = Enum.Font.SourceSans
+                label.TextSize = 10
+                label.TextXAlignment = Enum.TextXAlignment.Left
+                label.Parent = row
+                local unmute = Instance.new("TextButton")
+                unmute.Size = UDim2.new(0, 70, 0, 21)
+                unmute.Position = UDim2.new(1, -74, 0, 2)
+                unmute.BackgroundColor3 = Color3.fromRGB(35, 130, 65)
+                unmute.Text = "إلغاء كتم"
+                unmute.TextColor3 = Color3.new(1,1,1)
+                unmute.Font = Enum.Font.SourceSansBold
+                unmute.TextSize = 10
+                unmute.Parent = row
+                Instance.new("UICorner", unmute).CornerRadius = UDim.new(0, 4)
+                unmute.MouseButton1Click:Connect(function()
+                    if LocalPlayer.Name ~= "Dms921" then return end
+                    pcall(function()
+                        customRequest({Url = FIREBASE_MUTED_URL .. "/" .. tostring(uid) .. ".json", Method = "DELETE"})
+                    end)
+                    task.wait(0.25)
+                    refreshMutedList()
+                end)
+            end
+        end
+        MuteStatus.Text = "قائمة المكتومين: " .. tostring(count)
+        MutedScroll.CanvasSize = UDim2.new(0, 0, 0, MutedLayout.AbsoluteContentSize.Y + 6)
+    end
+
+    MuteButton.MouseButton1Click:Connect(function()
+        if LocalPlayer.Name ~= "Dms921" then return end
+        local query = tostring(MuteSearch.Text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+        if query == "" then MuteStatus.Text = "اكتب اسم اللاعب أولاً" return end
+        local foundId, foundName
+        local numericId = tonumber(query)
+        if numericId then
+            foundId, foundName = tostring(math.floor(numericId)), query
+        else
+            local response = customRequest({Url = FIREBASE_PRESENCE_URL .. ".json", Method = "GET"})
+            if response and response.StatusCode == 200 and response.Body and response.Body ~= "null" then
+                local presence = HttpService:JSONDecode(response.Body)
+                for _, user in pairs(presence) do
+                    if type(user) == "table" then
+                        local uname = tostring(user.name or "")
+                        local dname = tostring(user.displayName or "")
+                        if string.lower(uname) == string.lower(query) or string.lower(dname) == string.lower(query) then
+                            foundId, foundName = tostring(user.userId or ""), uname
+                            break
+                        end
+                    end
+                end
+            end
+        end
+        if not foundId or foundId == "" then MuteStatus.Text = "لم يتم العثور عليه في المتصلين" return end
+        if foundId == tostring(LocalPlayer.UserId) then MuteStatus.Text = "لا يمكنك كتم نفسك" return end
+        local ok = pcall(function()
+            local res = customRequest({
+                Url = FIREBASE_MUTED_URL .. "/" .. foundId .. ".json",
+                Method = "PUT",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode({userId = tonumber(foundId), name = foundName, by = "Dms921", time = os.time()})
+            })
+            if not res or (res.StatusCode ~= 200 and res.StatusCode ~= 204) then error("mute write failed") end
+        end)
+        MuteStatus.Text = ok and ("تم كتم " .. foundName) or "فشل الكتم؛ تحقق من Firebase"
+        refreshMutedList()
+    end)
+
+    BroadcastSend.MouseButton1Click:Connect(function()
+        if LocalPlayer.Name ~= "Dms921" then return end
+        local message = tostring(BroadcastInput.Text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+        if message == "" then AdminStatus.Text = "اكتب رسالة أولاً" return end
+        if #message > 220 then AdminStatus.Text = "الحد 220 حرف" return end
+        BroadcastSend.Active = false
+        BroadcastSend.Text = "جارٍ..."
+        local payload = {id = tostring(os.time()) .. "_" .. tostring(math.random(100000,999999)), sender = "Dms921", userId = LocalPlayer.UserId, text = message, time = os.time()}
+        local ok, response = pcall(function()
+            return customRequest({Url = FIREBASE_BROADCAST_URL, Method = "PUT", Headers = { ["Content-Type"] = "application/json" }, Body = HttpService:JSONEncode(payload)})
+        end)
+        BroadcastSend.Active = true
+        BroadcastSend.Text = "إرسال للجميع"
+        AdminStatus.Text = (ok and response and (response.StatusCode == 200 or response.StatusCode == 204)) and "تم الإرسال ✓" or "فشل الإرسال"
+        if ok and response and (response.StatusCode == 200 or response.StatusCode == 204) then BroadcastInput.Text = "" end
+    end)
+    task.spawn(function()
+        while AdminTab and AdminTab.Parent do
+            refreshMutedList()
+            task.wait(8)
+        end
+    end)
+end
+
+-- شريط بروكاست صغير أعلى الشاشة بنفس ترتيب المثال: شارة حمراء ثم الاسم والرسالة
+local BroadcastGui = Instance.new("ScreenGui")
+BroadcastGui.Name = "BenDeveloperBroadcastUI"
+BroadcastGui.ResetOnSpawn = false
+BroadcastGui.IgnoreGuiInset = true
+BroadcastGui.DisplayOrder = 100000
+BroadcastGui.Parent = parent
+
+-- معرفات شارة التوثيق التي زودني بها المستخدم
+local VERIFIED_BADGE_ORIGINAL_ID = "71326541180468"
+local VERIFIED_BADGE_TEXTURE_ID = "139619959097679"
+local BROADCAST_SOUND_ID = "17208361335"
+
+local BroadcastWrap = Instance.new("Frame")
+BroadcastWrap.Name = "BroadcastWrap"
+BroadcastWrap.AnchorPoint = Vector2.new(0.5, 0)
+BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -52)
+BroadcastWrap.Size = UDim2.new(0.92, 0, 0, 42)
+BroadcastWrap.BackgroundTransparency = 1
+BroadcastWrap.Visible = false
+BroadcastWrap.Parent = BroadcastGui
+
+local WrapConstraint = Instance.new("UISizeConstraint")
+WrapConstraint.MinSize = Vector2.new(250, 42)
+WrapConstraint.MaxSize = Vector2.new(430, 42)
+WrapConstraint.Parent = BroadcastWrap
+
+-- الشريط الأحمر العلوي الصغير
+local BroadcastBanner = Instance.new("Frame")
+BroadcastBanner.Name = "BroadcastBanner"
+BroadcastBanner.AnchorPoint = Vector2.new(0.5, 0)
+BroadcastBanner.Position = UDim2.new(0.5, 0, 0, 0)
+BroadcastBanner.Size = UDim2.new(0.72, 0, 0, 31)
+BroadcastBanner.Visible = false
+BroadcastBanner.BackgroundColor3 = Color3.fromRGB(185, 18, 25)
+BroadcastBanner.BorderSizePixel = 0
+BroadcastBanner.Parent = BroadcastWrap
+Instance.new("UICorner", BroadcastBanner).CornerRadius = UDim.new(0, 13)
+
+local BannerStroke = Instance.new("UIStroke")
+BannerStroke.Color = Color3.fromRGB(255, 70, 70)
+BannerStroke.Thickness = 1.5
+BannerStroke.Parent = BroadcastBanner
+
+local BannerTitle = Instance.new("TextLabel")
+BannerTitle.Size = UDim2.new(1, -40, 1, 0)
+BannerTitle.Position = UDim2.new(0, 36, 0, 0)
+BannerTitle.BackgroundTransparency = 1
+BannerTitle.Text = ""
+BannerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+BannerTitle.Font = Enum.Font.SourceSansBold
+BannerTitle.TextSize = 15
+BannerTitle.TextXAlignment = Enum.TextXAlignment.Center
+BannerTitle.Parent = BroadcastBanner
+
+-- سطر الاسم + التوثيق + نص الإعلان أسفل الشريط الأحمر
+local BroadcastLine = Instance.new("Frame")
+BroadcastLine.Name = "BroadcastLine"
+BroadcastLine.Position = UDim2.new(0, 0, 0, 0)
+BroadcastLine.Size = UDim2.new(1, 0, 0, 38)
+BroadcastLine.BackgroundTransparency = 1
+BroadcastLine.Parent = BroadcastWrap
+local BroadcastAvatar = Instance.new("ImageLabel")
+BroadcastAvatar.Name = "DeveloperAvatar"
+BroadcastAvatar.Size = UDim2.new(0, 25, 0, 25)
+BroadcastAvatar.Position = UDim2.new(0, 0, 0.5, -12)
+BroadcastAvatar.BackgroundTransparency = 1
+BroadcastAvatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(LocalPlayer.UserId) .. "&w=150&h=150"
+BroadcastAvatar.Parent = BroadcastLine
+Instance.new("UICorner", BroadcastAvatar).CornerRadius = UDim.new(1, 0)
+
+
+local BroadcastName = Instance.new("TextLabel")
+BroadcastName.Size = UDim2.new(0, 82, 1, 0)
+BroadcastName.Position = UDim2.new(0, 31, 0, 0)
+BroadcastName.BackgroundTransparency = 1
+BroadcastName.Text = "Dms921"
+BroadcastName.TextColor3 = Color3.fromRGB(45, 155, 255)
+BroadcastName.Font = Enum.Font.SourceSansBold
+BroadcastName.TextSize = 21
+BroadcastName.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+BroadcastName.TextStrokeTransparency = 0
+BroadcastName.TextXAlignment = Enum.TextXAlignment.Left
+BroadcastName.Parent = BroadcastLine
+
+local VerifiedIcon = Instance.new("ImageLabel")
+VerifiedIcon.Name = "VerifiedBadge"
+VerifiedIcon.Size = UDim2.new(0, 18, 0, 18)
+VerifiedIcon.Position = UDim2.new(0, 113, 0, 10)
+VerifiedIcon.BackgroundTransparency = 1
+VerifiedIcon.Image = "rbxassetid://" .. VERIFIED_BADGE_TEXTURE_ID
+VerifiedIcon.Parent = BroadcastLine
+
+local BroadcastColon = Instance.new("TextLabel")
+BroadcastColon.Size = UDim2.new(0, 12, 1, 0)
+BroadcastColon.Position = UDim2.new(0, 132, 0, 0)
+BroadcastColon.BackgroundTransparency = 1
+BroadcastColon.Text = ":"
+BroadcastColon.TextColor3 = Color3.fromRGB(255, 255, 255)
+BroadcastColon.Font = Enum.Font.SourceSansBold
+BroadcastColon.TextSize = 20
+BroadcastColon.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+BroadcastColon.TextStrokeTransparency = 0
+BroadcastColon.Parent = BroadcastLine
+
+local BroadcastMessage = Instance.new("TextLabel")
+BroadcastMessage.Size = UDim2.new(1, -148, 1, 0)
+BroadcastMessage.Position = UDim2.new(0, 146, 0, 0)
+BroadcastMessage.BackgroundTransparency = 1
+BroadcastMessage.Text = ""
+BroadcastMessage.TextColor3 = Color3.fromRGB(255, 255, 255)
+BroadcastMessage.Font = Enum.Font.SourceSansBold
+BroadcastMessage.TextSize = 18
+BroadcastMessage.TextWrapped = false
+BroadcastMessage.TextTruncate = Enum.TextTruncate.AtEnd
+BroadcastMessage.TextXAlignment = Enum.TextXAlignment.Left
+BroadcastMessage.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+BroadcastMessage.TextStrokeTransparency = 0
+BroadcastMessage.Parent = BroadcastLine
+
+local BroadcastSound = Instance.new("Sound")
+BroadcastSound.Name = "DeveloperBroadcastSound"
+BroadcastSound.SoundId = "rbxassetid://" .. BROADCAST_SOUND_ID
+BroadcastSound.Volume = 0.65
+BroadcastSound.Parent = game:GetService("SoundService")
+
+local lastBroadcastId = nil
+local broadcastSequence = 0
+local function showDeveloperBroadcast(data)
+    if type(data) ~= "table" or type(data.text) ~= "string" or data.text == "" then return end
+    broadcastSequence = broadcastSequence + 1
+    local thisSequence = broadcastSequence
+
+    local developerUserId = tonumber(data.userId) or 0
+    if developerUserId > 0 then
+        BroadcastAvatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(developerUserId) .. "&w=150&h=150"
+    end
+    BroadcastName.Text = "Dms921"
+    BroadcastMessage.Text = data.text
+
+    BroadcastWrap.Visible = true
+    BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -52)
+    TweenService:Create(BroadcastWrap, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0.5, 0, 0, 8)
+    }):Play()
+
+    pcall(function()
+        BroadcastSound:Stop()
+        BroadcastSound.TimePosition = 0
+        BroadcastSound:Play()
+    end)
+
+    task.delay(6, function()
+        if broadcastSequence ~= thisSequence or not BroadcastWrap or not BroadcastWrap.Parent then return end
+        local hideTween = TweenService:Create(BroadcastWrap, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+            Position = UDim2.new(0.5, 0, 0, -52)
+        })
+        hideTween:Play()
+        hideTween.Completed:Wait()
+        if broadcastSequence == thisSequence and BroadcastWrap and BroadcastWrap.Parent then
+            BroadcastWrap.Visible = false
+        end
+    end)
+end
+
+task.spawn(function()
+    while BroadcastGui and BroadcastGui.Parent do
+        pcall(function()
+            local response = customRequest({Url = FIREBASE_BROADCAST_URL, Method = "GET"})
+            if response and response.StatusCode == 200 and response.Body and response.Body ~= "" and response.Body ~= "null" then
+                local data = HttpService:JSONDecode(response.Body)
+                if type(data) == "table" and data.id and tostring(data.id) ~= tostring(lastBroadcastId) then
+                    lastBroadcastId = tostring(data.id)
+                    if type(data.time) == "number" and os.time() - data.time <= 30 then
+                        showDeveloperBroadcast(data)
+                    end
+                end
+            end
+        end)
+        task.wait(2.5)
+    end
+end)
+
 -- 1. الرئيسية
 ---------------------------------------------------------
 local ServerStatus = Instance.new("TextLabel")
@@ -1751,7 +2192,7 @@ local UpdatesText = Instance.new("TextLabel")
 UpdatesText.Size = UDim2.new(1, -14, 0, 95)
 UpdatesText.Position = UDim2.new(0, 7, 0, 24)
 UpdatesText.BackgroundTransparency = 1
-UpdatesText.Text = "• إضافة وتحديث مابات (99 ليلة، كسر البيض، كيبورد، ركوب حيوانات، سرقة البيض وبلوكس فروت).\n• دمج أحدث السكربتات القوية لكل ماب وتحديث ميزات التتبع والشات."
+UpdatesText.Text = "• تنظيم سكربتات سرقة البيض و99 ليلة وبلوكس فروت وقسم جميع مابات.\n• إضافة أدوات إدارة الكتم وإلغاء الكتم للمطور."
 UpdatesText.TextColor3 = Color3.fromRGB(200, 200, 210)
 UpdatesText.Font = Enum.Font.SourceSans
 UpdatesText.TextSize = 9.5
@@ -2213,59 +2654,36 @@ local mapDataList = {
         name = "سرقة البيض",
         image = fetchAsset("https://d.top4top.io/p_3922v5lak1.jpg", "egg_steal"),
         scripts = {
-            {title = "سكربت فلفل", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()]]},
+            {title = "فلفل", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()]]},
             {title = "الأزرق (كسر حماية)", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"))()]]},
-            {title = "افضل سكربت KAIDO ⭐", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://orrxl4-protector.com/api/raw?id=v1yksgch"))()]]},
+            {title = "Sena Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://senahub.xyz/senaexclusive"))()]]},
+            {title = "Fn Steal an Egg", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"))()]]}
         }
     },
     {
         name = "99 ليلة",
         image = fetchAsset("https://g.top4top.io/p_39369bu7i0.jpeg", "nights_99"),
         scripts = {
-            {title = "سكربت فاب فيودوير", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/nightsintheforest.lua", true))()]]},
-            {title = "سكربت هوتاو هوب", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/SLK-gaming/Hutao-Hub/refs/heads/main/99-Nights-In-The-Forest.txt"))()]]},
-            {title = "سكربت جيك لودر", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/GEC0/gec/refs/heads/main/Gec.Loader", true))()]]},
-            {title = "سكربت ستري هوب", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/create-stree/STREE-HUB/refs/heads/main/Loader/Main.lua", true))()]]}
-        }
-    },
-    {
-        name = "كسر البيض",
-        image = fetchAsset("https://h.top4top.io/p_39365mdcw1.jpg", "egg_crack_new"),
-        scripts = {
-            {title = "سكربت أوروبوروس الجديد", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"))()]]}
-        }
-    },
-    {
-        name = "ماب كيبورد",
-        image = fetchAsset("https://i.top4top.io/p_3936thjrk0.jpg", "keyboard_map_new"),
-        scripts = {
-            {title = "هوشي هوب", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://hoshihub.site/loader.lua"))()]]},
-            {title = "أولينكا موبلينكا", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/OlejenkaMolejenka1337/script/refs/heads/main/scriptOBF.txt"))()]]},
-            {title = "شيزا هوب", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Gerreiro68/ShizaHub/refs/heads/main/loader.lua"))()]]},
-            {title = "سحابة سنوي هوب", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://rawscripts.net/raw/X2-+1-Speed-Keyboard-Escape-or-Candy-and-Chocolate-Snowy-Hub-Auto-Win-Bypass-Obstacles-Teleport-More-238320"))()]]},
-            {title = "أفرليك هوب", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Tarmaster/AverlikHub/refs/heads/main/Loader"))()]]}
+            {title = "Cookie Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://github.com/Cookie-Hub-Roblox/Cookie-Hub-Roblox/raw/refs/heads/main/loader.luau"))()]]},
+            {title = "Synvexita Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/SynvexitaHub/99-nights-in-the-forest-/refs/heads/main/Script"))()]]}
         }
     },
     {
         name = "بلوكس فروت",
         image = fetchAsset("https://f.top4top.io/p_3923xn5tv0.png", "blox_fruits"),
         scripts = {
-            {title = "سكربت موز المباشر", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/DB/script.luau"))()]]},
-            {title = "كوانتم أونيكس", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Trustmenotcondom/QTONYX/refs/heads/main/QuantumOnyx.lua"))()]]},
-            {title = "جانتنج هوب", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://isnahamzah.site/SubscribeYTisnahamzah/gantenghub30"))()]]},
-            {title = "كايتون فايند فروت", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/KaitunFindFruit.luau"))()]]},
-            {title = "ريدز في 2", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/UCT-hub/main/refs/heads/main/redz-v2"))()]]},
-            {title = "ايم بوت ديف أكسل PVP", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/itzaxl/DEVAXL/refs/heads/main/axlpvpblox.lua"))()]]},
-            {title = "دراغون أكس", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Tdk-Dragon/DragonX.lua/refs/heads/main/DragonX.lua.txt"))()]]}
+            {title = "Aqua Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/Aqua-Hub.lua"))()]]},
+            {title = "Redz V2", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Redz/v2.luau"))()]]}
         }
     },
     {
-        name = "ركوب حيوانات",
-        image = fetchAsset("https://c.top4top.io/p_39220ivke0.png", "ride_pet"),
+        name = "جميع مابات",
+        image = "",
         scripts = {
-            {title = "سكربت ركوب الحيوانات الجديد 1", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://pastefy.app/P5tUDr3n/raw"))()]]},
-            {title = "سكربت هايڤ هوب", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://script.hive-hub.workers.dev/hive.lua"))()]]},
-            {title = "سكربت نولاج", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://nolag.wtf/script.lua"))()]]}
+            {title = "MM2 - Kairis Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Kairis-Scripts/MM2/refs/heads/main/KairisHub"))()]]},
+            {title = "Blade Ball - Sydra", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://sydra.xyz/Loader.lua"))()]]},
+            {title = "صيد ضبان - Obscura", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://api.obscuravm.com/scripts/6417349026660614898"))()]]},
+            {title = "ارمي طعام للحيوانات - Mystrix", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/ummarxfarooq/mystrix-hub/refs/heads/main/loader"))()]]}
         }
     }
 }
@@ -2409,16 +2827,18 @@ local function renderMapCards(filterText)
             card.Parent = MapsScroll
             Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
 
-            local mapImg = Instance.new("ImageLabel")
-            mapImg.Size = UDim2.new(1, 0, 0, 60)
-            mapImg.Image = map.image
-            mapImg.ScaleType = Enum.ScaleType.Crop
-            mapImg.Parent = card
-            Instance.new("UICorner", mapImg).CornerRadius = UDim.new(0, 8)
+            if map.image and map.image ~= "" then
+                local mapImg = Instance.new("ImageLabel")
+                mapImg.Size = UDim2.new(1, 0, 0, 60)
+                mapImg.Image = map.image
+                mapImg.ScaleType = Enum.ScaleType.Crop
+                mapImg.Parent = card
+                Instance.new("UICorner", mapImg).CornerRadius = UDim.new(0, 8)
+            end
 
             local title = Instance.new("TextLabel")
             title.Size = UDim2.new(1, -8, 0, 18)
-            title.Position = UDim2.new(0, 4, 0, 62)
+            title.Position = UDim2.new(0, 4, 0, (map.image and map.image ~= "") and 62 or 12)
             title.BackgroundTransparency = 1
             title.Text = map.name
             title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -2429,7 +2849,7 @@ local function renderMapCards(filterText)
 
             local viewBtn = Instance.new("TextButton")
             viewBtn.Size = UDim2.new(1, -8, 0, 22)
-            viewBtn.Position = UDim2.new(0, 4, 0, 82)
+            viewBtn.Position = UDim2.new(0, 4, 0, (map.image and map.image ~= "") and 82 or 36)
             viewBtn.BackgroundColor3 = Color3.fromRGB(180, 25, 35)
             viewBtn.Text = "عرض السكربتات ▶"
             viewBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -2569,7 +2989,7 @@ pcall(function()
             if k ~= "none" then Ben.sfx.play(k or "click") end
         end)
     end
-    for _, gui in ipairs({ScreenGui, LoginGui}) do
+    for _, gui in ipairs({ScreenGui, LoginGui, BroadcastGui}) do
         for _, d in ipairs(gui:GetDescendants()) do
             if d:IsA("TextButton") or d:IsA("ImageButton") then pcall(hook, d) end
         end
