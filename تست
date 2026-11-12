@@ -1909,15 +1909,15 @@ local BROADCAST_SOUND_ID = "17208361335"
 local BroadcastWrap = Instance.new("Frame")
 BroadcastWrap.Name = "BroadcastWrap"
 BroadcastWrap.AnchorPoint = Vector2.new(0.5, 0)
-BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -52)
-BroadcastWrap.Size = UDim2.new(0.92, 0, 0, 42)
+BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -78)
+BroadcastWrap.Size = UDim2.new(0.94, 0, 0, 68)
 BroadcastWrap.BackgroundTransparency = 1
 BroadcastWrap.Visible = false
 BroadcastWrap.Parent = BroadcastGui
 
 local WrapConstraint = Instance.new("UISizeConstraint")
-WrapConstraint.MinSize = Vector2.new(250, 42)
-WrapConstraint.MaxSize = Vector2.new(430, 42)
+WrapConstraint.MinSize = Vector2.new(280, 68)
+WrapConstraint.MaxSize = Vector2.new(520, 68)
 WrapConstraint.Parent = BroadcastWrap
 
 -- الشريط الأحمر العلوي الصغير
@@ -1951,14 +1951,14 @@ BannerTitle.Parent = BroadcastBanner
 -- سطر الاسم + التوثيق + نص الإعلان أسفل الشريط الأحمر
 local BroadcastLine = Instance.new("Frame")
 BroadcastLine.Name = "BroadcastLine"
-BroadcastLine.Position = UDim2.new(0, 0, 0, 0)
-BroadcastLine.Size = UDim2.new(1, 0, 0, 38)
+BroadcastLine.Position = UDim2.new(0, 0, 0, 12)
+BroadcastLine.Size = UDim2.new(1, 0, 0, 54)
 BroadcastLine.BackgroundTransparency = 1
 BroadcastLine.Parent = BroadcastWrap
 local BroadcastAvatar = Instance.new("ImageLabel")
 BroadcastAvatar.Name = "DeveloperAvatar"
-BroadcastAvatar.Size = UDim2.new(0, 25, 0, 25)
-BroadcastAvatar.Position = UDim2.new(0, 0, 0.5, -12)
+BroadcastAvatar.Size = UDim2.new(0, 40, 0, 40)
+BroadcastAvatar.Position = UDim2.new(0, 5, 0.5, -20)
 BroadcastAvatar.BackgroundTransparency = 1
 BroadcastAvatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(LocalPlayer.UserId) .. "&w=150&h=150"
 BroadcastAvatar.Parent = BroadcastLine
@@ -1966,13 +1966,13 @@ Instance.new("UICorner", BroadcastAvatar).CornerRadius = UDim.new(1, 0)
 
 
 local BroadcastName = Instance.new("TextLabel")
-BroadcastName.Size = UDim2.new(0, 82, 1, 0)
-BroadcastName.Position = UDim2.new(0, 31, 0, 0)
+BroadcastName.Size = UDim2.new(0, 100, 1, 0)
+BroadcastName.Position = UDim2.new(0, 51, 0, 0)
 BroadcastName.BackgroundTransparency = 1
 BroadcastName.Text = "Dms921"
 BroadcastName.TextColor3 = Color3.fromRGB(45, 155, 255)
 BroadcastName.Font = Enum.Font.SourceSansBold
-BroadcastName.TextSize = 21
+BroadcastName.TextSize = 25
 BroadcastName.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 BroadcastName.TextStrokeTransparency = 0
 BroadcastName.TextXAlignment = Enum.TextXAlignment.Left
@@ -1980,32 +1980,32 @@ BroadcastName.Parent = BroadcastLine
 
 local VerifiedIcon = Instance.new("ImageLabel")
 VerifiedIcon.Name = "VerifiedBadge"
-VerifiedIcon.Size = UDim2.new(0, 18, 0, 18)
-VerifiedIcon.Position = UDim2.new(0, 113, 0, 10)
+VerifiedIcon.Size = UDim2.new(0, 23, 0, 23)
+VerifiedIcon.Position = UDim2.new(0, 153, 0, 15)
 VerifiedIcon.BackgroundTransparency = 1
 VerifiedIcon.Image = "rbxassetid://" .. VERIFIED_BADGE_TEXTURE_ID
 VerifiedIcon.Parent = BroadcastLine
 
 local BroadcastColon = Instance.new("TextLabel")
-BroadcastColon.Size = UDim2.new(0, 12, 1, 0)
-BroadcastColon.Position = UDim2.new(0, 132, 0, 0)
+BroadcastColon.Size = UDim2.new(0, 15, 1, 0)
+BroadcastColon.Position = UDim2.new(0, 180, 0, 0)
 BroadcastColon.BackgroundTransparency = 1
 BroadcastColon.Text = ":"
 BroadcastColon.TextColor3 = Color3.fromRGB(255, 255, 255)
 BroadcastColon.Font = Enum.Font.SourceSansBold
-BroadcastColon.TextSize = 20
+BroadcastColon.TextSize = 24
 BroadcastColon.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 BroadcastColon.TextStrokeTransparency = 0
 BroadcastColon.Parent = BroadcastLine
 
 local BroadcastMessage = Instance.new("TextLabel")
-BroadcastMessage.Size = UDim2.new(1, -148, 1, 0)
-BroadcastMessage.Position = UDim2.new(0, 146, 0, 0)
+BroadcastMessage.Size = UDim2.new(1, -205, 1, 0)
+BroadcastMessage.Position = UDim2.new(0, 200, 0, 0)
 BroadcastMessage.BackgroundTransparency = 1
 BroadcastMessage.Text = ""
 BroadcastMessage.TextColor3 = Color3.fromRGB(255, 255, 255)
 BroadcastMessage.Font = Enum.Font.SourceSansBold
-BroadcastMessage.TextSize = 18
+BroadcastMessage.TextSize = 23
 BroadcastMessage.TextWrapped = false
 BroadcastMessage.TextTruncate = Enum.TextTruncate.AtEnd
 BroadcastMessage.TextXAlignment = Enum.TextXAlignment.Left
@@ -2034,9 +2034,9 @@ local function showDeveloperBroadcast(data)
     BroadcastMessage.Text = data.text
 
     BroadcastWrap.Visible = true
-    BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -52)
+    BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -78)
     TweenService:Create(BroadcastWrap, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Position = UDim2.new(0.5, 0, 0, 8)
+        Position = UDim2.new(0.5, 0, 0, 68)
     }):Play()
 
     pcall(function()
@@ -2048,7 +2048,7 @@ local function showDeveloperBroadcast(data)
     task.delay(6, function()
         if broadcastSequence ~= thisSequence or not BroadcastWrap or not BroadcastWrap.Parent then return end
         local hideTween = TweenService:Create(BroadcastWrap, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-            Position = UDim2.new(0.5, 0, 0, -52)
+            Position = UDim2.new(0.5, 0, 0, -78)
         })
         hideTween:Play()
         hideTween.Completed:Wait()
@@ -2656,34 +2656,34 @@ local mapDataList = {
         scripts = {
             {title = "فلفل", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()]]},
             {title = "الأزرق (كسر حماية)", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"))()]]},
-            {title = "Sena Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://senahub.xyz/senaexclusive"))()]]},
-            {title = "Fn Steal an Egg", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"))()]]}
+            {title = "سينا هَب", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://senahub.xyz/senaexclusive"))()]]},
+            {title = "إف إن لسرقة البيض", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"))()]]}
         }
     },
     {
         name = "99 ليلة",
         image = fetchAsset("https://g.top4top.io/p_39369bu7i0.jpeg", "nights_99"),
         scripts = {
-            {title = "Cookie Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://github.com/Cookie-Hub-Roblox/Cookie-Hub-Roblox/raw/refs/heads/main/loader.luau"))()]]},
-            {title = "Synvexita Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/SynvexitaHub/99-nights-in-the-forest-/refs/heads/main/Script"))()]]}
+            {title = "كوكي هَب", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://github.com/Cookie-Hub-Roblox/Cookie-Hub-Roblox/raw/refs/heads/main/loader.luau"))()]]},
+            {title = "سينفيكسيتا هَب", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/SynvexitaHub/99-nights-in-the-forest-/refs/heads/main/Script"))()]]}
         }
     },
     {
         name = "بلوكس فروت",
         image = fetchAsset("https://f.top4top.io/p_3923xn5tv0.png", "blox_fruits"),
         scripts = {
-            {title = "Aqua Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/Aqua-Hub.lua"))()]]},
-            {title = "Redz V2", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Redz/v2.luau"))()]]}
+            {title = "أكوا هَب", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/Aqua-Hub.lua"))()]]},
+            {title = "ريدز الإصدار الثاني", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Redz/v2.luau"))()]]}
         }
     },
     {
         name = "جميع مابات",
         image = "",
         scripts = {
-            {title = "MM2 - Kairis Hub", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Kairis-Scripts/MM2/refs/heads/main/KairisHub"))()]]},
-            {title = "Blade Ball - Sydra", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://sydra.xyz/Loader.lua"))()]]},
-            {title = "صيد ضبان - Obscura", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://api.obscuravm.com/scripts/6417349026660614898"))()]]},
-            {title = "ارمي طعام للحيوانات - Mystrix", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/ummarxfarooq/mystrix-hub/refs/heads/main/loader"))()]]}
+            {title = "إم إم 2 - كايرس هَب", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Kairis-Scripts/MM2/refs/heads/main/KairisHub"))()]]},
+            {title = "بليد بول - سيدرا", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://sydra.xyz/Loader.lua"))()]]},
+            {title = "صيد الضبان - أوبسكورا", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://api.obscuravm.com/scripts/6417349026660614898"))()]]},
+            {title = "إطعام الحيوانات - مايستريكس", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/ummarxfarooq/mystrix-hub/refs/heads/main/loader"))()]]}
         }
     }
 }
