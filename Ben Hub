@@ -1909,15 +1909,15 @@ local BROADCAST_SOUND_ID = "17208361335"
 local BroadcastWrap = Instance.new("Frame")
 BroadcastWrap.Name = "BroadcastWrap"
 BroadcastWrap.AnchorPoint = Vector2.new(0.5, 0)
-BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -78)
-BroadcastWrap.Size = UDim2.new(0.94, 0, 0, 68)
+BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -126)
+BroadcastWrap.Size = UDim2.new(0.98, 0, 0, 112)
 BroadcastWrap.BackgroundTransparency = 1
 BroadcastWrap.Visible = false
 BroadcastWrap.Parent = BroadcastGui
 
 local WrapConstraint = Instance.new("UISizeConstraint")
-WrapConstraint.MinSize = Vector2.new(280, 68)
-WrapConstraint.MaxSize = Vector2.new(520, 68)
+WrapConstraint.MinSize = Vector2.new(300, 112)
+WrapConstraint.MaxSize = Vector2.new(680, 112)
 WrapConstraint.Parent = BroadcastWrap
 
 -- الشريط الأحمر العلوي الصغير
@@ -1925,7 +1925,7 @@ local BroadcastBanner = Instance.new("Frame")
 BroadcastBanner.Name = "BroadcastBanner"
 BroadcastBanner.AnchorPoint = Vector2.new(0.5, 0)
 BroadcastBanner.Position = UDim2.new(0.5, 0, 0, 0)
-BroadcastBanner.Size = UDim2.new(0.72, 0, 0, 31)
+BroadcastBanner.Size = UDim2.new(0.76, 0, 0, 38)
 BroadcastBanner.Visible = false
 BroadcastBanner.BackgroundColor3 = Color3.fromRGB(185, 18, 25)
 BroadcastBanner.BorderSizePixel = 0
@@ -1951,14 +1951,14 @@ BannerTitle.Parent = BroadcastBanner
 -- سطر الاسم + التوثيق + نص الإعلان أسفل الشريط الأحمر
 local BroadcastLine = Instance.new("Frame")
 BroadcastLine.Name = "BroadcastLine"
-BroadcastLine.Position = UDim2.new(0, 0, 0, 12)
-BroadcastLine.Size = UDim2.new(1, 0, 0, 54)
+BroadcastLine.Position = UDim2.new(0, 0, 0, 39)
+BroadcastLine.Size = UDim2.new(1, 0, 0, 70)
 BroadcastLine.BackgroundTransparency = 1
 BroadcastLine.Parent = BroadcastWrap
 local BroadcastAvatar = Instance.new("ImageLabel")
 BroadcastAvatar.Name = "DeveloperAvatar"
-BroadcastAvatar.Size = UDim2.new(0, 40, 0, 40)
-BroadcastAvatar.Position = UDim2.new(0, 5, 0.5, -20)
+BroadcastAvatar.Size = UDim2.new(0, 58, 0, 58)
+BroadcastAvatar.Position = UDim2.new(0, 7, 0.5, -29)
 BroadcastAvatar.BackgroundTransparency = 1
 BroadcastAvatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(LocalPlayer.UserId) .. "&w=150&h=150"
 BroadcastAvatar.Parent = BroadcastLine
@@ -1966,13 +1966,13 @@ Instance.new("UICorner", BroadcastAvatar).CornerRadius = UDim.new(1, 0)
 
 
 local BroadcastName = Instance.new("TextLabel")
-BroadcastName.Size = UDim2.new(0, 100, 1, 0)
-BroadcastName.Position = UDim2.new(0, 51, 0, 0)
+BroadcastName.Size = UDim2.new(0, 118, 1, 0)
+BroadcastName.Position = UDim2.new(0, 72, 0, 0)
 BroadcastName.BackgroundTransparency = 1
 BroadcastName.Text = "Dms921"
 BroadcastName.TextColor3 = Color3.fromRGB(45, 155, 255)
 BroadcastName.Font = Enum.Font.SourceSansBold
-BroadcastName.TextSize = 25
+BroadcastName.TextSize = 31
 BroadcastName.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 BroadcastName.TextStrokeTransparency = 0
 BroadcastName.TextXAlignment = Enum.TextXAlignment.Left
@@ -1980,34 +1980,34 @@ BroadcastName.Parent = BroadcastLine
 
 local VerifiedIcon = Instance.new("ImageLabel")
 VerifiedIcon.Name = "VerifiedBadge"
-VerifiedIcon.Size = UDim2.new(0, 23, 0, 23)
-VerifiedIcon.Position = UDim2.new(0, 153, 0, 15)
+VerifiedIcon.Size = UDim2.new(0, 29, 0, 29)
+VerifiedIcon.Position = UDim2.new(0, 194, 0, 20)
 VerifiedIcon.BackgroundTransparency = 1
 VerifiedIcon.Image = "rbxassetid://" .. VERIFIED_BADGE_TEXTURE_ID
 VerifiedIcon.Parent = BroadcastLine
 
 local BroadcastColon = Instance.new("TextLabel")
-BroadcastColon.Size = UDim2.new(0, 15, 1, 0)
-BroadcastColon.Position = UDim2.new(0, 180, 0, 0)
+BroadcastColon.Size = UDim2.new(0, 18, 1, 0)
+BroadcastColon.Position = UDim2.new(0, 226, 0, 0)
 BroadcastColon.BackgroundTransparency = 1
 BroadcastColon.Text = ":"
 BroadcastColon.TextColor3 = Color3.fromRGB(255, 255, 255)
 BroadcastColon.Font = Enum.Font.SourceSansBold
-BroadcastColon.TextSize = 24
+BroadcastColon.TextSize = 30
 BroadcastColon.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 BroadcastColon.TextStrokeTransparency = 0
 BroadcastColon.Parent = BroadcastLine
 
 local BroadcastMessage = Instance.new("TextLabel")
-BroadcastMessage.Size = UDim2.new(1, -205, 1, 0)
-BroadcastMessage.Position = UDim2.new(0, 200, 0, 0)
+BroadcastMessage.Size = UDim2.new(1, -250, 1, 0)
+BroadcastMessage.Position = UDim2.new(0, 248, 0, 0)
 BroadcastMessage.BackgroundTransparency = 1
 BroadcastMessage.Text = ""
 BroadcastMessage.TextColor3 = Color3.fromRGB(255, 255, 255)
 BroadcastMessage.Font = Enum.Font.SourceSansBold
-BroadcastMessage.TextSize = 23
-BroadcastMessage.TextWrapped = false
-BroadcastMessage.TextTruncate = Enum.TextTruncate.AtEnd
+BroadcastMessage.TextSize = 29
+BroadcastMessage.TextWrapped = true
+BroadcastMessage.TextTruncate = Enum.TextTruncate.None
 BroadcastMessage.TextXAlignment = Enum.TextXAlignment.Left
 BroadcastMessage.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 BroadcastMessage.TextStrokeTransparency = 0
@@ -2034,9 +2034,9 @@ local function showDeveloperBroadcast(data)
     BroadcastMessage.Text = data.text
 
     BroadcastWrap.Visible = true
-    BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -78)
+    BroadcastWrap.Position = UDim2.new(0.5, 0, 0, -126)
     TweenService:Create(BroadcastWrap, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Position = UDim2.new(0.5, 0, 0, 68)
+        Position = UDim2.new(0.5, 0, 0, 105)
     }):Play()
 
     pcall(function()
@@ -2048,7 +2048,7 @@ local function showDeveloperBroadcast(data)
     task.delay(6, function()
         if broadcastSequence ~= thisSequence or not BroadcastWrap or not BroadcastWrap.Parent then return end
         local hideTween = TweenService:Create(BroadcastWrap, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-            Position = UDim2.new(0.5, 0, 0, -78)
+            Position = UDim2.new(0.5, 0, 0, -126)
         })
         hideTween:Play()
         hideTween.Completed:Wait()
@@ -2657,7 +2657,8 @@ local mapDataList = {
             {title = "فلفل", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()]]},
             {title = "الأزرق (كسر حماية)", requiresKey = "لا", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"))()]]},
             {title = "سينا هَب", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://senahub.xyz/senaexclusive"))()]]},
-            {title = "إف إن لسرقة البيض", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"))()]]}
+            {title = "إف إن لسرقة البيض", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"))()]]},
+            {title = "لودر لوآرمور", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua"))()]]}
         }
     },
     {
