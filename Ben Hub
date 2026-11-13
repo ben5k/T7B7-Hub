@@ -2662,6 +2662,13 @@ local mapDataList = {
         }
     },
     {
+        name = "ماب اكسر بيض",
+        image = fetchAsset("https://j.top4top.io/p_3969zz9cf0.jpg", "egg_breaker_map"),
+        scripts = {
+            {title = "لودر لوآرمور", requiresKey = "غير معروف", code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua"))()]]}
+        }
+    },
+    {
         name = "99 ليلة",
         image = fetchAsset("https://g.top4top.io/p_39369bu7i0.jpeg", "nights_99"),
         scripts = {
