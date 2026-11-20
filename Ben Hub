@@ -67,7 +67,7 @@ local Maps = {
         ImageFile = "LeaderHub_Map_EggSteal.jpg",
         Scripts = {
             {
-                Name = "Sena Hub",
+                Name = "سينا هَب",
                 URL = "https://senahub.xyz/senaexclusive"
             },
             {
@@ -82,8 +82,12 @@ local Maps = {
         ImageFile = "LeaderHub_Map_EggBreak.jpg",
         Scripts = {
             {
-                Name = "Lynx",
+                Name = "لينكس",
                 URL = "https://raw.githubusercontent.com/4LynxX/Lynx/refs/heads/main/LynxxMain.lua"
+            },
+            {
+                Name = "كسر وسرقة البيض تلقائياً",
+                URL = "https://scriptblox.com/raw/Break-and-Steal-an-Egg-auto-break-auto-steal-instant-steal-auto-equip-233448"
             }
         }
     },
@@ -91,7 +95,42 @@ local Maps = {
         Name = "ماب بلوكس فروت",
         ImageURL = "https://f.top4top.io/p_3923xn5tv0.png",
         ImageFile = "LeaderHub_Map_BloxFruits.png",
-        Scripts = {}
+        Scripts = {
+            {
+                Name = "تاي هَب بريميوم",
+                URL = "https://raw.githubusercontent.com/VTDROBLOX/Animehub/refs/heads/main/Tayhub-PREMIUM.lua"
+            },
+            {
+                Name = "جانتينغ هَب 2026",
+                URL = "https://isnahamzah.site/SubscribeYTisnahamzah/Gantenghub2026_01"
+            }
+        }
+    },
+    {
+        Name = "ماب أرمي الطعام للحيوانات",
+        ImageURL = "https://l.top4top.io/p_3976bvz2l1.jpg",
+        ImageFile = "LeaderHub_Map_ThrowFood.jpg",
+        Scripts = {
+            {
+                Name = "رمي الطعام التلقائي",
+                URL = "https://scriptblox.com/raw/Throw-Food-For-Animals-Auto-Throw-Always-Perfect-XENO-and-Solara-Support-KEYLESS-235175"
+            },
+            {
+                Name = "رمي الطعام - جومانبا",
+                URL = "https://raw.githubusercontent.com/gumanba/Scripts/main/ThrowFoodForAnimals"
+            }
+        }
+    },
+    {
+        Name = "ماب كينغ ليغاسي",
+        ImageURL = "https://d.top4top.io/p_3976bbnwj1.jpg",
+        ImageFile = "LeaderHub_Map_KingLegacy.jpg",
+        Scripts = {
+            {
+                Name = "أكوا هَب لكينغ ليغاسي",
+                URL = "https://scriptblox.com/raw/UPD-11-PART-1-King-Legacy-AQUAHUB-or-AUTOFARM-AUTO-LEVEL-AUTO-EVENTS-236091"
+            }
+        }
     }
 }
 
@@ -266,16 +305,28 @@ headerLine.BorderSizePixel = 0
 
 local title = Instance.new("TextLabel")
 title.Parent = header
-title.Size = UDim2.new(1,-102,1,0)
+title.Size = UDim2.new(1,-155,0,38)
 title.Position = UDim2.fromOffset(12,0)
 title.BackgroundTransparency = 1
 title.Text = "قائمة المابات"
 title.TextColor3 = C.White
-title.TextSize = 21
+title.TextSize = 19
 title.Font = Enum.Font.GothamBlack
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.TextTruncate = Enum.TextTruncate.AtEnd
 textOutline(title,0.3)
+
+local brandName = Instance.new("TextLabel")
+brandName.Parent = header
+brandName.Size = UDim2.fromOffset(120,26)
+brandName.Position = UDim2.fromOffset(12,33)
+brandName.BackgroundTransparency = 1
+brandName.Text = "رمانة"
+brandName.TextColor3 = C.White
+brandName.TextSize = 21
+brandName.Font = Enum.Font.GothamBlack
+brandName.TextXAlignment = Enum.TextXAlignment.Left
+textOutline(brandName,0.35)
 
 local close = Instance.new("TextButton")
 close.Parent = header
@@ -296,7 +347,7 @@ pressEffect(close)
 local themeBtn = Instance.new("TextButton")
 themeBtn.Parent = header
 themeBtn.Size = UDim2.fromOffset(38,38)
-themeBtn.Position = UDim2.new(1,-90,0,11)
+themeBtn.Position = UDim2.new(1,-135,0,11)
 themeBtn.BackgroundColor3 = C.Panel
 themeBtn.Text = (themeName == "dark") and "☀" or "🌙"
 themeBtn.TextColor3 = C.Amber
@@ -307,6 +358,66 @@ corner(themeBtn,6)
 outline(themeBtn)
 shine(themeBtn,C.Panel,0.1)
 pressEffect(themeBtn)
+
+local infoBtn = Instance.new("TextButton")
+infoBtn.Parent = header
+infoBtn.Size = UDim2.fromOffset(38,38)
+infoBtn.Position = UDim2.new(1,-90,0,11)
+infoBtn.BackgroundColor3 = C.Panel
+infoBtn.Text = "؟"
+infoBtn.TextColor3 = C.Text
+infoBtn.TextSize = 20
+infoBtn.Font = Enum.Font.GothamBlack
+infoBtn.AutoButtonColor = false
+corner(infoBtn,6)
+outline(infoBtn)
+shine(infoBtn,C.Panel,0.1)
+pressEffect(infoBtn)
+
+local infoPanel = Instance.new("Frame")
+infoPanel.Parent = main
+infoPanel.Size = UDim2.fromOffset(286,116)
+infoPanel.Position = UDim2.new(0.5,-143,0.5,-58)
+infoPanel.BackgroundColor3 = C.Panel
+infoPanel.BorderSizePixel = 0
+infoPanel.Visible = false
+infoPanel.ZIndex = 40
+corner(infoPanel,10)
+outline(infoPanel,2.5)
+
+local infoText = Instance.new("TextLabel")
+infoText.Parent = infoPanel
+infoText.Size = UDim2.new(1,-20,1,-42)
+infoText.Position = UDim2.fromOffset(10,7)
+infoText.BackgroundTransparency = 1
+infoText.Text = "تم صنع السكربت من قبل مطورين عرب\nحسابنا على تيك توك: كابتن طحبح\nنتمنى دعمكم ❤️"
+infoText.TextColor3 = C.Text
+infoText.TextSize = 14
+infoText.Font = Enum.Font.GothamBold
+infoText.TextWrapped = true
+infoText.TextXAlignment = Enum.TextXAlignment.Center
+infoText.TextYAlignment = Enum.TextYAlignment.Center
+infoText.ZIndex = 41
+
+local infoClose = Instance.new("TextButton")
+infoClose.Parent = infoPanel
+infoClose.Size = UDim2.new(1,-20,0,28)
+infoClose.Position = UDim2.new(0,10,1,-34)
+infoClose.BackgroundColor3 = C.Red
+infoClose.Text = "إغلاق"
+infoClose.TextColor3 = C.White
+infoClose.TextSize = 14
+infoClose.Font = Enum.Font.GothamBlack
+infoClose.AutoButtonColor = false
+infoClose.ZIndex = 41
+corner(infoClose,6)
+pressEffect(infoClose)
+infoClose.MouseButton1Click:Connect(function()
+    infoPanel.Visible = false
+end)
+infoBtn.MouseButton1Click:Connect(function()
+    infoPanel.Visible = not infoPanel.Visible
+end)
 
 local themeBusy = false
 -- يُعرَّف لاحقاً بعد إنشاء دوال العرض (يعيد بناء القوائم بالألوان الجديدة)
