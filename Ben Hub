@@ -1228,3 +1228,825 @@ end)
 
 go(nil)
 print("LEADER HUB V5 LOADED")
+
+
+--========================================================
+-- LEADER HUB CHAT | Firebase Realtime Database
+-- واجهة شات مستقلة + المتواجدين + أدوات المطور
+--========================================================
+do
+    local ChatPlayers = game:GetService("Players")
+    local ChatHttp = game:GetService("HttpService")
+    local ChatTween = game:GetService("TweenService")
+    local ChatUIS = game:GetService("UserInputService")
+    local Me = ChatPlayers.LocalPlayer
+
+    local DB = "https://mario-14cc0-default-rtdb.firebaseio.com"
+    local ROOT = "/leader_chat"
+    local IS_DEV = string.lower(Me.Name) == "dms921"
+
+    local function encode(v)
+        return ChatHttp:JSONEncode(v)
+    end
+    local function decode(v)
+        local ok, result = pcall(function() return ChatHttp:JSONDecode(v) end)
+        return ok and result or nil
+    end
+
+    local function http(method, path, body)
+        local url = DB .. ROOT .. path .. ".json"
+        local payload = {
+            Url = url,
+            Method = method,
+            Headers = {["Content-Type"] = "application/json"},
+        }
+        if body ~= nil then payload.Body = encode(body) end
+
+        local req = (syn and syn.request) or (http_request) or (request)
+        if req then
+            local response = req(payload)
+            if response and response.Body then
+                return response.StatusCode and response.StatusCode < 400, decode(response.Body)
+            end
+            return response ~= nil, nil
+        end
+
+        local ok, result = pcall(function()
+            if method == "GET" then
+                return decode(game:HttpGet(url))
+            end
+            error("HTTP request API is not available")
+        end)
+        return ok, result
+    end
+
+    local function make(class, props, parent)
+        local obj = Instance.new(class)
+        for k,v in pairs(props or {}) do
+            obj[k] = v
+        end
+        obj.Parent = parent
+        return obj
+    end
+
+    local function round(obj, radius)
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, radius or 8)
+        c.Parent = obj
+    end
+
+    local function stroke(obj, color, thickness)
+        local s = Instance.new("UIStroke")
+        s.Color = color or Color3.fromRGB(190, 35, 55)
+        s.Thickness = thickness or 1.5
+        s.Parent = obj
+    end
+
+    local RED = Color3.fromRGB(190, 28, 48)
+    local RED2 = Color3.fromRGB(235, 45, 65)
+    local BLACK = Color3.fromRGB(13, 12, 18)
+    local PANEL = Color3.fromRGB(25, 23, 31)
+    local WHITE = Color3.fromRGB(245, 243, 248)
+    local MUTED = Color3.fromRGB(155, 150, 165)
+    local GREEN = Color3.fromRGB(70, 205, 115)
+
+    -- زر صغير مستقل بجانب أزرار Roblox العلوية
+    local chatToggle = make("TextButton", {
+        Name = "LeaderChatToggle",
+        Size = UDim2.fromOffset(38, 38),
+        Position = UDim2.new(0, 12, 0, 62),
+        BackgroundColor3 = BLACK,
+        Text = "💬",
+        TextColor3 = WHITE,
+        TextSize = 20,
+        Font = Enum.Font.GothamBlack,
+        AutoButtonColor = false,
+        ZIndex = 80
+    }, gui)
+    round(chatToggle, 12)
+    stroke(chatToggle, RED, 2)
+
+    local chatWindow = make("Frame", {
+        Name = "LeaderChatWindow",
+        Size = UDim2.fromOffset(320, 245),
+        Position = UDim2.new(0, 12, 0, 108),
+        BackgroundColor3 = BLACK,
+        BorderSizePixel = 0,
+        Visible = true,
+        ClipsDescendants = true,
+        ZIndex = 70
+    }, gui)
+    round(chatWindow, 12)
+    stroke(chatWindow, Color3.fromRGB(235, 55, 78), 2)
+    local chatGradient = Instance.new("UIGradient")
+    chatGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 17, 26)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 8, 14))
+    })
+    chatGradient.Rotation = 90
+    chatGradient.Parent = chatWindow
+
+    local top = make("Frame", {
+        Size = UDim2.new(1, 0, 0, 36),
+        BackgroundColor3 = RED,
+        BorderSizePixel = 0,
+        ZIndex = 71
+    }, chatWindow)
+    local headerGradient = Instance.new("UIGradient")
+    headerGradient.Color = ColorSequence.new(
+        Color3.fromRGB(220, 35, 62),
+        Color3.fromRGB(125, 18, 42)
+    )
+    headerGradient.Rotation = 0
+    headerGradient.Parent = top
+    local chatTitle = make("TextLabel", {
+        Size = UDim2.new(1, -110, 1, 0),
+        Position = UDim2.fromOffset(9, 0),
+        BackgroundTransparency = 1,
+        Text = "شات رمانة",
+        TextColor3 = WHITE,
+        TextSize = 15,
+        Font = Enum.Font.GothamBlack,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 72
+    }, top)
+    local onlineButton = make("TextButton", {
+        Size = UDim2.fromOffset(76, 24),
+        Position = UDim2.new(1, -108, 0, 6),
+        BackgroundColor3 = BLACK,
+        Text = "متواجدين (0)",
+        TextColor3 = WHITE,
+        TextSize = 10,
+        Font = Enum.Font.GothamBold,
+        AutoButtonColor = false,
+        ZIndex = 73
+    }, top)
+    round(onlineButton, 7)
+    stroke(onlineButton, Color3.fromRGB(105, 55, 72), 1)
+    local closeChat = make("TextButton", {
+        Size = UDim2.fromOffset(24, 24),
+        Position = UDim2.new(1, -29, 0, 6),
+        BackgroundColor3 = BLACK,
+        Text = "X",
+        TextColor3 = WHITE,
+        TextSize = 14,
+        Font = Enum.Font.GothamBlack,
+        AutoButtonColor = false,
+        ZIndex = 73
+    }, top)
+    round(closeChat, 7)
+
+    local messages = make("ScrollingFrame", {
+        Size = UDim2.new(1, -14, 1, -82),
+        Position = UDim2.fromOffset(7, 42),
+        BackgroundColor3 = PANEL,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 3,
+        ScrollBarImageColor3 = RED2,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        ZIndex = 71
+    }, chatWindow)
+    round(messages, 8)
+    local msgLayout = make("UIListLayout", {
+        Padding = UDim.new(0, 6),
+        SortOrder = Enum.SortOrder.LayoutOrder
+    }, messages)
+    local msgPad = make("UIPadding", {
+        PaddingTop = UDim.new(0, 4),
+        PaddingBottom = UDim.new(0, 4),
+        PaddingLeft = UDim.new(0, 5),
+        PaddingRight = UDim.new(0, 5)
+    }, messages)
+    msgLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        messages.CanvasSize = UDim2.new(0, 0, 0, msgLayout.AbsoluteContentSize.Y + 16)
+        messages.CanvasPosition = Vector2.new(0, math.max(0, messages.CanvasSize.Y.Offset))
+    end)
+
+    local messageBox = make("TextBox", {
+        Size = UDim2.new(1, -82, 0, 32),
+        Position = UDim2.new(0, 7, 1, -39),
+        BackgroundColor3 = PANEL,
+        Text = "",
+        PlaceholderText = "اكتب رسالتك...",
+        PlaceholderColor3 = MUTED,
+        TextColor3 = WHITE,
+        TextSize = 12,
+        Font = Enum.Font.Gotham,
+        ClearTextOnFocus = false,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        ZIndex = 72
+    }, chatWindow)
+    round(messageBox, 8)
+    stroke(messageBox, RED, 1)
+    local sendButton = make("TextButton", {
+        Size = UDim2.fromOffset(68, 32),
+        Position = UDim2.new(1, -75, 1, -39),
+        BackgroundColor3 = RED,
+        Text = "إرسال",
+        TextColor3 = WHITE,
+        TextSize = 14,
+        Font = Enum.Font.GothamBlack,
+        AutoButtonColor = false,
+        ZIndex = 72
+    }, chatWindow)
+    round(sendButton, 8)
+
+    -- صفحات المتواجدين وأدوات المطور
+    local onlinePanel = make("Frame", {
+        Size = UDim2.new(1, -16, 1, -48),
+        Position = UDim2.fromOffset(8, 42),
+        BackgroundColor3 = BLACK,
+        Visible = false,
+        ZIndex = 74
+    }, chatWindow)
+    round(onlinePanel, 9)
+    stroke(onlinePanel, RED, 1.5)
+    local onlineTitle = make("TextLabel", {
+        Size = UDim2.new(1, -12, 0, 23),
+        Position = UDim2.fromOffset(6, 2),
+        BackgroundTransparency = 1,
+        Text = "اللاعبون المتواجدون",
+        TextColor3 = WHITE,
+        TextSize = 15,
+        Font = Enum.Font.GothamBlack,
+        ZIndex = 75
+    }, onlinePanel)
+    local onlineList = make("ScrollingFrame", {
+        Size = UDim2.new(1, -10, 1, -32),
+        Position = UDim2.fromOffset(5, 28),
+        BackgroundColor3 = PANEL,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 3,
+        CanvasSize = UDim2.new(),
+        ZIndex = 75
+    }, onlinePanel)
+    round(onlineList, 7)
+    local onlineLayout = make("UIListLayout", {
+        Padding = UDim.new(0, 5),
+        SortOrder = Enum.SortOrder.LayoutOrder
+    }, onlineList)
+    make("UIPadding", {
+        PaddingTop = UDim.new(0, 6),
+        PaddingLeft = UDim.new(0, 6),
+        PaddingRight = UDim.new(0, 6)
+    }, onlineList)
+    onlineLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        onlineList.CanvasSize = UDim2.new(0, 0, 0, onlineLayout.AbsoluteContentSize.Y + 12)
+    end)
+
+    local devButton
+    local devPanel
+    local devTitle
+    local muteNameBox
+    local muteActionButton
+    local logsButton
+    local backToMuteButton
+    local devMenu
+    local muteSearch
+    local muteList
+    local muteLayout
+    if IS_DEV then
+        devButton = make("TextButton", {
+            Size = UDim2.fromOffset(58, 24),
+            Position = UDim2.new(0, 6, 0, 6),
+            BackgroundColor3 = BLACK,
+            Text = "المطور",
+            TextColor3 = WHITE,
+            TextSize = 12,
+            Font = Enum.Font.GothamBlack,
+            AutoButtonColor = false,
+            ZIndex = 73
+        }, top)
+        round(devButton, 7)
+        stroke(devButton, Color3.fromRGB(255, 190, 50), 1.5)
+        chatTitle.Position = UDim2.fromOffset(92, 0)
+        chatTitle.Size = UDim2.new(1, -220, 1, 0)
+
+        devPanel = make("Frame", {
+            Size = UDim2.new(1, -16, 1, -48),
+            Position = UDim2.fromOffset(8, 42),
+            BackgroundColor3 = BLACK,
+            Visible = false,
+            ZIndex = 76
+        }, chatWindow)
+        round(devPanel, 9)
+        stroke(devPanel, Color3.fromRGB(235, 55, 78), 1.5)
+        devTitle = make("TextLabel", {
+            Size = UDim2.new(1, -12, 0, 22),
+            Position = UDim2.fromOffset(6, 2),
+            BackgroundTransparency = 1,
+            Text = "لوحة المطور - Dms921",
+            TextColor3 = WHITE,
+            TextSize = 14,
+            Font = Enum.Font.GothamBlack,
+            ZIndex = 77
+        }, devPanel)
+        muteNameBox = make("TextBox", {
+            Size = UDim2.new(1, -12, 0, 27),
+            Position = UDim2.fromOffset(6, 27),
+            BackgroundColor3 = PANEL,
+            Text = "",
+            PlaceholderText = "اكتب اسم اللاعب لكتمه...",
+            PlaceholderColor3 = MUTED,
+            TextColor3 = WHITE,
+            TextSize = 13,
+            Font = Enum.Font.Gotham,
+            ClearTextOnFocus = false,
+            ZIndex = 77
+        }, devPanel)
+        round(muteNameBox, 7)
+        muteActionButton = make("TextButton", {
+            Size = UDim2.new(0.5, -9, 0, 25),
+            Position = UDim2.fromOffset(6, 58),
+            BackgroundColor3 = RED,
+            Text = "كتم اللاعب",
+            TextColor3 = WHITE,
+            TextSize = 13,
+            Font = Enum.Font.GothamBlack,
+            AutoButtonColor = false,
+            ZIndex = 77
+        }, devPanel)
+        round(muteActionButton, 7)
+        stroke(muteActionButton, Color3.fromRGB(255, 90, 105), 1)
+        logsButton = make("TextButton", {
+            Size = UDim2.new(0.5, -9, 0, 25),
+            Position = UDim2.new(0.5, 3, 0, 58),
+            BackgroundColor3 = PANEL,
+            Text = "السجلات",
+            TextColor3 = WHITE,
+            TextSize = 13,
+            Font = Enum.Font.GothamBlack,
+            AutoButtonColor = false,
+            ZIndex = 77
+        }, devPanel)
+        round(logsButton, 7)
+        stroke(logsButton, Color3.fromRGB(95, 76, 105), 1)
+        backToMuteButton = make("TextButton", {
+            Size = UDim2.fromOffset(86, 24),
+            Position = UDim2.new(1, -92, 0, 3),
+            BackgroundColor3 = Color3.fromRGB(48, 42, 57),
+            Text = "رجوع للكتم",
+            TextColor3 = WHITE,
+            TextSize = 10,
+            Font = Enum.Font.GothamBold,
+            AutoButtonColor = false,
+            Visible = false,
+            ZIndex = 78
+        }, devPanel)
+        round(backToMuteButton, 7)
+        muteSearch = make("TextBox", {
+            Size = UDim2.new(1, -12, 0, 25),
+            Position = UDim2.fromOffset(6, 35),
+            BackgroundColor3 = PANEL,
+            Text = "",
+            PlaceholderText = "بحث في المكتومين...",
+            PlaceholderColor3 = MUTED,
+            TextColor3 = WHITE,
+            TextSize = 13,
+            Font = Enum.Font.Gotham,
+            ClearTextOnFocus = false,
+            Visible = false,
+            ZIndex = 77
+        }, devPanel)
+        round(muteSearch, 7)
+        muteList = make("ScrollingFrame", {
+            Size = UDim2.new(1, -12, 1, -68),
+            Position = UDim2.fromOffset(6, 64),
+            Visible = false,
+            BackgroundColor3 = PANEL,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 3,
+            CanvasSize = UDim2.new(),
+            ZIndex = 77
+        }, devPanel)
+        round(muteList, 7)
+        muteLayout = make("UIListLayout", {
+            Padding = UDim.new(0, 5),
+            SortOrder = Enum.SortOrder.LayoutOrder
+        }, muteList)
+        make("UIPadding", {
+            PaddingTop = UDim.new(0, 6),
+            PaddingLeft = UDim.new(0, 6),
+            PaddingRight = UDim.new(0, 6)
+        }, muteList)
+        muteLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            muteList.CanvasSize = UDim2.new(0, 0, 0, muteLayout.AbsoluteContentSize.Y + 12)
+        end)
+    end
+
+    local function clearGui(container)
+        for _, child in ipairs(container:GetChildren()) do
+            if child:IsA("GuiObject") and not child:IsA("UIListLayout")
+                and not child:IsA("UIPadding") then
+                child:Destroy()
+            end
+        end
+    end
+
+    local function cleanText(s)
+        s = tostring(s or "")
+        s = s:gsub("[%c]", " ")
+        s = s:sub(1, 180)
+        return s
+    end
+
+    -- فلتر أولي للكلمات المسيئة؛ يفضّل إضافة كلمات مجتمعكم هنا.
+    local blockedWords = {
+        "fuck", "shit", "bitch", "asshole",
+        "كس", "طيز", "زب", "شرموط", "قحبه", "كلب"
+    }
+    local function hasBadWord(text)
+        local low = string.lower(text)
+        for _, word in ipairs(blockedWords) do
+            if string.find(low, word, 1, true) then return true end
+        end
+        return false
+    end
+
+    local mutedCache = {}
+    local function loadMutes()
+        local ok, data = http("GET", "/mutes")
+        if ok and type(data) == "table" then mutedCache = data end
+        return mutedCache
+    end
+
+    local function addMessage(item)
+        if type(item) ~= "table" then return end
+        local uid = tostring(item.uid or "")
+        if uid ~= "" and mutedCache[uid] then return end
+        local row = make("Frame", {
+            Size = UDim2.new(1, -4, 0, 58),
+            BackgroundColor3 = BLACK,
+            BorderSizePixel = 0,
+            ZIndex = 72
+        }, messages)
+        round(row, 7)
+        local avatar = make("ImageLabel", {
+            Size = UDim2.fromOffset(38, 38),
+            Position = UDim2.new(1, -44, 0, 9),
+            BackgroundColor3 = PANEL,
+            Image = "",
+            ZIndex = 73
+        }, row)
+        round(avatar, 19)
+        local username = cleanText(item.name or "Player")
+        local okThumb, thumb = pcall(function()
+            return ChatPlayers:GetUserThumbnailAsync(
+                tonumber(uid) or 1,
+                Enum.ThumbnailType.HeadShot,
+                Enum.ThumbnailSize.Size48x48
+            )
+        end)
+        if okThumb then avatar.Image = thumb end
+        make("TextLabel", {
+            Size = UDim2.new(1, -58, 0, 18),
+            Position = UDim2.fromOffset(8, 5),
+            BackgroundTransparency = 1,
+            Text = username,
+            TextColor3 = RED2,
+            TextSize = 12,
+            Font = Enum.Font.GothamBlack,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = 73
+        }, row)
+        make("TextLabel", {
+            Size = UDim2.new(1, -58, 0, 29),
+            Position = UDim2.fromOffset(8, 24),
+            BackgroundTransparency = 1,
+            Text = cleanText(item.text),
+            TextColor3 = WHITE,
+            TextSize = 13,
+            Font = Enum.Font.Gotham,
+            TextWrapped = true,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = 73
+        }, row)
+    end
+
+    local lastMessageKeys = {}
+    local function refreshMessages()
+        local ok, data = http("GET", "/messages")
+        if not ok or type(data) ~= "table" then return end
+        loadMutes()
+        local entries = {}
+        for key, item in pairs(data) do
+            if type(item) == "table" then
+                table.insert(entries, {key = key, item = item})
+            end
+        end
+        table.sort(entries, function(a, b)
+            return (tonumber(a.item.time) or 0) < (tonumber(b.item.time) or 0)
+        end)
+        for _, entry in ipairs(entries) do
+            if not lastMessageKeys[entry.key] then
+                lastMessageKeys[entry.key] = true
+                addMessage(entry.item)
+            end
+        end
+        -- حدّ أعلى للذاكرة والواجهة
+        local rows = {}
+        for _, child in ipairs(messages:GetChildren()) do
+            if child:IsA("Frame") then table.insert(rows, child) end
+        end
+        while #rows > 45 do
+            rows[1]:Destroy()
+            table.remove(rows, 1)
+        end
+    end
+
+    local function sendMessage()
+        local textValue = cleanText(messageBox.Text):gsub("^%s+", ""):gsub("%s+$", "")
+        if textValue == "" then return end
+        if hasBadWord(textValue) then
+            messageBox.Text = ""
+            notify("تم منع الرسالة: تحتوي على ألفاظ ممنوعة")
+            return
+        end
+        local muted = loadMutes()
+        if muted[tostring(Me.UserId)] then
+            notify("أنت مكتوم ولا يمكنك الإرسال")
+            return
+        end
+        local ok = http("POST", "/messages", {
+            uid = Me.UserId,
+            name = Me.Name,
+            text = textValue,
+            time = os.time()
+        })
+        if ok then
+            messageBox.Text = ""
+            refreshMessages()
+        else
+            notify("تعذر الإرسال - تحقق من قاعدة البيانات")
+        end
+    end
+    -- سحب زر الشات والنافذة باللمس أو الماوس
+    local function makeDraggable(handle, target)
+        local dragging = false
+        local moved = false
+        local dragInput, startInput, startPosition
+        handle.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch
+                or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                moved = false
+                dragInput = input
+                startInput = input.Position
+                startPosition = target.Position
+            end
+        end)
+        ChatUIS.InputChanged:Connect(function(input)
+            if not dragging then return end
+            if input.UserInputType == Enum.UserInputType.Touch
+                or input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - startInput
+                if delta.Magnitude > 6 then moved = true end
+                target.Position = UDim2.new(
+                    startPosition.X.Scale, startPosition.X.Offset + delta.X,
+                    startPosition.Y.Scale, startPosition.Y.Offset + delta.Y
+                )
+            end
+        end)
+        ChatUIS.InputEnded:Connect(function(input)
+            if input == dragInput then
+                dragging = false
+                dragInput = nil
+                if moved then
+                    target:SetAttribute("JustDragged", true)
+                    task.delay(0.25, function()
+                        if target and target.Parent then target:SetAttribute("JustDragged", false) end
+                    end)
+                end
+            end
+        end)
+    end
+    makeDraggable(chatToggle, chatToggle)
+    makeDraggable(top, chatWindow)
+
+    sendButton.MouseButton1Click:Connect(sendMessage)
+    messageBox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then sendMessage() end
+    end)
+
+    local function refreshOnline()
+        local now = os.time()
+        http("PUT", "/online/" .. tostring(Me.UserId), {
+            uid = Me.UserId,
+            name = Me.Name,
+            seen = now
+        })
+        local ok, data = http("GET", "/online")
+        if not ok or type(data) ~= "table" then return end
+        local active = {}
+        for id, info in pairs(data) do
+            if type(info) == "table" and now - (tonumber(info.seen) or 0) < 45 then
+                table.insert(active, {id = id, info = info})
+            end
+        end
+        table.sort(active, function(a,b)
+            return string.lower(tostring(a.info.name or "")) < string.lower(tostring(b.info.name or ""))
+        end)
+        onlineButton.Text = "متواجدين (" .. tostring(#active) .. ")"
+        clearGui(onlineList)
+        for _, entry in ipairs(active) do
+            local row = make("Frame", {
+                Size = UDim2.new(1, -4, 0, 48),
+                BackgroundColor3 = BLACK,
+                BorderSizePixel = 0,
+                ZIndex = 76
+            }, onlineList)
+            round(row, 7)
+            local image = make("ImageLabel", {
+                Size = UDim2.fromOffset(36, 36),
+                Position = UDim2.new(1, -42, 0, 6),
+                BackgroundColor3 = PANEL,
+                ZIndex = 77
+            }, row)
+            round(image, 18)
+            local thumbOk, thumb = pcall(function()
+                return ChatPlayers:GetUserThumbnailAsync(
+                    tonumber(entry.id) or 1,
+                    Enum.ThumbnailType.HeadShot,
+                    Enum.ThumbnailSize.Size48x48
+                )
+            end)
+            if thumbOk then image.Image = thumb end
+            make("TextLabel", {
+                Size = UDim2.new(1, -54, 1, 0),
+                Position = UDim2.fromOffset(8, 0),
+                BackgroundTransparency = 1,
+                Text = cleanText(entry.info.name or "Player"),
+                TextColor3 = WHITE,
+                TextSize = 14,
+                Font = Enum.Font.GothamBold,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 77
+            }, row)
+        end
+    end
+
+    local function refreshMutedList()
+        if not IS_DEV or not muteList then return end
+        loadMutes()
+        clearGui(muteList)
+        local q = string.lower(muteSearch.Text or "")
+        local count = 0
+        for id, info in pairs(mutedCache) do
+            if type(info) == "table" then
+                local name = tostring(info.name or id)
+                if q == "" or string.find(string.lower(name), q, 1, true) then
+                    count = count + 1
+                    local row = make("Frame", {
+                        Size = UDim2.new(1, -4, 0, 42),
+                        BackgroundColor3 = BLACK,
+                        BorderSizePixel = 0,
+                        ZIndex = 78
+                    }, muteList)
+                    round(row, 7)
+                    make("TextLabel", {
+                        Size = UDim2.new(1, -92, 1, 0),
+                        Position = UDim2.fromOffset(8, 0),
+                        BackgroundTransparency = 1,
+                        Text = name,
+                        TextColor3 = WHITE,
+                        TextSize = 13,
+                        Font = Enum.Font.GothamBold,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        ZIndex = 79
+                    }, row)
+                    local unmute = make("TextButton", {
+                        Size = UDim2.fromOffset(76, 30),
+                        Position = UDim2.new(1, -82, 0.5, -15),
+                        BackgroundColor3 = GREEN,
+                        Text = "إلغاء كتم",
+                        TextColor3 = BLACK,
+                        TextSize = 11,
+                        Font = Enum.Font.GothamBlack,
+                        AutoButtonColor = false,
+                        ZIndex = 79
+                    }, row)
+                    round(unmute, 6)
+                    unmute.MouseButton1Click:Connect(function()
+                        http("DELETE", "/mutes/" .. tostring(id))
+                        refreshMutedList()
+                        notify("تم إلغاء الكتم")
+                    end)
+                end
+            end
+        end
+        if count == 0 then
+            make("TextLabel", {
+                Size = UDim2.new(1, -8, 0, 36),
+                BackgroundTransparency = 1,
+                Text = "لا توجد نتائج",
+                TextColor3 = MUTED,
+                TextSize = 13,
+                Font = Enum.Font.GothamBold,
+                ZIndex = 79
+            }, muteList)
+        end
+    end
+
+    if IS_DEV then
+        local function showMutePage()
+            muteNameBox.Visible = true
+            muteActionButton.Visible = true
+            logsButton.Visible = true
+            muteSearch.Visible = false
+            muteList.Visible = false
+            backToMuteButton.Visible = false
+            devTitle.Text = "لوحة المطور - Dms921"
+        end
+        local function showLogsPage()
+            muteNameBox.Visible = false
+            muteActionButton.Visible = false
+            logsButton.Visible = false
+            muteSearch.Visible = true
+            muteList.Visible = true
+            backToMuteButton.Visible = true
+            devTitle.Text = "سجلات المكتومين"
+            refreshMutedList()
+        end
+        muteActionButton.MouseButton1Click:Connect(function()
+            local wanted = string.lower((muteNameBox.Text or ""):gsub("^%s+", ""):gsub("%s+$", ""))
+            if wanted == "" then notify("اكتب اسم اللاعب أولاً"); return end
+            local target
+            for _, plr in ipairs(ChatPlayers:GetPlayers()) do
+                if string.lower(plr.Name) == wanted or string.lower(plr.DisplayName) == wanted then
+                    target = plr
+                    break
+                end
+            end
+            if not target then
+                notify("اللاعب غير موجود حالياً")
+                return
+            end
+            local ok = http("PUT", "/mutes/" .. tostring(target.UserId), {
+                uid = target.UserId,
+                name = target.Name,
+                mutedBy = Me.Name,
+                time = os.time()
+            })
+            if ok then
+                muteNameBox.Text = ""
+                refreshMutedList()
+                notify("تم كتم " .. target.Name)
+            else
+                notify("فشل حفظ الكتم")
+            end
+        end)
+        logsButton.MouseButton1Click:Connect(showLogsPage)
+        backToMuteButton.MouseButton1Click:Connect(showMutePage)
+        muteSearch:GetPropertyChangedSignal("Text"):Connect(refreshMutedList)
+        devButton.MouseButton1Click:Connect(function()
+            devPanel.Visible = not devPanel.Visible
+            onlinePanel.Visible = false
+            messages.Visible = not devPanel.Visible
+            messageBox.Visible = not devPanel.Visible
+            sendButton.Visible = not devPanel.Visible
+            if devPanel.Visible then showMutePage() end
+        end)
+    end
+
+    onlineButton.MouseButton1Click:Connect(function()
+        onlinePanel.Visible = not onlinePanel.Visible
+        messages.Visible = not onlinePanel.Visible
+        messageBox.Visible = not onlinePanel.Visible
+        sendButton.Visible = not onlinePanel.Visible
+        if devPanel then devPanel.Visible = false end
+        if onlinePanel.Visible then refreshOnline() end
+    end)
+    closeChat.MouseButton1Click:Connect(function()
+        chatWindow.Visible = false
+        onlinePanel.Visible = false
+        if devPanel then devPanel.Visible = false end
+    end)
+    chatToggle.MouseButton1Click:Connect(function()
+        if chatToggle:GetAttribute("JustDragged") then return end
+        chatWindow.Visible = not chatWindow.Visible
+        if chatWindow.Visible then
+            onlinePanel.Visible = false
+            if devPanel then devPanel.Visible = false end
+            messages.Visible = true
+            messageBox.Visible = true
+            sendButton.Visible = true
+            refreshMessages()
+            refreshOnline()
+        end
+    end)
+
+    task.spawn(function()
+        while gui and gui.Parent do
+            pcall(refreshMessages)
+            task.wait(3)
+        end
+    end)
+    task.spawn(function()
+        while gui and gui.Parent do
+            pcall(refreshOnline)
+            task.wait(12)
+        end
+    end)
+
+    print("RUMMANA CHAT LOADED")
+end
