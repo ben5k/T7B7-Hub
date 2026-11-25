@@ -73,6 +73,26 @@ local Maps = {
             {
                 Name = "فلفل",
                 URL = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"
+            },
+            {
+                Name = "سكربت سرقة البيض",
+                URL = "https://raw.githubusercontent.com/Dayvinksthik/Script/refs/heads/main/Games/JoshBNS-Crack.lua"
+            },
+            {
+                Name = "سكربت ادمن",
+                URL = ""
+            },
+            {
+                Name = "سكربت ديفاين",
+                URL = "https://raw.githubusercontent.com/tienkhanh1/Aquavine/main/DivineHub"
+            },
+            {
+                Name = "سكربت سكنات",
+                URL = "https://raw.githubusercontent.com/rysted-rbx/free/main/changeAvatarVisual"
+            },
+            {
+                Name = "سكربت فينكس",
+                URL = "https://api.luarmor.net/files/v4/loaders/ff2f66df8811e8d694770d532d0a0d1f.lua"
             }
         }
     },
@@ -1264,11 +1284,18 @@ do
 
         local req = (syn and syn.request) or (http_request) or (request)
         if req then
-            local response = req(payload)
-            if response and response.Body then
-                return response.StatusCode and response.StatusCode < 400, decode(response.Body)
+            local requestOk, response = pcall(req, payload)
+            if not requestOk or type(response) ~= "table" then
+                return false, nil
             end
-            return response ~= nil, nil
+            local status = tonumber(response.StatusCode)
+            local success = response.Success == true or (status ~= nil and status >= 200 and status < 300)
+            local responseBody = response.Body
+            local decoded = nil
+            if type(responseBody) == "string" and responseBody ~= "" then
+                decoded = decode(responseBody)
+            end
+            return success, decoded
         end
 
         local ok, result = pcall(function()
@@ -1328,7 +1355,7 @@ do
 
     local chatWindow = make("Frame", {
         Name = "LeaderChatWindow",
-        Size = UDim2.fromOffset(320, 245),
+        Size = UDim2.fromOffset(350, 275),
         Position = UDim2.new(0, 12, 0, 108),
         BackgroundColor3 = BLACK,
         BorderSizePixel = 0,
@@ -1360,7 +1387,7 @@ do
     headerGradient.Rotation = 0
     headerGradient.Parent = top
     local chatTitle = make("TextLabel", {
-        Size = UDim2.new(1, -110, 1, 0),
+        Size = UDim2.new(0, 98, 1, 0),
         Position = UDim2.fromOffset(9, 0),
         BackgroundTransparency = 1,
         Text = "شات رمانة",
@@ -1370,6 +1397,21 @@ do
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 72
     }, top)
+    local resetTimerLabel = make("TextLabel", {
+        Name = "ChatResetCountdown",
+        Size = UDim2.fromOffset(76, 19),
+        Position = UDim2.fromOffset(108, 9),
+        BackgroundColor3 = Color3.fromRGB(35, 24, 35),
+        Text = "ريست 03:00",
+        TextColor3 = Color3.fromRGB(255, 205, 120),
+        TextSize = 9,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        ZIndex = 73
+    }, top)
+    round(resetTimerLabel, 6)
+    stroke(resetTimerLabel, Color3.fromRGB(115, 48, 60), 1)
+
     local onlineButton = make("TextButton", {
         Size = UDim2.fromOffset(76, 24),
         Position = UDim2.new(1, -108, 0, 6),
@@ -1497,6 +1539,8 @@ do
     local devButton
     local devPanel
     local devTitle
+    local broadcastBox
+    local broadcastSend
     local muteNameBox
     local muteActionButton
     local logsButton
@@ -1568,6 +1612,42 @@ do
         }, devPanel)
         round(muteActionButton, 7)
         stroke(muteActionButton, Color3.fromRGB(255, 90, 105), 1)
+
+        broadcastBox = make("TextBox", {
+            Name = "BroadcastMessageBox",
+            Size = UDim2.new(1, -12, 0, 42),
+            Position = UDim2.fromOffset(6, 91),
+            BackgroundColor3 = Color3.fromRGB(18, 25, 43),
+            Text = "",
+            PlaceholderText = "اكتب إعلان المطور للجميع...",
+            PlaceholderColor3 = Color3.fromRGB(135, 155, 185),
+            TextColor3 = WHITE,
+            TextSize = 12,
+            Font = Enum.Font.Gotham,
+            TextWrapped = true,
+            TextXAlignment = Enum.TextXAlignment.Right,
+            TextYAlignment = Enum.TextYAlignment.Center,
+            ClearTextOnFocus = false,
+            ZIndex = 77
+        }, devPanel)
+        round(broadcastBox, 7)
+        stroke(broadcastBox, Color3.fromRGB(45, 125, 235), 1.2)
+
+        broadcastSend = make("TextButton", {
+            Name = "BroadcastSendButton",
+            Size = UDim2.new(1, -12, 0, 27),
+            Position = UDim2.fromOffset(6, 137),
+            BackgroundColor3 = Color3.fromRGB(30, 92, 180),
+            Text = "إرسال برودكاست للجميع  📢",
+            TextColor3 = WHITE,
+            TextSize = 12,
+            Font = Enum.Font.GothamBlack,
+            AutoButtonColor = false,
+            ZIndex = 77
+        }, devPanel)
+        round(broadcastSend, 7)
+        stroke(broadcastSend, Color3.fromRGB(80, 155, 255), 1)
+
         logsButton = make("TextButton", {
             Size = UDim2.new(0.5, -9, 0, 25),
             Position = UDim2.new(0.5, 3, 0, 58),
@@ -1723,8 +1803,174 @@ do
         }, row)
     end
 
+    local SoundService = game:GetService("SoundService")
+    local ContentProvider = game:GetService("ContentProvider")
+    local broadcastSound = Instance.new("Sound")
+    broadcastSound.Name = "RummanaBroadcastSound"
+    broadcastSound.SoundId = "rbxassetid://17208361335"
+    broadcastSound.Volume = 1
+    broadcastSound.Looped = false
+    broadcastSound.Parent = SoundService
+
+    -- تحميل الصوت مسبقاً حتى يكون جاهزاً عند وصول الإعلان.
+    task.spawn(function()
+        pcall(function()
+            ContentProvider:PreloadAsync({broadcastSound})
+        end)
+    end)
+
+    local function playBroadcastSound()
+        task.spawn(function()
+            pcall(function()
+                if not broadcastSound.IsLoaded then
+                    ContentProvider:PreloadAsync({broadcastSound})
+                end
+                broadcastSound:Stop()
+                broadcastSound.TimePosition = 0
+                broadcastSound:Play()
+            end)
+        end)
+    end
+
+    local lastBroadcastKeys = {}
+
+    -- شريط برودكاست شفاف بأسلوب Ben: الأفاتار والاسم والتوثيق وADMIN والكلام بسطر واحد.
+    local broadcastBanner = make("Frame", {
+        Name = "RummanaBroadcastBanner",
+        Size = UDim2.new(0.97, 0, 0, 42),
+        Position = UDim2.new(0.5, 0, 0, -55),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        Visible = false,
+        ZIndex = 200
+    }, gui)
+
+    local bannerAvatar = make("ImageLabel", {
+        Size = UDim2.fromOffset(29, 29),
+        Position = UDim2.fromOffset(0, 6),
+        BackgroundTransparency = 1,
+        Image = "",
+        ScaleType = Enum.ScaleType.Fit,
+        ZIndex = 201
+    }, broadcastBanner)
+
+    local bannerName = make("TextLabel", {
+        Size = UDim2.fromOffset(61, 25),
+        Position = UDim2.fromOffset(33, 7),
+        BackgroundTransparency = 1,
+        Text = "Dms921",
+        TextColor3 = Color3.fromRGB(95, 175, 255),
+        TextSize = 14,
+        Font = Enum.Font.GothamBlack,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextStrokeColor3 = Color3.fromRGB(10, 15, 25),
+        TextStrokeTransparency = 0.15,
+        ZIndex = 201
+    }, broadcastBanner)
+
+    local bannerVerified = make("ImageLabel", {
+        Size = UDim2.fromOffset(15, 15),
+        Position = UDim2.fromOffset(94, 11),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://139619959097679",
+        ScaleType = Enum.ScaleType.Fit,
+        ZIndex = 202
+    }, broadcastBanner)
+
+    local bannerAdmin = make("TextLabel", {
+        Size = UDim2.fromOffset(43, 17),
+        Position = UDim2.fromOffset(113, 10),
+        BackgroundColor3 = Color3.fromRGB(30, 83, 155),
+        Text = "ADMIN",
+        TextColor3 = Color3.fromRGB(245, 250, 255),
+        TextSize = 9,
+        Font = Enum.Font.GothamBlack,
+        ZIndex = 202
+    }, broadcastBanner)
+    round(bannerAdmin, 5)
+
+    local bannerMessage = make("TextLabel", {
+        Size = UDim2.new(1, -164, 1, 0),
+        Position = UDim2.fromOffset(162, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 14,
+        Font = Enum.Font.GothamBold,
+        TextWrapped = false,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Center,
+        TextStrokeColor3 = Color3.fromRGB(10, 15, 25),
+        TextStrokeTransparency = 0.15,
+        ZIndex = 201
+    }, broadcastBanner)
+
+    local bannerSequence = 0
+    local function addBroadcast(item)
+        if type(item) ~= "table" then return end
+        local messageText = cleanText(item.text):gsub("^%s+", ""):gsub("%s+$", "")
+        if messageText == "" then return end
+
+        bannerSequence = bannerSequence + 1
+        local thisSequence = bannerSequence
+        bannerMessage.Text = messageText
+        bannerName.Text = "Dms921"
+        broadcastBanner.Visible = true
+
+        local thumbOk, thumb = pcall(function()
+            return ChatPlayers:GetUserThumbnailAsync(
+                tonumber(item.uid) or 1,
+                Enum.ThumbnailType.HeadShot,
+                Enum.ThumbnailSize.Size48x48
+            )
+        end)
+        bannerAvatar.Image = thumbOk and thumb or ""
+
+        broadcastBanner.Position = UDim2.new(0.5, 0, 0, -55)
+        TweenService:Create(
+            broadcastBanner,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+            {Position = UDim2.new(0.5, 0, 0, 24)}
+        ):Play()
+
+        task.delay(8, function()
+            if thisSequence ~= bannerSequence or not broadcastBanner.Parent then return end
+            local hideTween = TweenService:Create(
+                broadcastBanner,
+                TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
+                {Position = UDim2.new(0.5, 0, 0, -55)}
+            )
+            hideTween:Play()
+            hideTween.Completed:Wait()
+            if thisSequence == bannerSequence then
+                broadcastBanner.Visible = false
+            end
+        end)
+    end
+
     local lastMessageKeys = {}
+    local activeChatWindow = math.floor(os.time() / 180)
+
+    local function resetChatDisplay()
+        -- إعادة ضبط عرض الشات محلياً كل 3 دقائق؛ لا نحذف رسائل Firebase ولا سجلات الكتم.
+        for _, child in ipairs(messages:GetChildren()) do
+            if child:IsA("Frame") then
+                child:Destroy()
+            end
+        end
+        lastMessageKeys = {}
+    end
+
     local function refreshMessages()
+        local newChatWindow = math.floor(os.time() / 180)
+        if newChatWindow ~= activeChatWindow then
+            activeChatWindow = newChatWindow
+            resetChatDisplay()
+        end
+
+        local windowStartTime = activeChatWindow * 180
         local ok, data = http("GET", "/messages")
         if not ok or type(data) ~= "table" then return end
         loadMutes()
@@ -1738,7 +1984,8 @@ do
             return (tonumber(a.item.time) or 0) < (tonumber(b.item.time) or 0)
         end)
         for _, entry in ipairs(entries) do
-            if not lastMessageKeys[entry.key] then
+            local messageTime = tonumber(entry.item.time) or 0
+            if messageTime >= windowStartTime and not lastMessageKeys[entry.key] then
                 lastMessageKeys[entry.key] = true
                 addMessage(entry.item)
             end
@@ -1752,9 +1999,43 @@ do
             rows[1]:Destroy()
             table.remove(rows, 1)
         end
+
+        local bOk, broadcasts = http("GET", "/broadcasts")
+        if bOk and type(broadcasts) == "table" then
+            local bEntries = {}
+            for key, item in pairs(broadcasts) do
+                if type(item) == "table" then
+                    table.insert(bEntries, {key = key, item = item})
+                end
+            end
+            table.sort(bEntries, function(a, b)
+                return (tonumber(a.item.time) or 0) < (tonumber(b.item.time) or 0)
+            end)
+            for _, entry in ipairs(bEntries) do
+                if not lastBroadcastKeys[entry.key] then
+                    lastBroadcastKeys[entry.key] = true
+                    local age = os.time() - (tonumber(entry.item.time) or 0)
+                    -- لا تعرض الإعلانات القديمة عند تشغيل السكربت؛ فقط الإعلان الجديد.
+                    if age >= 0 and age <= 35 then
+                        addBroadcast(entry.item)
+                        if tostring(entry.item.uid) ~= tostring(Me.UserId) then
+                            playBroadcastSound()
+                        end
+                    end
+                end
+            end
+        end
     end
 
+    local sendBusy = false
+    local lastSendClock = 0
+    local SEND_COOLDOWN = 1.25
+
     local function sendMessage()
+        if sendBusy then return end
+        local nowClock = os.clock()
+        if nowClock - lastSendClock < SEND_COOLDOWN then return end
+
         local textValue = cleanText(messageBox.Text):gsub("^%s+", ""):gsub("%s+$", "")
         if textValue == "" then return end
         if hasBadWord(textValue) then
@@ -1762,23 +2043,37 @@ do
             notify("تم منع الرسالة: تحتوي على ألفاظ ممنوعة")
             return
         end
+
         local muted = loadMutes()
         if muted[tostring(Me.UserId)] then
             notify("أنت مكتوم ولا يمكنك الإرسال")
             return
         end
-        local ok = http("POST", "/messages", {
-            uid = Me.UserId,
-            name = Me.Name,
-            text = textValue,
-            time = os.time()
-        })
-        if ok then
+
+        sendBusy = true
+        lastSendClock = nowClock
+        sendButton.Active = false
+        sendButton.AutoButtonColor = false
+        sendButton.Text = "..."
+        local requestOk, ok = pcall(function()
+            return http("POST", "/messages", {
+                uid = Me.UserId,
+                name = Me.Name,
+                text = textValue,
+                time = os.time()
+            })
+        end)
+
+        if requestOk and ok then
             messageBox.Text = ""
             refreshMessages()
         else
-            notify("تعذر الإرسال - تحقق من قاعدة البيانات")
+            notify("تعذر الإرسال - تحقق من اتصال وقواعد Firebase")
         end
+
+        sendButton.Text = "إرسال"
+        sendButton.Active = true
+        sendBusy = false
     end
     -- سحب زر الشات والنافذة باللمس أو الماوس
     local function makeDraggable(handle, target)
@@ -1885,9 +2180,9 @@ do
         end
     end
 
-    local function refreshMutedList()
+    local function refreshMutedList(skipReload)
         if not IS_DEV or not muteList then return end
-        loadMutes()
+        if not skipReload then loadMutes() end
         clearGui(muteList)
         local q = string.lower(muteSearch.Text or "")
         local count = 0
@@ -1927,9 +2222,23 @@ do
                     }, row)
                     round(unmute, 6)
                     unmute.MouseButton1Click:Connect(function()
-                        http("DELETE", "/mutes/" .. tostring(id))
-                        refreshMutedList()
-                        notify("تم إلغاء الكتم")
+                        if unmute:GetAttribute("Busy") then return end
+                        unmute:SetAttribute("Busy", true)
+                        unmute.Active = false
+                        unmute.Text = "..."
+                        local requestOk, removed = pcall(function()
+                            return http("DELETE", "/mutes/" .. tostring(id))
+                        end)
+                        if requestOk and removed then
+                            mutedCache[tostring(id)] = nil
+                            refreshMutedList(true)
+                            notify("تم إلغاء الكتم")
+                        else
+                            unmute.Text = "فشل"
+                            unmute.Active = true
+                            unmute:SetAttribute("Busy", false)
+                            notify("لم يُحذف الكتم: تحقق من صلاحيات Firebase")
+                        end
                     end)
                 end
             end
@@ -1948,10 +2257,15 @@ do
     end
 
     if IS_DEV then
+        broadcastBox = devPanel:FindFirstChild("BroadcastMessageBox")
+        broadcastSend = devPanel:FindFirstChild("BroadcastSendButton")
+
         local function showMutePage()
             muteNameBox.Visible = true
             muteActionButton.Visible = true
             logsButton.Visible = true
+            if broadcastBox then broadcastBox.Visible = true end
+            if broadcastSend then broadcastSend.Visible = true end
             muteSearch.Visible = false
             muteList.Visible = false
             backToMuteButton.Visible = false
@@ -1961,6 +2275,8 @@ do
             muteNameBox.Visible = false
             muteActionButton.Visible = false
             logsButton.Visible = false
+            if broadcastBox then broadcastBox.Visible = false end
+            if broadcastSend then broadcastSend.Visible = false end
             muteSearch.Visible = true
             muteList.Visible = true
             backToMuteButton.Visible = true
@@ -1988,8 +2304,14 @@ do
                 time = os.time()
             })
             if ok then
+                mutedCache[tostring(target.UserId)] = {
+                    uid = target.UserId,
+                    name = target.Name,
+                    mutedBy = Me.Name,
+                    time = os.time()
+                }
                 muteNameBox.Text = ""
-                refreshMutedList()
+                refreshMutedList(true)
                 notify("تم كتم " .. target.Name)
             else
                 notify("فشل حفظ الكتم")
@@ -1998,6 +2320,43 @@ do
         logsButton.MouseButton1Click:Connect(showLogsPage)
         backToMuteButton.MouseButton1Click:Connect(showMutePage)
         muteSearch:GetPropertyChangedSignal("Text"):Connect(refreshMutedList)
+
+        local broadcastBusy = false
+        broadcastSend.MouseButton1Click:Connect(function()
+            if broadcastBusy then return end
+            if string.lower(Me.Name) ~= "dms921" then
+                notify("هذه الخاصية للمطور فقط")
+                return
+            end
+            local broadcastText = cleanText(broadcastBox.Text):gsub("^%s+", ""):gsub("%s+$", "")
+            if broadcastText == "" then
+                notify("اكتب الإعلان أولاً")
+                return
+            end
+            broadcastBusy = true
+            broadcastSend.Active = false
+            broadcastSend.Text = "جارٍ الإرسال..."
+            local requestOk, sent = pcall(function()
+                return http("POST", "/broadcasts", {
+                    uid = Me.UserId,
+                    name = "Dms921",
+                    text = broadcastText,
+                    time = os.time(),
+                    badgeAsset = 71326541180468,
+                    badgeTexture = 139619959097679
+                })
+            end)
+            if requestOk and sent then
+                broadcastBox.Text = ""
+                refreshMessages()
+                notify("تم إرسال البرودكاست")
+            else
+                notify("فشل إرسال البرودكاست - تحقق من Firebase")
+            end
+            broadcastSend.Text = "إرسال برودكاست للجميع  📢"
+            broadcastSend.Active = true
+            broadcastBusy = false
+        end)
         devButton.MouseButton1Click:Connect(function()
             devPanel.Visible = not devPanel.Visible
             onlinePanel.Visible = false
@@ -2037,8 +2396,14 @@ do
 
     task.spawn(function()
         while gui and gui.Parent do
+            local secondsLeft = 180 - (os.time() % 180)
+            local mins = math.floor(secondsLeft / 60)
+            local secs = secondsLeft % 60
+            if resetTimerLabel and resetTimerLabel.Parent then
+                resetTimerLabel.Text = string.format("ريست %02d:%02d", mins, secs)
+            end
             pcall(refreshMessages)
-            task.wait(3)
+            task.wait(1)
         end
     end)
     task.spawn(function()
