@@ -299,7 +299,8 @@ end)
 local main = Instance.new("Frame")
 main.Parent = gui
 main.Size = UDim2.fromOffset(330,455)
-main.Position = UDim2.new(0.5,-165,0.5,-227)
+main.Position = UDim2.new(0.5,0,0.5,0)
+main.AnchorPoint = Vector2.new(0.5,0.5)
 main.BackgroundColor3 = C.Background
 main.BorderSizePixel = 0
 main.Visible = false
@@ -307,6 +308,12 @@ main.ClipsDescendants = true
 corner(main,9)
 outline(main,3)
 shine(main,C.Background,0.2)
+
+-- مقياس متجاوب للنافذة الرئيسية حسب حجم الشاشة
+local mainResponsiveScale = Instance.new("UIScale")
+mainResponsiveScale.Name = "ResponsiveScale"
+mainResponsiveScale.Scale = 1
+mainResponsiveScale.Parent = main
 
 local header = Instance.new("Frame")
 header.Parent = main
@@ -1363,6 +1370,47 @@ do
         ClipsDescendants = true,
         ZIndex = 70
     }, gui)
+
+    -- أحجام مناسبة للجوال والآيباد والكمبيوتر
+    local function updateResponsiveLayout()
+        local camera = workspace.CurrentCamera
+        if not camera then return end
+        local viewport = camera.ViewportSize
+        local width = viewport.X
+
+        if width < 600 then
+            mainResponsiveScale.Scale = 0.76
+            chatWindow.Size = UDim2.fromOffset(258, 205)
+            chatWindow.Position = UDim2.new(0, 10, 0, 104)
+            chatToggle.Size = UDim2.fromOffset(34, 34)
+            chatToggle.Position = UDim2.new(0, 10, 0, 62)
+        elseif width < 1000 then
+            mainResponsiveScale.Scale = 0.88
+            chatWindow.Size = UDim2.fromOffset(292, 222)
+            chatWindow.Position = UDim2.new(0, 12, 0, 104)
+            chatToggle.Size = UDim2.fromOffset(36, 36)
+            chatToggle.Position = UDim2.new(0, 12, 0, 62)
+        else
+            mainResponsiveScale.Scale = 1
+            chatWindow.Size = UDim2.fromOffset(325, 238)
+            chatWindow.Position = UDim2.new(0, 12, 0, 108)
+            chatToggle.Size = UDim2.fromOffset(38, 38)
+            chatToggle.Position = UDim2.new(0, 12, 0, 62)
+        end
+
+        -- منع خروج النافذة الرئيسية عن حدود الشاشة
+        main.Position = UDim2.new(0.5, 0, 0.5, 0)
+        main.AnchorPoint = Vector2.new(0.5, 0.5)
+    end
+
+    updateResponsiveLayout()
+    if workspace.CurrentCamera then
+        workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(updateResponsiveLayout)
+    end
+    workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+        task.defer(updateResponsiveLayout)
+    end)
+
     round(chatWindow, 12)
     stroke(chatWindow, Color3.fromRGB(235, 55, 78), 2)
     local chatGradient = Instance.new("UIGradient")
